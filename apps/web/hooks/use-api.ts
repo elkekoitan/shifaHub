@@ -3,7 +3,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/providers/auth-provider";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+// Production'da proxy uzerinden (mixed content onleme)
+const API_URL = typeof window !== "undefined" && window.location.protocol === "https:"
+  ? "/api/proxy"
+  : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000");
 
 export function useApi<T = unknown>(endpoint: string, options?: { skip?: boolean }) {
   const { token } = useAuth();

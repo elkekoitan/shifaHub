@@ -1,6 +1,9 @@
 // ShifaHub API Client
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+// Production'da proxy uzerinden, development'ta direkt backend
+const API_URL = typeof window !== "undefined" && window.location.protocol === "https:"
+  ? "/api/proxy"  // HTTPS frontend -> proxy -> HTTP backend
+  : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000");
 
 interface ApiOptions {
   method?: string;

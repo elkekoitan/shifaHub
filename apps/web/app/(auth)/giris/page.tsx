@@ -27,7 +27,8 @@ export default function GirisPage() {
     try {
       await login(email, password);
       // Rol bazli yonlendirme
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/auth/me`, {
+      const apiBase = window.location.protocol === "https:" ? "/api/proxy" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000");
+      const res = await fetch(`${apiBase}/api/auth/me`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("shifahub_token")}` },
       });
       const data = await res.json();
