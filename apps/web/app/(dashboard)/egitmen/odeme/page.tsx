@@ -69,7 +69,7 @@ export default function EgitmenOdemePage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">
-              {kasaLoading ? "..." : `${kasa?.totalAmount?.toFixed(2) ?? "0"} TL`}
+              {kasaLoading ? "..." : `${Number(kasa?.totalAmount || 0).toFixed(2)} TL`}
             </p>
           </CardContent>
         </Card>
@@ -79,7 +79,7 @@ export default function EgitmenOdemePage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-green-600">
-              {kasaLoading ? "..." : `${kasa?.byMethod?.nakit?.toFixed(2) ?? "0"} TL`}
+              {kasaLoading ? "..." : `${Number(kasa?.byMethod?.nakit || 0).toFixed(2)} TL`}
             </p>
           </CardContent>
         </Card>
@@ -89,7 +89,7 @@ export default function EgitmenOdemePage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-blue-600">
-              {kasaLoading ? "..." : `${kasa?.byMethod?.kart?.toFixed(2) ?? "0"} TL`}
+              {kasaLoading ? "..." : `${Number(kasa?.byMethod?.kart || 0).toFixed(2)} TL`}
             </p>
           </CardContent>
         </Card>
@@ -99,7 +99,7 @@ export default function EgitmenOdemePage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-amber-600">
-              {kasaLoading ? "..." : `${kasa?.pendingAmount?.toFixed(2) ?? "0"} TL`}
+              {kasaLoading ? "..." : `${Number(kasa?.pendingAmount || 0).toFixed(2)} TL`}
             </p>
           </CardContent>
         </Card>
@@ -177,7 +177,7 @@ export default function EgitmenOdemePage() {
                     >
                       {statusLabel[p.status] ?? p.status}
                     </span>
-                    <span className="font-bold">{p.amount?.toFixed(2)} TL</span>
+                    <span className="font-bold">{Number(p.amount || 0).toFixed(2)} TL</span>
                   </div>
                 </div>
               ))}
