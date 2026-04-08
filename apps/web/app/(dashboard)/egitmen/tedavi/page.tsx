@@ -17,7 +17,7 @@ const TREATMENT_TYPES = [
 ];
 
 export default function EgitmenTedaviPage() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading] = useState(false);
 
   return (
     <div className="space-y-6">

@@ -55,7 +55,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (!user) return null;
 
   const role = user.role || "danisan";
-  const items = navItems[role] || navItems.danisan;
+  const items = navItems[role] ?? navItems["danisan"]!;
 
   return (
     <div className="min-h-screen">

@@ -1,25 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { HijriDisplay } from "@/components/calendar/hijri-display";
 
-const STATUS_COLORS: Record<string, string> = {
-  requested: "bg-yellow-100 text-yellow-800",
-  confirmed: "bg-blue-100 text-blue-800",
-  reminded: "bg-purple-100 text-purple-800",
-  arrived: "bg-teal-100 text-teal-800",
-  completed: "bg-green-100 text-green-800",
-  cancelled: "bg-red-100 text-red-800",
-  no_show: "bg-gray-100 text-gray-800",
-};
-
-const STATUS_LABELS: Record<string, string> = {
-  requested: "Talep",
-  confirmed: "Onaylandi",
-  reminded: "Hatirlatildi",
-  arrived: "Geldi",
-  completed: "Tamamlandi",
-  cancelled: "Iptal",
-  no_show: "Gelmedi",
-};
 
 export default function EgitmenRandevuPage() {
   return (

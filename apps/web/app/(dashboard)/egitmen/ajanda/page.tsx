@@ -17,19 +17,22 @@ export default function EgitmenAjandaPage() {
       </div>
 
       <div className="grid grid-cols-7 gap-2">
-        {["Pzt", "Sal", "Car", "Per", "Cum", "Cmt", "Paz"].map((day, i) => (
+        {["Pzt", "Sal", "Car", "Per", "Cum", "Cmt", "Paz"].map((day, i) => {
+          const wd = weekDays[i]!;
+          return (
           <div key={day} className="text-center">
             <p className="text-xs font-medium text-muted-foreground mb-1">{day}</p>
-            <Card className={weekDays[i].toDateString() === today.toDateString() ? "border-primary" : ""}>
+            <Card className={wd.toDateString() === today.toDateString() ? "border-primary" : ""}>
               <CardContent className="p-3 min-h-[120px]">
-                <p className="text-lg font-bold">{weekDays[i].getDate()}</p>
+                <p className="text-lg font-bold">{wd.getDate()}</p>
                 <p className="text-xs text-muted-foreground">
                   {/* Randevular burada listelenecek */}
                 </p>
               </CardContent>
             </Card>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

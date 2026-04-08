@@ -16,7 +16,7 @@ const SEVERITY_LABELS = [
 
 export default function EgitmenAcilPage() {
   const [severity, setSeverity] = useState("1");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading] = useState(false);
 
   return (
     <div className="space-y-6">

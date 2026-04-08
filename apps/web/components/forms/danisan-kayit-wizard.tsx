@@ -58,7 +58,7 @@ export function DanisanKayitWizard() {
     <Card className="max-w-2xl mx-auto">
       <CardHeader>
         <div className="flex justify-between items-center mb-4">
-          {STEPS.map((s, i) => (
+          {STEPS.map((_s, i) => (
             <div key={i} className="flex items-center">
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
@@ -75,8 +75,8 @@ export function DanisanKayitWizard() {
             </div>
           ))}
         </div>
-        <CardTitle>{STEPS[step].title}</CardTitle>
-        <CardDescription>{STEPS[step].desc}</CardDescription>
+        <CardTitle>{STEPS[step]!.title}</CardTitle>
+        <CardDescription>{STEPS[step]!.desc}</CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-4">

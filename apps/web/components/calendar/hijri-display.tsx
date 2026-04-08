@@ -1,6 +1,6 @@
 "use client";
 
-import { formatDualDate, isHijriSunnahDay, gregorianToHijri } from "@/lib/hijri-calendar";
+import { isHijriSunnahDay, gregorianToHijri } from "@/lib/hijri-calendar";
 
 interface HijriDisplayProps {
   date: Date;
