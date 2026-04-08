@@ -4,6 +4,7 @@ import cors from "@fastify/cors";
 import helmet from "@fastify/helmet";
 import rateLimit from "@fastify/rate-limit";
 import { logger } from "./lib/logger.js";
+import { authRoutes } from "./routes/auth.js";
 
 const app = Fastify({
   logger: logger,
@@ -21,6 +22,9 @@ await app.register(rateLimit, {
   max: 100,
   timeWindow: "1 minute",
 });
+
+// Routes
+await app.register(authRoutes);
 
 // Health check
 app.get("/health", async () => ({
