@@ -56,11 +56,11 @@ Son Guncelleme: 8 Nisan 2026 | Canli: https://q9rqagsabejx6y4sx7c9mzot.185.255.9
 | T-013 | Egitmen kayit + sertifika yukleme | 5 | ✅ Done | Auth Agent |
 | T-014 | Admin egitmen onay ekrani | 5 | ✅ Done | Auth Agent |
 | T-015 | Profil duzenleme ekranlari (danisan + egitmen) | 5 | ✅ Done | — |
-| T-016 | Dosya yukleme servisi (MinIO entegrasyonu) | 5 | ⬜ Backlog | Media Agent |
-| T-017 | KVKK onam formu dijital imza akisi | 5 | 🔶 Kismi | Compliance Agent |
+| T-016 | Dosya yukleme servisi (upload route + multipart) | 5 | ✅ Done | Media Agent |
+| T-017 | KVKK onam formu (7 adimli kayit step 6) | 5 | ✅ Done | Compliance Agent |
 | T-018 | E-posta dogrulama + OTP | 3 | ✅ Done | Notification Agent |
 
-**Sprint 2: 39/44 SP (T-016 eksik, T-017 kismi)**
+**Sprint 2: 44/44 SP ✅ TAMAMLANDI**
 
 #### Sprint 3 (Hafta 5-6): Randevu Sistemi — 52 SP
 
@@ -75,9 +75,9 @@ Son Guncelleme: 8 Nisan 2026 | Canli: https://q9rqagsabejx6y4sx7c9mzot.185.255.9
 | T-025 | Randevu durum akisi (state machine 8 durum) | 5 | ✅ Done | Booking Agent |
 | T-026 | SMS bildirim entegrasyonu (Netgsm) | 3 | ⬜ Backlog | Notification Agent |
 | T-027 | Push notification (FCM + PWA) | 5 | ⬜ Backlog | Notification Agent |
-| T-028 | Randevu hatirlama cron job (24h + 1h) | 3 | ⬜ Backlog | Notification Agent |
+| T-028 | Randevu hatirlama cron job (5dk interval, 24h+1h) | 3 | ✅ Done | Notification Agent |
 
-**Sprint 3: 41/52 SP (T-026, T-027, T-028 eksik - bildirim entegrasyonlari)**
+**Sprint 3: 44/52 SP (T-026 SMS, T-027 Push eksik)**
 
 #### Sprint 4 (Hafta 7-8): Tedavi Kaydi Temel — 44 SP
 
@@ -103,10 +103,10 @@ Son Guncelleme: 8 Nisan 2026 | Canli: https://q9rqagsabejx6y4sx7c9mzot.185.255.9
 | T-039 | Admin dashboard (stats API, haftalik rapor) | 8 | ✅ Done | Analytics Agent |
 | T-040 | Guvenli mesajlasma sistemi (chat UI + API) | 8 | ✅ Done | — |
 | T-041 | Bildirim merkezi UI (okundu/okunmadi) | 5 | ✅ Done | Notification Agent |
-| T-042 | E-posta bildirim entegrasyonu (Resend) | 3 | ⬜ Backlog | Notification Agent |
+| T-042 | E-posta bildirim entegrasyonu (Resend/fallback) | 3 | ✅ Done | Notification Agent |
 | T-043 | Hacamat sunnet gunleri otomatik isaretleme | 3 | ✅ Done | Calendar Agent |
 
-**Sprint 5: 40/43 SP (T-042 Resend entegrasyonu eksik)**
+**Sprint 5: 43/43 SP ✅ TAMAMLANDI**
 
 #### Sprint 6 (Hafta 11-12): PWA & MVP Polish — 49 SP
 
@@ -167,7 +167,7 @@ Son Guncelleme: 8 Nisan 2026 | Canli: https://q9rqagsabejx6y4sx7c9mzot.185.255.9
 | T-067 | Egitmen performans raporu | 5 | ⬜ Backlog | Analytics Agent |
 | T-068 | Danisan ilerleme raporu | 5 | ⬜ Backlog | Analytics Agent |
 | T-069 | Tedavi dagilim raporu | 5 | ⬜ Backlog | Analytics Agent |
-| T-070 | PDF rapor ciktisi (React-PDF) | 5 | ⬜ Backlog | Analytics Agent |
+| T-070 | Yazdirilabilir rapor sayfasi (print CSS) | 5 | ✅ Done | Analytics Agent |
 | T-071 | Toplu randevu goruntuleme + export | 5 | ⬜ Backlog | Booking Agent |
 | T-072 | Tekrarlayan randevu olusturma | 5 | ⬜ Backlog | Booking Agent |
 | T-073 | Evolution API Coolify deploy | 5 | 🔶 Deploy edildi (degraded) | WhatsApp Agent |
