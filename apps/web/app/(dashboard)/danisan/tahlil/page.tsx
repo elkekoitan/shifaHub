@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useApi } from "@/hooks/use-api";
+import { useAuth } from "@/providers/auth-provider";
 
 const COMMON_TESTS = [
   "Hemogram (Tam Kan Sayimi)",
@@ -21,8 +23,25 @@ const COMMON_TESTS = [
   "Tam Idrar Tahlili",
 ];
 
+type TahlilItem = {
+  id: string;
+  testType: string;
+  testDate: string;
+  labName: string;
+  notes: string;
+  fileUrl: string;
+  createdAt: string;
+};
+
 export default function DanisanTahlilPage() {
   const [showForm, setShowForm] = useState(false);
+  const { user } = useAuth();
+  const { data: tahlilList, loading, error } = useApi<TahlilItem[]>(
+    `/api/tahlil/danisan/${user?.id}`,
+    { skip: !user?.id },
+  );
+
+  const items = tahlilList ?? [];
 
   return (
     <div className="space-y-6">
@@ -76,9 +95,45 @@ export default function DanisanTahlilPage() {
           <CardTitle>Tahlil Gecmisi</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground text-center py-8">
-            Henuz tahlil kaydiniz bulunmuyor.
-          </p>
+          {loading ? (
+            <p className="text-sm text-muted-foreground text-center py-8">Yukleniyor...</p>
+          ) : error ? (
+            <p className="text-sm text-red-500 text-center py-8">{error}</p>
+          ) : items.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8">
+              Henuz tahlil kaydiniz bulunmuyor.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {items.map((t) => (
+                <div
+                  key={t.id}
+                  className="flex items-center justify-between border rounded-lg p-3"
+                >
+                  <div className="space-y-1">
+                    <p className="font-medium">{t.testType}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(t.testDate).toLocaleDateString("tr-TR")}
+                      {t.labName ? ` - ${t.labName}` : ""}
+                    </p>
+                    {t.notes && (
+                      <p className="text-xs text-muted-foreground">{t.notes}</p>
+                    )}
+                  </div>
+                  {t.fileUrl && (
+                    <a
+                      href={t.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:underline"
+                    >
+                      Dosyayi Gor
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

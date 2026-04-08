@@ -5,9 +5,53 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useApi } from "@/hooks/use-api";
+
+type GunlukKasa = {
+  totalAmount: number;
+  paidAmount: number;
+  pendingAmount: number;
+  byMethod: { nakit: number; kart: number; havale: number; eft: number };
+  count: number;
+};
+
+type OdemeItem = {
+  id: string;
+  amount: number;
+  paidAmount: number;
+  method: string;
+  status: string;
+  description: string;
+  createdAt: string;
+};
+
+const methodLabel: Record<string, string> = {
+  nakit: "Nakit",
+  kart: "Kredi/Banka Karti",
+  havale: "Havale",
+  eft: "EFT",
+};
+
+const statusLabel: Record<string, string> = {
+  paid: "Odendi",
+  pending: "Beklemede",
+  partial: "Kismi",
+  free: "Ucretsiz",
+};
+
+const statusColor: Record<string, string> = {
+  paid: "bg-green-100 text-green-800",
+  pending: "bg-amber-100 text-amber-800",
+  partial: "bg-blue-100 text-blue-800",
+  free: "bg-gray-100 text-gray-800",
+};
 
 export default function EgitmenOdemePage() {
   const [showForm, setShowForm] = useState(false);
+  const { data: kasa, loading: kasaLoading } = useApi<GunlukKasa>("/api/odeme/gunluk-kasa");
+  const { data: odemeList, loading: listLoading, error } = useApi<OdemeItem[]>("/api/odeme");
+
+  const payments = odemeList ?? [];
 
   return (
     <div className="space-y-6">
@@ -24,7 +68,9 @@ export default function EgitmenOdemePage() {
             <CardTitle className="text-sm text-muted-foreground">Bugun Toplam</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">0 TL</p>
+            <p className="text-2xl font-bold">
+              {kasaLoading ? "..." : `${kasa?.totalAmount?.toFixed(2) ?? "0"} TL`}
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -32,7 +78,9 @@ export default function EgitmenOdemePage() {
             <CardTitle className="text-sm text-muted-foreground">Nakit</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-green-600">0 TL</p>
+            <p className="text-2xl font-bold text-green-600">
+              {kasaLoading ? "..." : `${kasa?.byMethod?.nakit?.toFixed(2) ?? "0"} TL`}
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -40,7 +88,9 @@ export default function EgitmenOdemePage() {
             <CardTitle className="text-sm text-muted-foreground">Kart</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-blue-600">0 TL</p>
+            <p className="text-2xl font-bold text-blue-600">
+              {kasaLoading ? "..." : `${kasa?.byMethod?.kart?.toFixed(2) ?? "0"} TL`}
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -48,7 +98,9 @@ export default function EgitmenOdemePage() {
             <CardTitle className="text-sm text-muted-foreground">Bekleyen</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-amber-600">0 TL</p>
+            <p className="text-2xl font-bold text-amber-600">
+              {kasaLoading ? "..." : `${kasa?.pendingAmount?.toFixed(2) ?? "0"} TL`}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -97,9 +149,40 @@ export default function EgitmenOdemePage() {
           <CardTitle>Odeme Gecmisi</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground text-center py-8">
-            Henuz odeme kaydi bulunmuyor.
-          </p>
+          {listLoading ? (
+            <p className="text-sm text-muted-foreground text-center py-8">Yukleniyor...</p>
+          ) : error ? (
+            <p className="text-sm text-red-500 text-center py-8">{error}</p>
+          ) : payments.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8">
+              Henuz odeme kaydi bulunmuyor.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {payments.map((p) => (
+                <div
+                  key={p.id}
+                  className="flex items-center justify-between border rounded-lg p-3"
+                >
+                  <div className="space-y-1">
+                    <p className="font-medium">{p.description || "Odeme"}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(p.createdAt).toLocaleDateString("tr-TR")} -{" "}
+                      {methodLabel[p.method] ?? p.method}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full ${statusColor[p.status] ?? "bg-gray-100 text-gray-800"}`}
+                    >
+                      {statusLabel[p.status] ?? p.status}
+                    </span>
+                    <span className="font-bold">{p.amount?.toFixed(2)} TL</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

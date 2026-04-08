@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useApi } from "@/hooks/use-api";
 
 const CATEGORIES = [
   { value: "kupa", label: "Kupalar" },
@@ -15,8 +16,31 @@ const CATEGORIES = [
   { value: "diger", label: "Diger" },
 ];
 
+const categoryLabel = (val: string) =>
+  CATEGORIES.find((c) => c.value === val)?.label ?? val;
+
+type StokItem = {
+  id: string;
+  name: string;
+  category: string;
+  quantity: number;
+  unit: string;
+  minimumLevel: number;
+  unitPrice: number;
+  expiryDate: string;
+};
+
 export default function EgitmenStokPage() {
   const [showForm, setShowForm] = useState(false);
+  const { data: stokList, loading, error } = useApi<StokItem[]>("/api/stok");
+
+  const items = stokList ?? [];
+  const kritikCount = items.filter((s) => s.quantity <= s.minimumLevel).length;
+  const now = new Date();
+  const thirtyDaysLater = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+  const expiringCount = items.filter(
+    (s) => s.expiryDate && new Date(s.expiryDate) <= thirtyDaysLater,
+  ).length;
 
   return (
     <div className="space-y-6">
@@ -33,7 +57,7 @@ export default function EgitmenStokPage() {
             <CardTitle className="text-sm text-muted-foreground">Toplam Kalem</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">0</p>
+            <p className="text-2xl font-bold">{items.length}</p>
           </CardContent>
         </Card>
         <Card>
@@ -41,7 +65,7 @@ export default function EgitmenStokPage() {
             <CardTitle className="text-sm text-muted-foreground">Kritik Stok</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-amber-600">0</p>
+            <p className="text-2xl font-bold text-amber-600">{kritikCount}</p>
           </CardContent>
         </Card>
         <Card>
@@ -49,7 +73,7 @@ export default function EgitmenStokPage() {
             <CardTitle className="text-sm text-muted-foreground">Son Kullanma Yaklasan</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-red-600">0</p>
+            <p className="text-2xl font-bold text-red-600">{expiringCount}</p>
           </CardContent>
         </Card>
       </div>
@@ -108,9 +132,54 @@ export default function EgitmenStokPage() {
           <CardTitle>Stok Listesi</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground text-center py-8">
-            Henuz stok kaydi bulunmuyor.
-          </p>
+          {loading ? (
+            <p className="text-sm text-muted-foreground text-center py-8">Yukleniyor...</p>
+          ) : error ? (
+            <p className="text-sm text-red-500 text-center py-8">{error}</p>
+          ) : items.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8">
+              Henuz stok kaydi bulunmuyor.
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b text-left">
+                    <th className="pb-2 font-medium">Malzeme</th>
+                    <th className="pb-2 font-medium">Kategori</th>
+                    <th className="pb-2 font-medium">Miktar</th>
+                    <th className="pb-2 font-medium">Birim</th>
+                    <th className="pb-2 font-medium">Min. Seviye</th>
+                    <th className="pb-2 font-medium">Birim Fiyat</th>
+                    <th className="pb-2 font-medium">SKT</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((item) => {
+                    const isLow = item.quantity <= item.minimumLevel;
+                    return (
+                      <tr
+                        key={item.id}
+                        className={`border-b ${isLow ? "bg-red-50 text-red-700" : ""}`}
+                      >
+                        <td className="py-2 font-medium">{item.name}</td>
+                        <td className="py-2">{categoryLabel(item.category)}</td>
+                        <td className={`py-2 ${isLow ? "font-bold" : ""}`}>{item.quantity}</td>
+                        <td className="py-2">{item.unit}</td>
+                        <td className="py-2">{item.minimumLevel}</td>
+                        <td className="py-2">{item.unitPrice?.toFixed(2)} TL</td>
+                        <td className="py-2">
+                          {item.expiryDate
+                            ? new Date(item.expiryDate).toLocaleDateString("tr-TR")
+                            : "-"}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
