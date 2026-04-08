@@ -7,9 +7,9 @@ export * from "./egitmen.js";
 export * from "./audit_log.js";
 export * from "./kvkk_consent.js";
 
-// Sprint 3+
-// export * from "./randevu.js";
-// export * from "./musaitlik.js";
+// Sprint 3 - Randevu
+export * from "./randevu.js";
+export * from "./musaitlik.js";
 
 // Sprint 4+
 // export * from "./tedavi.js";

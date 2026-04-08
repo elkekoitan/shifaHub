@@ -86,16 +86,16 @@ ShifaHub, 14 uzman ajandan olusan event-driven bir mimari kullanir. Her ajan ken
 | Dijital imza akisi | Compliance Agent | 5 | Backlog |
 | Email dogrulama + OTP | Notification Agent | 5 | DONE (Sprint 1) |
 
-### Sprint 3 (Hafta 5-6): Randevu Sistemi - 52 SP
+### Sprint 3 (Hafta 5-6): Randevu Sistemi - 52 SP [DEVAM EDIYOR %70]
 | Gorev | Ajan | SP | Durum |
 |-------|------|----|-------|
-| Randevu DB + API | Booking Agent | 8 | Backlog |
-| Egitmen musaitlik ayarlari | Booking Agent | 5 | Backlog |
-| Danisan randevu alma UI | Booking Agent | 8 | Backlog |
-| Hicri takvim entegrasyonu | Calendar Agent | 8 | Backlog |
-| Paralel Hicri/Miladi gosterim | Calendar Agent | 5 | Backlog |
-| Takvim gorunumleri (gun/hafta/ay) | Booking Agent | 5 | Backlog |
-| Randevu state machine | Booking Agent | 3 | Backlog |
+| Randevu DB + API | Booking Agent | 8 | DONE |
+| Egitmen musaitlik ayarlari | Booking Agent | 5 | DONE |
+| Danisan randevu alma UI | Booking Agent | 8 | DONE |
+| Hicri takvim entegrasyonu | Calendar Agent | 8 | DONE |
+| Paralel Hicri/Miladi gosterim | Calendar Agent | 5 | DONE |
+| Takvim gorunumleri (gun/hafta/ay) | Booking Agent | 5 | DONE |
+| Randevu state machine | Booking Agent | 3 | DONE |
 | SMS hatirlati (Netgsm) | Notification Agent | 5 | Backlog |
 | FCM push bildirimi | Notification Agent | 3 | Backlog |
 | Otomatik cron hatirlati (24h+1h) | Notification Agent | 2 | Backlog |
