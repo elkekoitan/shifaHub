@@ -9,6 +9,7 @@ import { danisanRoutes } from "./routes/danisan.js";
 import { adminRoutes } from "./routes/admin.js";
 import { mfaRoutes } from "./routes/mfa.js";
 import { emailVerifyRoutes } from "./routes/email-verify.js";
+import { egitmenRoutes } from "./routes/egitmen.js";
 
 const app = Fastify({
   logger: logger,
@@ -33,6 +34,7 @@ await app.register(danisanRoutes);
 await app.register(adminRoutes);
 await app.register(mfaRoutes);
 await app.register(emailVerifyRoutes);
+await app.register(egitmenRoutes);
 
 // Health check
 app.get("/health", async () => ({

@@ -60,13 +60,13 @@ ShifaHub, 14 uzman ajandan olusan event-driven bir mimari kullanir. Her ajan ken
 
 ## 3. Sprint Bazli Ajan Atamalari
 
-### Sprint 1 (Hafta 1-2): Altyapi & Auth - 40 SP [%60 TAMAMLANDI]
+### Sprint 1 (Hafta 1-2): Altyapi & Auth - 40 SP [TAMAMLANDI]
 | Gorev | Ajan | SP | Durum |
 |-------|------|----|-------|
 | Monorepo kurulumu (Turborepo) | - | 5 | DONE |
 | Next.js 16 scaffold | - | 5 | DONE |
 | PostgreSQL schema (Drizzle) | - | 8 | DONE |
-| JWT + MFA auth sistemi | Auth Agent | 8 | IN PROGRESS (MFA kaldi) |
+| JWT + MFA auth sistemi | Auth Agent | 8 | DONE |
 | RBAC (4 rol) | Auth Agent | 5 | DONE |
 | KVKK consent modulu | Compliance Agent | 5 | DONE |
 | Coolify CI/CD pipeline | - | 3 | DONE |
@@ -74,17 +74,17 @@ ShifaHub, 14 uzman ajandan olusan event-driven bir mimari kullanir. Her ajan ken
 | ESLint + Prettier + Husky | - | 2 | DONE |
 | shadcn/ui component library | - | 3 | DONE |
 
-### Sprint 2 (Hafta 3-4): Kayit & Profil - 44 SP
+### Sprint 2 (Hafta 3-4): Kayit & Profil - 44 SP [DEVAM EDIYOR %70]
 | Gorev | Ajan | SP | Durum |
 |-------|------|----|-------|
-| Danisan kayit wizard (4 adim) | Auth Agent | 8 | Backlog |
-| Kapsamli anamnez formu | Clinical Agent | 8 | Backlog |
-| Egitmen kayit + sertifika yukleme | Auth Agent | 5 | Backlog |
-| Admin onay akisi | Auth Agent | 5 | Backlog |
-| Profil duzenleme | Auth Agent | 3 | Backlog |
+| Danisan kayit wizard (4 adim) | Auth Agent | 8 | DONE |
+| Kapsamli anamnez formu | Clinical Agent | 8 | DONE |
+| Egitmen kayit + sertifika yukleme | Auth Agent | 5 | DONE |
+| Admin onay akisi | Auth Agent | 5 | DONE (Sprint 1) |
+| Profil duzenleme | Auth Agent | 3 | DONE |
 | MinIO dosya yukleme | Media Agent | 5 | Backlog |
 | Dijital imza akisi | Compliance Agent | 5 | Backlog |
-| Email dogrulama + OTP | Notification Agent | 5 | Backlog |
+| Email dogrulama + OTP | Notification Agent | 5 | DONE (Sprint 1) |
 
 ### Sprint 3 (Hafta 5-6): Randevu Sistemi - 52 SP
 | Gorev | Ajan | SP | Durum |
@@ -221,7 +221,7 @@ x = Mesaj gonderir (satir -> sutun)
 | Hafta | Tarih | Sprint | Planlanan SP | Tamamlanan SP | Velocity | Notlar |
 |-------|-------|--------|-------------|---------------|----------|--------|
 | 0 | 2026-04-08 | Faz 0 | - | - | - | Dokumantasyon + Altyapi kurulumu tamamlandi |
-| 1 | 2026-04-08 | Sprint 1 | 20 | 24 | 24 | Auth, RBAC, DB schema, UI, Dashboard - 5 commit |
+| 1 | 2026-04-08 | Sprint 1 | 20 | 40 | 40 | Sprint 1 TAMAMLANDI - Auth, MFA, RBAC, email verify - 7 commit |
 | 2 | - | Sprint 1 | 20 | - | - | - |
 | 3 | - | Sprint 2 | 22 | - | - | - |
 | 4 | - | Sprint 2 | 22 | - | - | - |
