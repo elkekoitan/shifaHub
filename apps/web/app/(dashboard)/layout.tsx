@@ -9,6 +9,7 @@ const navItems: Record<string, { label: string; href: string; icon: string }[]> 
   danisan: [
     { label: "Ana Sayfa", href: "/danisan", icon: "🏠" },
     { label: "Randevularim", href: "/danisan/randevu", icon: "📅" },
+    { label: "Egitmen Ara", href: "/danisan/egitmen", icon: "🔍" },
     { label: "Tedavilerim", href: "/danisan/tedavi", icon: "💊" },
     { label: "Tahlillerim", href: "/danisan/tahlil", icon: "🔬" },
     { label: "Mesajlar", href: "/danisan/mesaj", icon: "💬" },
@@ -33,6 +34,7 @@ const navItems: Record<string, { label: string; href: string; icon: string }[]> 
     { label: "Egitmenler", href: "/admin/egitmen", icon: "👨‍⚕️" },
     { label: "Danisanlar", href: "/admin/danisan", icon: "👥" },
     { label: "KVKK", href: "/admin/kvkk", icon: "🔒" },
+    { label: "Raporlar", href: "/admin/raporlar", icon: "📈" },
     { label: "Sistem", href: "/admin/sistem", icon: "⚙️" },
   ],
 };

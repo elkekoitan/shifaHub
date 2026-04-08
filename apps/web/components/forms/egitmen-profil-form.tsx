@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useApiMutation } from "@/hooks/use-api";
 
 const SPECIALTIES = [
   { value: "hacamat_kuru", label: "Kuru Hacamat" },
@@ -20,7 +21,7 @@ const SPECIALTIES = [
 ];
 
 export function EgitmenProfilForm() {
-  const [isLoading, setIsLoading] = useState(false);
+  // isLoading replaced by saving from useApiMutation
   const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     certificateNumber: "",
@@ -46,11 +47,18 @@ export function EgitmenProfilForm() {
     );
   }
 
+  const { mutate, loading: saving, error: saveError } = useApiMutation();
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setIsLoading(true);
-    // TODO: API call
-    setTimeout(() => setIsLoading(false), 1000);
+    setSaveSuccess(false);
+    const result = await mutate("/api/egitmen/me", {
+      ...formData,
+      specialties: selectedSpecialties,
+      workingDays: [1, 2, 3, 4, 5],
+    }, "PUT");
+    if (result) setSaveSuccess(true);
   }
 
   return (
@@ -150,8 +158,10 @@ export function EgitmenProfilForm() {
         </CardContent>
       </Card>
 
-      <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? "Kaydediliyor..." : "Profili Kaydet"}
+      {saveSuccess && <div className="p-3 text-sm text-green-700 bg-green-50 rounded-lg">Profil basariyla kaydedildi!</div>}
+      {saveError && <div className="p-3 text-sm text-red-700 bg-red-50 rounded-lg">{saveError}</div>}
+      <Button type="submit" className="w-full" disabled={saving}>
+        {saving ? "Kaydediliyor..." : "Profili Kaydet"}
       </Button>
     </form>
   );
