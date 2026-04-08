@@ -100,17 +100,17 @@ ShifaHub, 14 uzman ajandan olusan event-driven bir mimari kullanir. Her ajan ken
 | FCM push bildirimi | Notification Agent | 3 | Backlog |
 | Otomatik cron hatirlati (24h+1h) | Notification Agent | 2 | Backlog |
 
-### Sprint 4 (Hafta 7-8): Tedavi Kayitlari - 44 SP
+### Sprint 4 (Hafta 7-8): Tedavi Kayitlari - 44 SP [DEVAM EDIYOR %75]
 | Gorev | Ajan | SP | Durum |
 |-------|------|----|-------|
-| Tedavi kaydi schema + API | Clinical Agent | 8 | Backlog |
-| Tedavi form UI | Clinical Agent | 8 | Backlog |
-| Danisan detay ekrani (sekmeli) | Clinical Agent | 5 | Backlog |
-| Tahlil yukleme + gosterim | Media Agent | 5 | Backlog |
+| Tedavi kaydi schema + API | Clinical Agent | 8 | DONE |
+| Tedavi form UI | Clinical Agent | 8 | DONE |
+| Danisan detay ekrani (sekmeli) | Clinical Agent | 5 | DONE |
+| Tahlil yukleme + gosterim | Media Agent | 5 | DONE |
 | Kan degerleri formu | Clinical Agent | 5 | Backlog |
 | Aranabilir danisan listesi | Clinical Agent | 3 | Backlog |
-| Tedavi gecmisi timeline | Clinical Agent | 5 | Backlog |
-| Gecmise donuk kayit | Clinical Agent | 5 | Backlog |
+| Tedavi gecmisi timeline | Clinical Agent | 5 | DONE |
+| Gecmise donuk kayit | Clinical Agent | 5 | DONE |
 
 ### Sprint 5 (Hafta 9-10): Dashboard & Mesajlasma - 43 SP
 | Gorev | Ajan | SP | Durum |

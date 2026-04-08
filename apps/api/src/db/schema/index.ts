@@ -11,9 +11,9 @@ export * from "./kvkk_consent.js";
 export * from "./randevu.js";
 export * from "./musaitlik.js";
 
-// Sprint 4+
-// export * from "./tedavi.js";
-// export * from "./tahlil.js";
+// Sprint 4 - Tedavi & Tahlil
+export * from "./tedavi.js";
+export * from "./tahlil.js";
 
 // Faz 2+
 // export * from "./stok.js";
