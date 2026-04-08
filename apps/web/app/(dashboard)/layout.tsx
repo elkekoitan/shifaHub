@@ -61,16 +61,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen">
       <Sidebar items={items} role={role} />
-      <main className="ml-64 min-h-screen bg-background">
-        <header className="flex items-center justify-between border-b px-6 py-3">
-          <span className="text-sm text-muted-foreground">
-            Hos geldiniz, <strong>{user.firstName} {user.lastName}</strong>
+      <main className="lg:ml-64 min-h-screen bg-background">
+        <header className="flex items-center justify-between border-b px-4 py-3 pl-14 lg:pl-6">
+          <span className="text-sm text-muted-foreground truncate">
+            Hos geldiniz, <strong>{user.firstName}</strong>
           </span>
-          <button onClick={logout} className="text-sm text-muted-foreground hover:text-destructive">
+          <button onClick={logout} className="text-sm text-muted-foreground hover:text-destructive whitespace-nowrap ml-2">
             Cikis Yap
           </button>
         </header>
-        <div className="p-6">{children}</div>
+        <div className="p-4 lg:p-6">{children}</div>
       </main>
     </div>
   );

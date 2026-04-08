@@ -7,13 +7,23 @@ export const metadata: Metadata = {
   description:
     "GETAT uygulayicilari icin danisan yonetimi, randevu takibi ve tedavi protokolleri platformu",
   manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "ShifaHub",
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
+  maximumScale: 5,
+  userScalable: true,
   themeColor: "#0D9488",
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -23,7 +33,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="tr" dir="ltr">
-      <body className="min-h-screen bg-background font-sans antialiased">
+      <head>
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+      </head>
+      <body className="min-h-screen bg-background font-sans antialiased touch-manipulation">
         <AuthProvider>{children}</AuthProvider>
         <script
           dangerouslySetInnerHTML={{

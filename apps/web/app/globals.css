@@ -40,5 +40,28 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
   }
+
+  /* Mobil input zoom onleme */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  @media (min-width: 1024px) {
+    input, select, textarea {
+      font-size: 14px !important;
+    }
+  }
+
+  /* Tablo responsive */
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Safe area (notch) */
+  .safe-top { padding-top: env(safe-area-inset-top); }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
 }
