@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useApi } from "@/hooks/use-api";
+import { useApi, useApiMutation } from "@/hooks/use-api";
 import Link from "next/link";
 
 interface FullDanisan {
@@ -79,10 +79,18 @@ export default function DanisanDetayPage() {
   const params = useParams();
   const userId = params.id as string;
   const [tab, setTab] = useState(0);
-  const { data, loading, error } = useApi<FullDanisan>(`/api/danisan/${userId}/full`);
+  const { data, loading, error, refetch } = useApi<FullDanisan>(`/api/danisan/${userId}/full`);
   const { data: protokoller, loading: protokolLoading } = useApi<Protokol[]>(
     `/api/protokol/danisan/${userId}`,
   );
+  const { mutate: updateTedavi, loading: updatingTedavi } = useApiMutation();
+  const [editingTedaviId, setEditingTedaviId] = useState<string | null>(null);
+  const [editFields, setEditFields] = useState({
+    recommendations: "",
+    afterNotes: "",
+    sideEffects: "",
+    patientFeedback: "",
+  });
 
   if (loading) return <div className="flex items-center justify-center py-20 text-muted-foreground">Yukleniyor...</div>;
   if (error || !data) return <div className="text-center py-20 text-red-500">{error || "Veri bulunamadi"}</div>;
@@ -234,7 +242,26 @@ export default function DanisanDetayPage() {
               <CardContent className="pt-4 space-y-2">
                 <div className="flex items-center justify-between">
                   <p className="font-medium">Seans {t.sessionNumber} - {t.treatmentType}</p>
-                  <span className="text-xs text-muted-foreground">{new Date(t.treatmentDate).toLocaleDateString("tr-TR")}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">{new Date(t.treatmentDate).toLocaleDateString("tr-TR")}</span>
+                    {editingTedaviId !== t.id && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setEditingTedaviId(t.id);
+                          setEditFields({
+                            recommendations: t.recommendations || "",
+                            afterNotes: (t as Record<string, unknown>).afterNotes as string || "",
+                            sideEffects: (t as Record<string, unknown>).sideEffects as string || "",
+                            patientFeedback: (t as Record<string, unknown>).patientFeedback as string || "",
+                          });
+                        }}
+                      >
+                        Duzenle
+                      </Button>
+                    )}
+                  </div>
                 </div>
                 {t.vitalSigns && (
                   <p className="text-xs text-muted-foreground">
@@ -243,7 +270,73 @@ export default function DanisanDetayPage() {
                 )}
                 {t.findings && <div><p className="text-xs text-muted-foreground">Bulgular:</p><p className="text-sm">{t.findings}</p></div>}
                 {t.appliedTreatment && <div><p className="text-xs text-muted-foreground">Tedavi:</p><p className="text-sm">{t.appliedTreatment}</p></div>}
-                {t.recommendations && <div><p className="text-xs text-muted-foreground">Oneriler:</p><p className="text-sm text-primary">{t.recommendations}</p></div>}
+                {t.recommendations && editingTedaviId !== t.id && <div><p className="text-xs text-muted-foreground">Oneriler:</p><p className="text-sm text-primary">{t.recommendations}</p></div>}
+
+                {/* Inline edit form */}
+                {editingTedaviId === t.id && (
+                  <div className="border-t pt-3 mt-3 space-y-3">
+                    <p className="text-sm font-medium text-primary">Tedavi Kaydini Duzenle</p>
+                    <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">Oneriler</label>
+                      <textarea
+                        className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm min-h-[60px]"
+                        value={editFields.recommendations}
+                        onChange={(e) => setEditFields({ ...editFields, recommendations: e.target.value })}
+                        placeholder="Danisana oneriler..."
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">Sonrasi Notlari</label>
+                      <textarea
+                        className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm min-h-[60px]"
+                        value={editFields.afterNotes}
+                        onChange={(e) => setEditFields({ ...editFields, afterNotes: e.target.value })}
+                        placeholder="Tedavi sonrasi notlar..."
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">Yan Etkiler</label>
+                      <textarea
+                        className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm min-h-[60px]"
+                        value={editFields.sideEffects}
+                        onChange={(e) => setEditFields({ ...editFields, sideEffects: e.target.value })}
+                        placeholder="Gozlemlenen yan etkiler..."
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">Danisan Geri Bildirimi</label>
+                      <textarea
+                        className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm min-h-[60px]"
+                        value={editFields.patientFeedback}
+                        onChange={(e) => setEditFields({ ...editFields, patientFeedback: e.target.value })}
+                        placeholder="Danisan geri bildirimi..."
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        disabled={updatingTedavi}
+                        onClick={async () => {
+                          const result = await updateTedavi(`/api/tedavi/${t.id}`, editFields, "PUT");
+                          if (result) {
+                            setEditingTedaviId(null);
+                            refetch();
+                          }
+                        }}
+                      >
+                        {updatingTedavi ? "Kaydediliyor..." : "Kaydet"}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setEditingTedaviId(null)}
+                      >
+                        Iptal
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
                 {/* Oncesi / Sonrasi gorsel karsilastirma */}
                 {((t.beforeImageUrls && t.beforeImageUrls.length > 0) || (t.afterImageUrls && t.afterImageUrls.length > 0)) && (
                   <div className="border-t pt-3 mt-3">

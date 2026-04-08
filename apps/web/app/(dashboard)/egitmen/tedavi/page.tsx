@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useApiMutation } from "@/hooks/use-api";
+import { useApi, useApiMutation } from "@/hooks/use-api";
 
 const TREATMENT_TYPES = [
   { value: "hacamat_kuru", label: "Kuru Hacamat" },
@@ -26,6 +26,9 @@ const BODY_AREAS = [
 export default function EgitmenTedaviPage() {
   const { mutate, loading, error } = useApiMutation();
   const [success, setSuccess] = useState(false);
+  const { data: danisanlar, loading: danisanlarLoading } = useApi<
+    Array<{ userId: string; firstName: string; lastName: string }>
+  >("/api/danisan/list");
 
   // Form state
   const [danisanId, setDanisanId] = useState("");
@@ -112,12 +115,22 @@ export default function EgitmenTedaviPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <Label>Danisan ID</Label>
-            <Input
-              placeholder="Danisan ID giriniz"
+            <Label>Danisan</Label>
+            <select
+              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
               value={danisanId}
               onChange={(e) => setDanisanId(e.target.value)}
-            />
+              disabled={danisanlarLoading}
+            >
+              <option value="">
+                {danisanlarLoading ? "Yukleniyor..." : "Danisan Seciniz"}
+              </option>
+              {(danisanlar ?? []).map((d) => (
+                <option key={d.userId} value={d.userId}>
+                  {d.firstName} {d.lastName}
+                </option>
+              ))}
+            </select>
           </div>
         </CardContent>
       </Card>

@@ -28,6 +28,7 @@ const navItems: Record<string, { label: string; href: string; icon: string }[]> 
     { label: "Stok", href: "/egitmen/stok", icon: "📦" },
     { label: "Odemeler", href: "/egitmen/odeme", icon: "💰" },
     { label: "Acil Durum", href: "/egitmen/acil", icon: "🚨" },
+    { label: "Mesajlar", href: "/egitmen/mesaj", icon: "💬" },
     { label: "Bildirimler", href: "/bildirim", icon: "🔔" },
     { label: "Profilim", href: "/egitmen/profil", icon: "👤" },
   ],

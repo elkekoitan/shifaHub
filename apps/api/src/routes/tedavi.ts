@@ -141,6 +141,35 @@ export async function tedaviRoutes(app: FastifyInstance) {
     return reply.send({ success: true, data: last || null });
   });
 
+  // PUT /api/tedavi/:id - Tedavi guncelle
+  app.put("/api/tedavi/:id", { preHandler: requireRole("egitmen") }, async (request, reply) => {
+    const { sub } = getUser(request);
+    const { id } = request.params as { id: string };
+    const body = request.body as Partial<typeof tedavi.$inferInsert>;
+
+    const [existing] = await db.select().from(tedavi).where(eq(tedavi.id, id)).limit(1);
+    if (!existing) return reply.status(404).send({ success: false, error: "Tedavi bulunamadi" });
+    if (existing.egitmenId !== sub) return reply.status(403).send({ success: false, error: "Bu tedaviyi guncelleme yetkiniz yok" });
+
+    const [updated] = await db.update(tedavi).set({ ...body, updatedAt: new Date() }).where(eq(tedavi.id, id)).returning();
+    await createAuditLog({ userId: sub, action: "update", tableName: "tedavi", recordId: id, description: "Tedavi guncellendi", request });
+    return reply.send({ success: true, data: updated });
+  });
+
+  // DELETE /api/tedavi/:id - Tedavi sil
+  app.delete("/api/tedavi/:id", { preHandler: requireRole("egitmen") }, async (request, reply) => {
+    const { sub } = getUser(request);
+    const { id } = request.params as { id: string };
+
+    const [existing] = await db.select().from(tedavi).where(eq(tedavi.id, id)).limit(1);
+    if (!existing) return reply.status(404).send({ success: false, error: "Tedavi bulunamadi" });
+    if (existing.egitmenId !== sub) return reply.status(403).send({ success: false, error: "Bu tedaviyi silme yetkiniz yok" });
+
+    await db.delete(tedavi).where(eq(tedavi.id, id));
+    await createAuditLog({ userId: sub, action: "delete", tableName: "tedavi", recordId: id, description: "Tedavi silindi", request });
+    return reply.send({ success: true, message: "Tedavi silindi" });
+  });
+
   // GET /api/tedavi/:id
   app.get("/api/tedavi/:id", { preHandler: requireAuth() }, async (request, reply) => {
     const { id } = request.params as { id: string };
