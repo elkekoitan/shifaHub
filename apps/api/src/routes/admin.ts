@@ -291,6 +291,28 @@ export async function adminRoutes(app: FastifyInstance) {
     return reply.send({ success: true, data: logs });
   });
 
+  // GET /api/admin/stats/egitmen-performans
+  app.get("/api/admin/stats/egitmen-performans", { preHandler: requireRole("admin") }, async (_request, reply) => {
+    const allEgitmen = await db
+      .select({ userId: egitmen.userId, firstName: users.firstName, lastName: users.lastName, clinicCity: egitmen.clinicCity })
+      .from(egitmen)
+      .innerJoin(users, eq(egitmen.userId, users.id))
+      .where(eq(egitmen.approvalStatus, "approved"));
+
+    const results = [];
+    for (const e of allEgitmen) {
+      const tedaviCount = await db.select({ count: sql<number>`count(*)` }).from(tedavi).where(eq(tedavi.egitmenId, e.userId));
+      const randevuCount = await db.select({ count: sql<number>`count(*)` }).from(randevu).where(eq(randevu.egitmenId, e.userId));
+      results.push({
+        ...e,
+        tedaviSayisi: tedaviCount[0]?.count || 0,
+        randevuSayisi: randevuCount[0]?.count || 0,
+      });
+    }
+
+    return reply.send({ success: true, data: results });
+  });
+
   // ==========================================
   // KVKK VERI SILME + EXPORT
   // ==========================================

@@ -13,6 +13,7 @@ const navItems: Record<string, { label: string; href: string; icon: string }[]> 
     { label: "Tedavilerim", href: "/danisan/tedavi", icon: "💊" },
     { label: "Tahlillerim", href: "/danisan/tahlil", icon: "🔬" },
     { label: "Mesajlar", href: "/danisan/mesaj", icon: "💬" },
+    { label: "Geri Bildirim", href: "/danisan/geri-bildirim", icon: "⭐" },
     { label: "Bildirimler", href: "/bildirim", icon: "🔔" },
     { label: "Profilim", href: "/danisan/profil", icon: "👤" },
   ],

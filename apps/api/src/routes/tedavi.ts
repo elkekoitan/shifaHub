@@ -134,6 +134,13 @@ export async function tedaviRoutes(app: FastifyInstance) {
     return reply.send({ success: true, data: results });
   });
 
+  // GET /api/tedavi/danisan/:danisanId/last - Son tedavi (geri bildirim icin)
+  app.get("/api/tedavi/danisan/:danisanId/last", { preHandler: requireAuth() }, async (request, reply) => {
+    const { danisanId } = request.params as { danisanId: string };
+    const [last] = await db.select().from(tedavi).where(eq(tedavi.danisanId, danisanId)).orderBy(desc(tedavi.treatmentDate)).limit(1);
+    return reply.send({ success: true, data: last || null });
+  });
+
   // GET /api/tedavi/:id
   app.get("/api/tedavi/:id", { preHandler: requireAuth() }, async (request, reply) => {
     const { id } = request.params as { id: string };

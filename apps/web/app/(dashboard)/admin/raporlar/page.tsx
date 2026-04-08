@@ -82,7 +82,48 @@ export default function AdminRaporlarPage() {
         </CardContent>
       </Card>
       <HaftalikRapor />
+      <EgitmenPerformans />
     </div>
+  );
+}
+
+function EgitmenPerformans() {
+  const { data, loading } = useApi<Array<{ firstName: string; lastName: string; clinicCity: string; tedaviSayisi: number; randevuSayisi: number }>>("/api/admin/stats/egitmen-performans");
+
+  return (
+    <Card>
+      <CardHeader><CardTitle>Egitmen Performansi</CardTitle></CardHeader>
+      <CardContent>
+        {loading ? (
+          <p className="text-center text-muted-foreground py-4">Yukleniyor...</p>
+        ) : !data || data.length === 0 ? (
+          <p className="text-center text-muted-foreground py-4">Egitmen verisi bulunamadi.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="text-left p-3 font-medium">Egitmen</th>
+                  <th className="text-left p-3 font-medium">Sehir</th>
+                  <th className="text-left p-3 font-medium">Tedavi</th>
+                  <th className="text-left p-3 font-medium">Randevu</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.map((e, i) => (
+                  <tr key={i} className="border-t">
+                    <td className="p-3 font-medium">{e.firstName} {e.lastName}</td>
+                    <td className="p-3 text-muted-foreground">{e.clinicCity || "-"}</td>
+                    <td className="p-3 font-bold text-green-600">{e.tedaviSayisi}</td>
+                    <td className="p-3">{e.randevuSayisi}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 

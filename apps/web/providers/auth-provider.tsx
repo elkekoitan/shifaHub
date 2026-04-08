@@ -140,6 +140,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("shifahub_token", res.data.accessToken);
     localStorage.setItem("shifahub_refresh", res.data.refreshToken);
     updateLastActivity();
+    // Browser push notification izni iste
+    if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
   }, []);
 
   return (
