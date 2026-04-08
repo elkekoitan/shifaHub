@@ -26,5 +26,8 @@ export * from "./odeme";
 // Faz 2 - Komplikasyon
 export * from "./komplikasyon";
 
+// Tedavi Protokolu
+export * from "./protokol";
+
 // Faz 3 (AI/Knowledge)
 // export * from "./kulliyat";

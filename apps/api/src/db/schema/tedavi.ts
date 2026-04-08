@@ -63,6 +63,11 @@ export const tedavi = pgTable("tedavi", {
   // Kontraendikasyonlar
   contraindications: jsonb("contraindications").$type<string[]>().default([]),
 
+  // PRD 9.2: Yan etki ve geri bildirim
+  sideEffects: text("side_effects"), // Yan etki/gozlem
+  patientFeedback: text("patient_feedback"), // Danisan geri bildirimi
+  bodyArea: varchar("body_area", { length: 100 }), // Uygulama bolgesi
+
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

@@ -23,6 +23,15 @@ const COMMON_TESTS = [
   "Tam Idrar Tahlili",
 ];
 
+type TahlilValue = {
+  name: string;
+  value: number;
+  unit: string;
+  referenceMin?: number;
+  referenceMax?: number;
+  isOutOfRange?: boolean;
+};
+
 type TahlilItem = {
   id: string;
   testType: string;
@@ -31,7 +40,47 @@ type TahlilItem = {
   notes: string;
   fileUrl: string;
   createdAt: string;
+  values?: TahlilValue[];
 };
+
+function ValueProgressBar({ v }: { v: TahlilValue }) {
+  const hasRange = v.referenceMin != null && v.referenceMax != null;
+  if (!hasRange) return null;
+
+  const min = v.referenceMin!;
+  const max = v.referenceMax!;
+  const range = max - min;
+  const padding = range * 0.3;
+  const scaleMin = Math.max(0, min - padding);
+  const scaleMax = max + padding;
+  const scaleRange = scaleMax - scaleMin;
+
+  const valuePos = scaleRange > 0 ? Math.max(0, Math.min(100, ((v.value - scaleMin) / scaleRange) * 100)) : 50;
+  const rangeStart = scaleRange > 0 ? ((min - scaleMin) / scaleRange) * 100 : 0;
+  const rangeEnd = scaleRange > 0 ? ((max - scaleMin) / scaleRange) * 100 : 100;
+  const isNormal = v.value >= min && v.value <= max;
+
+  return (
+    <div className="mt-1 space-y-1">
+      <div className="flex justify-between text-[10px] text-muted-foreground">
+        <span>{v.name}: {v.value} {v.unit}</span>
+        <span>Ref: {min}-{max}</span>
+      </div>
+      <div className="relative h-3 bg-gray-100 rounded-full overflow-hidden">
+        {/* Reference range (green zone) */}
+        <div
+          className="absolute top-0 h-full bg-green-100 rounded-full"
+          style={{ left: `${rangeStart}%`, width: `${rangeEnd - rangeStart}%` }}
+        />
+        {/* Value marker */}
+        <div
+          className={`absolute top-0 h-full rounded-full ${isNormal ? "bg-green-500" : "bg-red-500"}`}
+          style={{ width: `${valuePos}%` }}
+        />
+      </div>
+    </div>
+  );
+}
 
 export default function DanisanTahlilPage() {
   const [showForm, setShowForm] = useState(false);
@@ -140,27 +189,54 @@ export default function DanisanTahlilPage() {
               {items.map((t) => (
                 <div
                   key={t.id}
-                  className="flex items-center justify-between border rounded-lg p-3"
+                  className="border rounded-lg p-3 space-y-2"
                 >
-                  <div className="space-y-1">
-                    <p className="font-medium">{t.testType}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(t.testDate).toLocaleDateString("tr-TR")}
-                      {t.labName ? ` - ${t.labName}` : ""}
-                    </p>
-                    {t.notes && (
-                      <p className="text-xs text-muted-foreground">{t.notes}</p>
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <p className="font-medium">{t.testType}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(t.testDate).toLocaleDateString("tr-TR")}
+                        {t.labName ? ` - ${t.labName}` : ""}
+                      </p>
+                      {t.notes && (
+                        <p className="text-xs text-muted-foreground">{t.notes}</p>
+                      )}
+                    </div>
+                    {t.fileUrl && (
+                      <a
+                        href={t.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-600 hover:underline shrink-0"
+                      >
+                        Dosyayi Gor
+                      </a>
                     )}
                   </div>
-                  {t.fileUrl && (
-                    <a
-                      href={t.fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-blue-600 hover:underline"
-                    >
-                      Dosyayi Gor
-                    </a>
+
+                  {/* Deger gorsellestirme */}
+                  {Array.isArray(t.values) && t.values.length > 0 && (
+                    <div className="border-t pt-2 mt-2 space-y-2">
+                      <p className="text-xs font-medium text-muted-foreground">Deger Analizi</p>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {t.values.map((v, i) => (
+                          <div
+                            key={i}
+                            className={`p-2 rounded-md text-sm ${
+                              v.isOutOfRange ? "bg-red-50 border border-red-200" : "bg-green-50 border border-green-200"
+                            }`}
+                          >
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="font-medium text-xs">{v.name}</span>
+                              <span className={`text-xs font-semibold ${v.isOutOfRange ? "text-red-600" : "text-green-600"}`}>
+                                {v.value} {v.unit}
+                              </span>
+                            </div>
+                            <ValueProgressBar v={v} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
               ))}

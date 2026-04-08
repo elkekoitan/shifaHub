@@ -24,7 +24,44 @@ interface FullDanisan {
   randevular: Array<{ id: string; scheduledAt: string; status: string; treatmentType: string; duration: number }>;
 }
 
-const TABS = ["Genel", "Anamnez", "Tedaviler", "Tahliller", "Randevular"];
+const TABS = ["Genel", "Anamnez", "Tedaviler", "Tahliller", "Randevular", "Protokol"];
+interface ProtokolComplaint {
+  description: string;
+  priority: string;
+  treatmentMethod: string;
+  estimatedSessions: number;
+  sessionInterval: string;
+}
+
+interface Protokol {
+  id: string;
+  title: string;
+  status: string;
+  complaints: ProtokolComplaint[];
+  supportingTreatments: string;
+  notes: string;
+  createdAt: string;
+}
+
+const PRIORITY_LABELS: Record<string, string> = {
+  "1": "Acil", "2": "Yuksek", "3": "Normal", "4": "Takip",
+};
+const PRIORITY_COLORS: Record<string, string> = {
+  "1": "bg-red-100 text-red-800", "2": "bg-orange-100 text-orange-800",
+  "3": "bg-blue-100 text-blue-800", "4": "bg-gray-100 text-gray-800",
+};
+const TREATMENT_LABELS: Record<string, string> = {
+  hacamat_kuru: "Hacamat (Kuru)", hacamat_yas: "Hacamat (Yas)", solucan: "Solucan Tedavisi",
+  sujok: "Sujok", refleksoloji: "Refleksoloji", akupunktur: "Akupunktur", fitoterapi: "Fitoterapi",
+};
+const PROTOKOL_STATUS_LABELS: Record<string, string> = {
+  active: "Aktif", completed: "Tamamlandi", cancelled: "Iptal", draft: "Taslak",
+};
+const PROTOKOL_STATUS_COLORS: Record<string, string> = {
+  active: "bg-green-100 text-green-800", completed: "bg-blue-100 text-blue-800",
+  cancelled: "bg-red-100 text-red-800", draft: "bg-gray-100 text-gray-800",
+};
+
 const statusLabel: Record<string, string> = {
   requested: "Talep", confirmed: "Onaylandi", reminded: "Hatirlatildi",
   arrived: "Geldi", treated: "Tedavi", completed: "Tamamlandi",
@@ -41,6 +78,9 @@ export default function DanisanDetayPage() {
   const userId = params.id as string;
   const [tab, setTab] = useState(0);
   const { data, loading, error } = useApi<FullDanisan>(`/api/danisan/${userId}/full`);
+  const { data: protokoller, loading: protokolLoading } = useApi<Protokol[]>(
+    `/api/protokol/danisan/${userId}`,
+  );
 
   if (loading) return <div className="flex items-center justify-center py-20 text-muted-foreground">Yukleniyor...</div>;
   if (error || !data) return <div className="text-center py-20 text-red-500">{error || "Veri bulunamadi"}</div>;
@@ -258,6 +298,68 @@ export default function DanisanDetayPage() {
               </CardContent>
             </Card>
           ))}
+        </div>
+      )}
+
+      {/* Tab: Protokol */}
+      {tab === 5 && (
+        <div className="space-y-3">
+          {protokolLoading ? (
+            <p className="text-sm text-muted-foreground text-center py-8">Yukleniyor...</p>
+          ) : !protokoller || protokoller.length === 0 ? (
+            <Card>
+              <CardContent className="py-8 text-center text-muted-foreground">
+                Henuz protokol olusturulmamis
+              </CardContent>
+            </Card>
+          ) : (
+            protokoller.map((p) => (
+              <Card key={p.id}>
+                <CardContent className="pt-4 space-y-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <h3 className="font-semibold text-base">{p.title}</h3>
+                    <span className={`px-2 py-0.5 text-xs rounded-full ${PROTOKOL_STATUS_COLORS[p.status] || "bg-gray-100"}`}>
+                      {PROTOKOL_STATUS_LABELS[p.status] || p.status}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2">
+                    {(p.complaints ?? []).map((c, i) => (
+                      <div key={i} className="flex flex-col sm:flex-row sm:items-center gap-2 p-2 bg-muted/50 rounded-md">
+                        <span className={`px-2 py-0.5 text-xs rounded-full shrink-0 ${PRIORITY_COLORS[c.priority] || "bg-gray-100"}`}>
+                          {PRIORITY_LABELS[c.priority] || `Oncelik ${c.priority}`}
+                        </span>
+                        <span className="text-sm flex-1">{c.description}</span>
+                        <span className="text-xs text-muted-foreground shrink-0">
+                          {TREATMENT_LABELS[c.treatmentMethod] || c.treatmentMethod}
+                          {" | "}
+                          {c.estimatedSessions} seans
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {p.supportingTreatments && (
+                    <div>
+                      <p className="text-xs text-muted-foreground">Destekleyici Tedaviler:</p>
+                      <p className="text-sm">{p.supportingTreatments}</p>
+                    </div>
+                  )}
+
+                  {p.notes && (
+                    <div>
+                      <p className="text-xs text-muted-foreground">Notlar:</p>
+                      <p className="text-sm">{p.notes}</p>
+                    </div>
+                  )}
+
+                  <p className="text-xs text-muted-foreground text-right">
+                    {new Date(p.createdAt).toLocaleDateString("tr-TR")}
+                  </p>
+                </CardContent>
+              </Card>
+            ))
+          )}
         </div>
       )}
     </div>
