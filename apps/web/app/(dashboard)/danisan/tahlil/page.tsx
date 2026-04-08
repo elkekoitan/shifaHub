@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useApi } from "@/hooks/use-api";
+import { useApi, useApiMutation } from "@/hooks/use-api";
 import { useAuth } from "@/providers/auth-provider";
 
 const COMMON_TESTS = [
@@ -35,11 +35,34 @@ type TahlilItem = {
 
 export default function DanisanTahlilPage() {
   const [showForm, setShowForm] = useState(false);
+  const [testType, setTestType] = useState("");
+  const [testDate, setTestDate] = useState("");
+  const [labName, setLabName] = useState("");
+  const [notes, setNotes] = useState("");
   const { user } = useAuth();
-  const { data: tahlilList, loading, error } = useApi<TahlilItem[]>(
+  const { mutate, loading: saving, error: saveError } = useApiMutation();
+  const { data: tahlilList, loading, error, refetch } = useApi<TahlilItem[]>(
     `/api/tahlil/danisan/${user?.id}`,
     { skip: !user?.id },
   );
+
+  async function handleSubmit() {
+    const result = await mutate("/api/tahlil", {
+      testType,
+      testDate,
+      labName,
+      notes,
+      danisanId: user?.id,
+    });
+    if (result) {
+      setTestType("");
+      setTestDate("");
+      setLabName("");
+      setNotes("");
+      setShowForm(false);
+      refetch();
+    }
+  }
 
   const items = tahlilList ?? [];
 
@@ -61,7 +84,11 @@ export default function DanisanTahlilPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Tahlil Tipi</Label>
-                <select className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm">
+                <select
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                  value={testType}
+                  onChange={(e) => setTestType(e.target.value)}
+                >
                   <option value="">Seciniz</option>
                   {COMMON_TESTS.map((t) => (
                     <option key={t} value={t}>{t}</option>
@@ -70,12 +97,12 @@ export default function DanisanTahlilPage() {
               </div>
               <div className="space-y-2">
                 <Label>Tahlil Tarihi</Label>
-                <Input type="date" />
+                <Input type="date" value={testDate} onChange={(e) => setTestDate(e.target.value)} />
               </div>
             </div>
             <div className="space-y-2">
               <Label>Laboratuvar</Label>
-              <Input placeholder="Lab adi (opsiyonel)" />
+              <Input placeholder="Lab adi (opsiyonel)" value={labName} onChange={(e) => setLabName(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label>Tahlil Dosyasi (PDF/Gorsel)</Label>
@@ -83,9 +110,14 @@ export default function DanisanTahlilPage() {
             </div>
             <div className="space-y-2">
               <Label>Notlar</Label>
-              <textarea className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm min-h-[60px]" placeholder="Ek notlar..." />
+              <textarea className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm min-h-[60px]" placeholder="Ek notlar..." value={notes} onChange={(e) => setNotes(e.target.value)} />
             </div>
-            <Button className="w-full">Tahlili Kaydet</Button>
+            {saveError && (
+              <p className="text-sm text-red-500 text-center">{saveError}</p>
+            )}
+            <Button className="w-full" onClick={handleSubmit} disabled={saving || !testType || !testDate}>
+              {saving ? "Kaydediliyor..." : "Tahlili Kaydet"}
+            </Button>
           </CardContent>
         </Card>
       )}

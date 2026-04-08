@@ -5,20 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useApiMutation } from "@/hooks/use-api";
 
 export default function DogrulaPage() {
   const [otp, setOtp] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
+  const { mutate, loading: isLoading, error } = useApiMutation();
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setIsLoading(true);
-    // TODO: Email verification API call
-    setTimeout(() => {
-      setIsLoading(false);
+    const result = await mutate("/api/email/verify", { token: otp });
+    if (result) {
       setIsVerified(true);
-    }, 1000);
+    }
   }
 
   if (isVerified) {
@@ -65,6 +64,9 @@ export default function DogrulaPage() {
               disabled={isLoading}
             />
           </div>
+          {error && (
+            <p className="text-sm text-red-500 text-center">{error}</p>
+          )}
           <Button type="button" variant="ghost" className="w-full text-sm" disabled={isLoading}>
             Kodu tekrar gonder
           </Button>

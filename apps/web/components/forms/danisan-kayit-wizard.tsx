@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useApiMutation } from "@/hooks/use-api";
 
 const STEPS = [
   { title: "Kisisel Bilgiler", desc: "Temel iletisim bilgileriniz" },
@@ -15,7 +16,8 @@ const STEPS = [
 
 export function DanisanKayitWizard() {
   const [step, setStep] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const { mutate, loading: isLoading, error } = useApiMutation();
   const [formData, setFormData] = useState({
     // Step 1 - Kisisel
     birthDate: "",
@@ -48,10 +50,29 @@ export function DanisanKayitWizard() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   }
 
+  function toArray(value: string): string[] {
+    return value
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+
   async function handleSubmit() {
-    setIsLoading(true);
-    // TODO: API call to save danisan profile
-    setTimeout(() => setIsLoading(false), 1000);
+    const payload = {
+      ...formData,
+      height: formData.height ? Number(formData.height) : undefined,
+      weight: formData.weight ? Number(formData.weight) : undefined,
+      chronicDiseases: toArray(formData.chronicDiseases),
+      allergies: toArray(formData.allergies),
+      currentMedications: toArray(formData.currentMedications),
+      previousSurgeries: toArray(formData.previousSurgeries),
+      previousTreatments: toArray(formData.previousTreatments),
+      mainComplaints: toArray(formData.mainComplaints),
+    };
+    const result = await mutate("/api/danisan/me", payload, "PUT");
+    if (result) {
+      setIsSaved(true);
+    }
   }
 
   return (
@@ -200,6 +221,12 @@ export function DanisanKayitWizard() {
           </>
         )}
 
+        {error && (
+          <p className="text-sm text-red-500 text-center">{error}</p>
+        )}
+        {isSaved && (
+          <p className="text-sm text-green-600 text-center">Profiliniz basariyla kaydedildi!</p>
+        )}
         <div className="flex gap-2 pt-4">
           {step > 0 && (
             <Button type="button" variant="outline" onClick={() => setStep(step - 1)} className="flex-1">
@@ -211,8 +238,8 @@ export function DanisanKayitWizard() {
               Devam
             </Button>
           ) : (
-            <Button type="button" onClick={handleSubmit} className="flex-1" disabled={isLoading}>
-              {isLoading ? "Kaydediliyor..." : "Profili Tamamla"}
+            <Button type="button" onClick={handleSubmit} className="flex-1" disabled={isLoading || isSaved}>
+              {isLoading ? "Kaydediliyor..." : isSaved ? "Kaydedildi" : "Profili Tamamla"}
             </Button>
           )}
         </div>

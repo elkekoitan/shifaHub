@@ -1,6 +1,18 @@
+"use client";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useApi } from "@/hooks/use-api";
+
+type AdminStats = {
+  totalUsers: number;
+  totalEgitmen: number;
+  totalRandevu: number;
+  totalTedavi: number;
+};
 
 export default function AdminSistemPage() {
+  const { data: stats, loading, error } = useApi<AdminStats>("/api/admin/stats");
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Sistem Durumu</h1>
@@ -8,41 +20,45 @@ export default function AdminSistemPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">API Sunucu</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground">Toplam Kullanici</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-lg font-bold text-green-600">Aktif</p>
-            <p className="text-xs text-muted-foreground">api.shifahub.app</p>
+            <p className="text-2xl font-bold">{loading ? "..." : stats?.totalUsers ?? 0}</p>
+            <p className="text-xs text-muted-foreground">Kayitli kullanici</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Veritabani</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground">Toplam Egitmen</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-lg font-bold text-green-600">Aktif</p>
-            <p className="text-xs text-muted-foreground">PostgreSQL 17</p>
+            <p className="text-2xl font-bold">{loading ? "..." : stats?.totalEgitmen ?? 0}</p>
+            <p className="text-xs text-muted-foreground">Aktif egitmen</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Cache</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground">Toplam Randevu</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-lg font-bold text-green-600">Aktif</p>
-            <p className="text-xs text-muted-foreground">Redis 8</p>
+            <p className="text-2xl font-bold">{loading ? "..." : stats?.totalRandevu ?? 0}</p>
+            <p className="text-xs text-muted-foreground">Tum randevular</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Depolama</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground">Toplam Tedavi</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-lg font-bold text-green-600">Aktif</p>
-            <p className="text-xs text-muted-foreground">MinIO S3</p>
+            <p className="text-2xl font-bold">{loading ? "..." : stats?.totalTedavi ?? 0}</p>
+            <p className="text-xs text-muted-foreground">Tamamlanan tedaviler</p>
           </CardContent>
         </Card>
       </div>
+
+      {error && (
+        <p className="text-sm text-red-500">Istatistikler yuklenemedi: {error}</p>
+      )}
 
       <Card>
         <CardHeader>

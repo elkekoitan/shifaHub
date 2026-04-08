@@ -6,19 +6,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useApiMutation } from "@/hooks/use-api";
 
 export default function SifreSifirlaPage() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState("");
   const [isSent, setIsSent] = useState(false);
+  const { mutate, loading: isLoading, error } = useApiMutation();
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setIsLoading(true);
-    // TODO: Password reset API call
-    setTimeout(() => {
-      setIsLoading(false);
+    const result = await mutate("/api/email/forgot-password", { email });
+    if (result) {
       setIsSent(true);
-    }, 1000);
+    }
   }
 
   if (isSent) {
@@ -56,10 +56,15 @@ export default function SifreSifirlaPage() {
               name="email"
               type="email"
               placeholder="ornek@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
               disabled={isLoading}
             />
           </div>
+          {error && (
+            <p className="text-sm text-red-500 text-center">{error}</p>
+          )}
         </CardContent>
         <CardFooter className="flex flex-col gap-3">
           <Button type="submit" className="w-full" disabled={isLoading}>
