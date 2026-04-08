@@ -62,6 +62,8 @@ export default function EgitmenDashboard() {
           <Button asChild variant="outline"><Link href="/egitmen/danisan">Danisanlarim</Link></Button>
           <Button asChild variant="outline"><Link href="/egitmen/randevu">Randevular</Link></Button>
           <Button asChild variant="outline"><Link href="/egitmen/tedavi">Tedavi Kaydi</Link></Button>
+          <Button asChild variant="outline"><Link href="/egitmen/protokol">Protokoller</Link></Button>
+          <Button asChild variant="outline"><Link href="/egitmen/musaitlik">Musaitlik</Link></Button>
           <Button asChild variant="outline"><Link href="/egitmen/stok">Stok</Link></Button>
           <Button asChild variant="outline"><Link href="/egitmen/odeme">Odemeler</Link></Button>
           <Button asChild variant="outline"><Link href="/egitmen/ajanda">Ajanda</Link></Button>

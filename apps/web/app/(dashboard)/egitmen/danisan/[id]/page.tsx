@@ -18,6 +18,7 @@ interface FullDanisan {
   tedaviler: Array<{
     id: string; treatmentType: string; sessionNumber: number; treatmentDate: string;
     complaints: unknown; findings: string; appliedTreatment: string; recommendations: string;
+    nextSessionDate?: string;
     vitalSigns: { bloodPressure?: string; pulse?: number; weight?: number } | null;
     beforeImageUrls?: string[]; afterImageUrls?: string[];
   }>;
@@ -25,7 +26,7 @@ interface FullDanisan {
   randevular: Array<{ id: string; scheduledAt: string; status: string; treatmentType: string; duration: number }>;
 }
 
-const TABS = ["Genel", "Anamnez", "Tedaviler", "Tahliller", "Randevular", "Protokol"];
+const TABS = ["Genel", "Anamnez", "Tedaviler", "Tahliller", "Randevular", "Protokol", "Medya", "Tavsiyeler"];
 interface ProtokolComplaint {
   description: string;
   priority: string;
@@ -398,6 +399,79 @@ export default function DanisanDetayPage() {
               </Card>
             ))
           )}
+        </div>
+      )}
+
+      {/* Tab: Medya */}
+      {tab === 6 && (
+        <div className="space-y-3">
+          {(() => {
+            const allImages = tedaviler.flatMap((t) => {
+              const imgs: Array<{ url: string; type: "oncesi" | "sonrasi"; sessionNumber: number; treatmentType: string; treatmentDate: string }> = [];
+              (t.beforeImageUrls || []).forEach((url) => imgs.push({ url, type: "oncesi", sessionNumber: t.sessionNumber, treatmentType: t.treatmentType, treatmentDate: t.treatmentDate }));
+              (t.afterImageUrls || []).forEach((url) => imgs.push({ url, type: "sonrasi", sessionNumber: t.sessionNumber, treatmentType: t.treatmentType, treatmentDate: t.treatmentDate }));
+              return imgs;
+            });
+            if (allImages.length === 0) {
+              return <Card><CardContent className="py-8 text-center text-muted-foreground">Henuz gorsel yuklenmemis</CardContent></Card>;
+            }
+            return (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {allImages.map((img, i) => (
+                  <Card key={i}>
+                    <CardContent className="pt-4 space-y-2">
+                      <img src={img.url} alt={`${img.type} - Seans ${img.sessionNumber}`} className="w-full rounded-md border object-cover max-h-56" />
+                      <div className="flex items-center justify-between text-xs">
+                        <span className={`px-2 py-0.5 rounded-full ${img.type === "oncesi" ? "bg-amber-100 text-amber-800" : "bg-green-100 text-green-800"}`}>
+                          {img.type === "oncesi" ? "Oncesi" : "Sonrasi"}
+                        </span>
+                        <span className="text-muted-foreground">
+                          Seans {img.sessionNumber} - {new Date(img.treatmentDate).toLocaleDateString("tr-TR")}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{img.treatmentType}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
+      {/* Tab: Tavsiyeler */}
+      {tab === 7 && (
+        <div className="space-y-3">
+          {(() => {
+            const tavsiyeler = tedaviler
+              .filter((t) => t.recommendations || t.nextSessionDate)
+              .sort((a, b) => new Date(b.treatmentDate).getTime() - new Date(a.treatmentDate).getTime());
+            if (tavsiyeler.length === 0) {
+              return <Card><CardContent className="py-8 text-center text-muted-foreground">Henuz tavsiye kaydi yok</CardContent></Card>;
+            }
+            return tavsiyeler.map((t) => (
+              <Card key={t.id}>
+                <CardContent className="pt-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="font-medium text-sm">Seans {t.sessionNumber} - {t.treatmentType}</p>
+                    <span className="text-xs text-muted-foreground">{new Date(t.treatmentDate).toLocaleDateString("tr-TR")}</span>
+                  </div>
+                  {t.recommendations && (
+                    <div className="p-3 bg-primary/5 rounded-md border border-primary/10">
+                      <p className="text-xs text-muted-foreground mb-1 font-medium">Tavsiyeler</p>
+                      <p className="text-sm">{t.recommendations}</p>
+                    </div>
+                  )}
+                  {t.nextSessionDate && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="text-xs text-muted-foreground">Sonraki Seans:</span>
+                      <span className="font-medium text-primary">{new Date(t.nextSessionDate).toLocaleDateString("tr-TR")}</span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ));
+          })()}
         </div>
       )}
     </div>

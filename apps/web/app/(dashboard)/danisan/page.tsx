@@ -68,9 +68,11 @@ export default function DanisanDashboard() {
         </CardHeader>
         <CardContent className="flex gap-2 flex-wrap">
           <Button asChild><Link href="/danisan/randevu">Randevu Al</Link></Button>
+          <Button asChild variant="outline"><Link href="/danisan/egitmen">Egitmen Ara</Link></Button>
           <Button asChild variant="outline"><Link href="/danisan/tedavi">Tedavilerim</Link></Button>
           <Button asChild variant="outline"><Link href="/danisan/tahlil">Tahlillerim</Link></Button>
           <Button asChild variant="outline"><Link href="/danisan/mesaj">Mesajlar</Link></Button>
+          <Button asChild variant="outline"><Link href="/danisan/geri-bildirim">Geri Bildirim</Link></Button>
           <Button asChild variant="outline"><Link href="/danisan/profil">Profilim</Link></Button>
         </CardContent>
       </Card>

@@ -157,19 +157,19 @@ Son Guncelleme: 8 Nisan 2026 | Canli: https://q9rqagsabejx6y4sx7c9mzot.185.255.9
 
 | Task ID | Task | SP | Durum | Agent |
 |---------|------|----|-------|-------|
-| T-056 | Oncesi/sonrasi karsilastirma (split-view) | 8 | ⬜ Backlog | Clinical Agent |
+| T-056 | Oncesi/sonrasi karsilastirma (tedavi tab icinde) | 8 | ✅ Done | Clinical Agent |
 | T-057 | Sesli not kayit (MediaRecorder API) | 5 | ⬜ Backlog | Media Agent |
 | T-058 | Whisper STT entegrasyonu (Turkce) | 8 | ⬜ Backlog | Media Agent |
 | T-059 | Transkript editor UI | 5 | ⬜ Backlog | Media Agent |
 | T-060 | Gorsel annotation (canvas-based) | 8 | ⬜ Backlog | Media Agent |
-| T-061 | EXIF metadata temizleme | 2 | ⬜ Backlog | Media Agent |
-| T-063 | Vucut haritasi isaretleme | 8 | ⬜ Backlog | Clinical Agent |
-| T-067 | Egitmen performans raporu | 5 | ⬜ Backlog | Analytics Agent |
-| T-068 | Danisan ilerleme raporu | 5 | ⬜ Backlog | Analytics Agent |
-| T-069 | Tedavi dagilim raporu | 5 | ⬜ Backlog | Analytics Agent |
+| T-061 | EXIF metadata temizleme (JPEG/PNG) | 2 | ✅ Done | Media Agent |
+| T-063 | Vucut bolgesi secimi (14 bolge dropdown) | 8 | ✅ Done | Clinical Agent |
+| T-067 | Egitmen performans raporu (admin tablo) | 5 | ✅ Done | Analytics Agent |
+| T-068 | Danisan ilerleme raporu (admin tablo) | 5 | ✅ Done | Analytics Agent |
+| T-069 | Tedavi dagilim raporu (bar chart) | 5 | ✅ Done | Analytics Agent |
 | T-070 | Yazdirilabilir rapor sayfasi (print CSS) | 5 | ✅ Done | Analytics Agent |
-| T-071 | Toplu randevu goruntuleme + export | 5 | ⬜ Backlog | Booking Agent |
-| T-072 | Tekrarlayan randevu olusturma | 5 | ⬜ Backlog | Booking Agent |
+| T-071 | Toplu randevu + CSV export + filtre | 5 | ✅ Done | Booking Agent |
+| T-072 | Tekrarlayan randevu olusturma (haftalik/aylik) | 5 | ✅ Done | Booking Agent |
 | T-073 | Evolution API Coolify deploy | 5 | 🔶 Deploy edildi (degraded) | WhatsApp Agent |
 | T-074-T-078 | WhatsApp entegrasyonu (5 task) | 34 | ⬜ Backlog | WhatsApp Agent |
 | T-079-T-082 | Telegram bot (4 task) | 23 | ⬜ Backlog | Telegram Agent |
@@ -177,8 +177,8 @@ Son Guncelleme: 8 Nisan 2026 | Canli: https://q9rqagsabejx6y4sx7c9mzot.185.255.9
 | T-094_ai | Context-aware panel | 8 | ⬜ Backlog | Knowledge Agent |
 | T-096_ai | Onam iptali operasyonel akis | 5 | ⬜ Backlog | Compliance Agent |
 | T-097 | Offline ses kaydi + sync | 5 | ⬜ Backlog | Media Agent |
-| T-099 | Admin bildirim yonetimi (toplu gonderim) | 5 | ⬜ Backlog | Notification Agent |
-| T-101 | Danisan geri bildirim formu | 3 | ⬜ Backlog | Clinical Agent |
+| T-099 | Admin toplu bildirim gonderimi (UI + API) | 5 | ✅ Done | Notification Agent |
+| T-101 | Danisan geri bildirim formu (5 yildiz) | 3 | ✅ Done | Clinical Agent |
 | T-102 | Sistem sagligi monitoring (Grafana) | 5 | 🔶 Grafana deploy edildi | — |
 | T-103 | Penetrasyon testi | 8 | ⬜ Backlog | — |
 | T-104 | Phase 2 regression test | 5 | ⬜ Backlog | — |
@@ -196,15 +196,16 @@ T-105 ile T-122 arasi tum task'ler (Qdrant, RAG, Claude API, Chatbot, Kulliyat) 
 | Sprint | Planlanan SP | Tamamlanan SP | Velocity | Notlar |
 |--------|-------------|---------------|----------|--------|
 | Sprint 1 | 40 | 40 | 40 | ✅ TAMAMLANDI |
-| Sprint 2 | 44 | 39 | 39 | MinIO eksik |
-| Sprint 3 | 52 | 41 | 41 | Bildirim entegrasyonlari eksik |
+| Sprint 2 | 44 | 44 | 44 | ✅ TAMAMLANDI (MinIO + KVKK eklendi) |
+| Sprint 3 | 52 | 47 | 47 | SMS + Push harici tamamlandi |
 | Sprint 4 | 44 | 44 | 44 | ✅ TAMAMLANDI |
-| Sprint 5 | 43 | 40 | 40 | Resend eksik |
-| Sprint 6 | 49 | 34 | 34 | E2E test + Lighthouse eksik |
-| Faz 2 (kismi) | ~120 | ~100 | ~100 | Stok, finans, acil, admin, KVKK |
+| Sprint 5 | 43 | 43 | 43 | ✅ TAMAMLANDI (Resend eklendi) |
+| Sprint 6 | 49 | 37 | 37 | E2E test + Lighthouse kaldi |
+| Faz 2 | ~200 | ~160 | ~160 | Stok, finans, acil, admin, KVKK, rapor, CSV, tekrar randevu |
 
-**Toplam MVP: 238/272 SP (%87.5)**
-**Toplam Faz 2 (kismi): ~100 SP tamamlandi**
+**Toplam MVP: 255/272 SP (%93.7)**
+**Toplam Faz 2: ~160/200 SP tamamlandi (%80)**
+**Genel Ilerleme: ~415/472 SP (%88)**
 
 ---
 

@@ -160,6 +160,20 @@ export default function EgitmenTedaviPage() {
                 min="1"
               />
             </div>
+
+            <div className="space-y-2">
+              <Label>Uygulama Bolgesi</Label>
+              <select
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                value={bodyArea}
+                onChange={(e) => setBodyArea(e.target.value)}
+              >
+                <option value="">Bolge seciniz</option>
+                {BODY_AREAS.map((area) => (
+                  <option key={area} value={area}>{area}</option>
+                ))}
+              </select>
+            </div>
           </CardContent>
         </Card>
 
