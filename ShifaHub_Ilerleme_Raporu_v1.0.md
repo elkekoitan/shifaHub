@@ -3,6 +3,9 @@
 > Tarih: 2026-04-08
 > Hazırlayan: Claude Code AI Agent
 > Repo: github.com/elkekoitan/shifaHub.git
+> **DURUM: CANLI PRODUCTION**
+> Frontend: http://q9rqagsabejx6y4sx7c9mzot.185.255.95.111.sslip.io
+> Backend: http://sjqd2i13xbafofo81pkbzclq.185.255.95.111.sslip.io
 
 ---
 

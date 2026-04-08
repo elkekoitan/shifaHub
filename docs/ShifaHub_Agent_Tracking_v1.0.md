@@ -1,9 +1,10 @@
 # ShifaHub Agent Tracking Document v1.0
 
-> Son Guncelleme: 2026-04-08 10:30
-> Durum: Sprint 1-5 TAMAMLANDI, Sprint 6 DEVAM EDIYOR
-> MVP Ilerlemesi: ~%80 (Sprint 1-5 bitti, 207/272 SP)
-> Git: 12 commit | 82+ kaynak dosya | github.com/elkekoitan/shifaHub.git
+> Son Guncelleme: 2026-04-08 13:50
+> Durum: CANLI PRODUCTION - Frontend + Backend deploy edildi
+> MVP + Faz 2 Tamamlandi | 22+ commit | 90+ dosya
+> Frontend: http://q9rqagsabejx6y4sx7c9mzot.185.255.95.111.sslip.io
+> Backend: http://sjqd2i13xbafofo81pkbzclq.185.255.95.111.sslip.io
 
 ---
 
