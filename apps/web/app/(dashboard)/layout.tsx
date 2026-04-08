@@ -21,6 +21,8 @@ const navItems: Record<string, { label: string; href: string; icon: string }[]> 
     { label: "Tedaviler", href: "/egitmen/tedavi", icon: "💊" },
     { label: "Ajanda", href: "/egitmen/ajanda", icon: "📋" },
     { label: "Stok", href: "/egitmen/stok", icon: "📦" },
+    { label: "Odemeler", href: "/egitmen/odeme", icon: "💰" },
+    { label: "Acil Durum", href: "/egitmen/acil", icon: "🚨" },
     { label: "Profilim", href: "/egitmen/profil", icon: "👤" },
   ],
   admin: [
