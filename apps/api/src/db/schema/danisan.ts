@@ -10,7 +10,7 @@ import {
   jsonb,
   pgEnum,
 } from "drizzle-orm/pg-core";
-import { users } from "./users.js";
+import { users } from "./users";
 
 export const genderEnum = pgEnum("gender", ["erkek", "kadin"]);
 export const bloodTypeEnum = pgEnum("blood_type", [

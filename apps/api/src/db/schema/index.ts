@@ -1,30 +1,30 @@
 // Drizzle ORM schema exports
 
 // Sprint 1 - Auth & Core
-export * from "./users.js";
-export * from "./danisan.js";
-export * from "./egitmen.js";
-export * from "./audit_log.js";
-export * from "./kvkk_consent.js";
+export * from "./users";
+export * from "./danisan";
+export * from "./egitmen";
+export * from "./audit_log";
+export * from "./kvkk_consent";
 
 // Sprint 3 - Randevu
-export * from "./randevu.js";
-export * from "./musaitlik.js";
+export * from "./randevu";
+export * from "./musaitlik";
 
 // Sprint 4 - Tedavi & Tahlil
-export * from "./tedavi.js";
-export * from "./tahlil.js";
+export * from "./tedavi";
+export * from "./tahlil";
 
 // Sprint 5 - Mesajlasma & Bildirim
-export * from "./mesaj.js";
-export * from "./bildirim.js";
+export * from "./mesaj";
+export * from "./bildirim";
 
 // Faz 2 - Stok & Finans
-export * from "./stok.js";
-export * from "./odeme.js";
+export * from "./stok";
+export * from "./odeme";
 
 // Faz 2 - Komplikasyon
-export * from "./komplikasyon.js";
+export * from "./komplikasyon";
 
 // Faz 3 (AI/Knowledge)
-// export * from "./kulliyat.js";
+// export * from "./kulliyat";

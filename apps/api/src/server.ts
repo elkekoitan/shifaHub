@@ -3,7 +3,7 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import helmet from "@fastify/helmet";
 import rateLimit from "@fastify/rate-limit";
-import { logger } from "./lib/logger.js";
+import { loggerConfig } from "./lib/logger.js";
 import { authRoutes } from "./routes/auth.js";
 import { danisanRoutes } from "./routes/danisan.js";
 import { adminRoutes } from "./routes/admin.js";
@@ -18,7 +18,7 @@ import { odemeRoutes } from "./routes/odeme.js";
 import { acilRoutes } from "./routes/acil.js";
 
 const app = Fastify({
-  logger: logger,
+  logger: loggerConfig,
 });
 
 // Plugins

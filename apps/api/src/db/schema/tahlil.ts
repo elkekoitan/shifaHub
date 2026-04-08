@@ -6,7 +6,7 @@ import {
   timestamp,
   jsonb,
 } from "drizzle-orm/pg-core";
-import { users } from "./users.js";
+import { users } from "./users";
 
 export const tahlil = pgTable("tahlil", {
   id: uuid("id").primaryKey().defaultRandom(),
