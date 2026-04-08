@@ -4,6 +4,7 @@ import { z } from "zod";
 import { db } from "../db/index.js";
 import { randevu } from "../db/schema/randevu.js";
 import { musaitlik } from "../db/schema/musaitlik.js";
+import { bildirim } from "../db/schema/bildirim.js";
 import { requireAuth, getUser } from "../middleware/auth.js";
 import { createAuditLog } from "../middleware/audit.js";
 
@@ -88,7 +89,23 @@ export async function randevuRoutes(app: FastifyInstance) {
       request,
     });
 
-    // TODO: Booking Agent -> Notification Agent: randevu olusturuldu bildirimi
+    // Bildirimler
+    // Egitmene bildirim
+    await db.insert(bildirim).values({
+      userId: body.egitmenId,
+      type: "randevu_onay",
+      title: "Yeni Randevu Talebi",
+      body: `${scheduledDate.toLocaleDateString("tr-TR")} tarihinde yeni randevu talebi var.`,
+      actionUrl: "/egitmen/randevu",
+    });
+    // Danisana bildirim
+    await db.insert(bildirim).values({
+      userId: role === "danisan" ? sub : (body as any).danisanId || sub,
+      type: "randevu_onay",
+      title: "Randevu Talebiniz Olusturuldu",
+      body: `${scheduledDate.toLocaleDateString("tr-TR")} tarihli randevu talebiniz alindi.`,
+      actionUrl: "/danisan/randevu",
+    });
 
     return reply.status(201).send({ success: true, data: created });
   });

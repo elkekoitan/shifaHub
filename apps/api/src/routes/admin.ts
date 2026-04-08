@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { eq, desc, sql, ne } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { egitmen } from "../db/schema/egitmen.js";
 import { users } from "../db/schema/users.js";

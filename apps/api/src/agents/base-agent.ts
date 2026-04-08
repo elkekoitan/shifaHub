@@ -1,4 +1,5 @@
-import { logger } from "../lib/logger.js";
+import pino from "pino";
+const logger = pino({ level: "info" });
 
 export interface AgentEvent {
   type: string;
