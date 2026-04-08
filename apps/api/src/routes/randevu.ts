@@ -4,8 +4,7 @@ import { z } from "zod";
 import { db } from "../db/index.js";
 import { randevu } from "../db/schema/randevu.js";
 import { musaitlik } from "../db/schema/musaitlik.js";
-import { users } from "../db/schema/users.js";
-import { requireAuth, requireRole, getUser } from "../middleware/auth.js";
+import { requireAuth, getUser } from "../middleware/auth.js";
 import { createAuditLog } from "../middleware/audit.js";
 
 const createAppointmentSchema = z.object({
@@ -75,6 +74,10 @@ export async function randevuRoutes(app: FastifyInstance) {
         status: "requested",
       })
       .returning();
+
+    if (!created) {
+      return reply.status(500).send({ success: false, error: "Randevu olusturulamadi" });
+    }
 
     await createAuditLog({
       userId: sub,

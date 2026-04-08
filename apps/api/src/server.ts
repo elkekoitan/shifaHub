@@ -13,6 +13,8 @@ import { egitmenRoutes } from "./routes/egitmen.js";
 import { randevuRoutes } from "./routes/randevu.js";
 import { tedaviRoutes } from "./routes/tedavi.js";
 import { mesajRoutes } from "./routes/mesaj.js";
+import { stokRoutes } from "./routes/stok.js";
+import { odemeRoutes } from "./routes/odeme.js";
 
 const app = Fastify({
   logger: logger,
@@ -41,6 +43,8 @@ await app.register(egitmenRoutes);
 await app.register(randevuRoutes);
 await app.register(tedaviRoutes);
 await app.register(mesajRoutes);
+await app.register(stokRoutes);
+await app.register(odemeRoutes);
 
 // Health check
 app.get("/health", async () => ({

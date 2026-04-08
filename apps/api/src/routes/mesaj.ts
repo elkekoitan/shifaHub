@@ -3,7 +3,6 @@ import { eq, or, and, desc } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { mesaj } from "../db/schema/mesaj.js";
 import { bildirim } from "../db/schema/bildirim.js";
-import { users } from "../db/schema/users.js";
 import { requireAuth, getUser } from "../middleware/auth.js";
 
 export async function mesajRoutes(app: FastifyInstance) {

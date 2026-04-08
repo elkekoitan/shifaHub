@@ -2,8 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { eq } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { egitmen } from "../db/schema/egitmen.js";
-import { users } from "../db/schema/users.js";
-import { requireAuth, requireRole, getUser } from "../middleware/auth.js";
+import { requireRole, getUser } from "../middleware/auth.js";
 import { createAuditLog } from "../middleware/audit.js";
 
 export async function egitmenRoutes(app: FastifyInstance) {
@@ -40,6 +39,10 @@ export async function egitmenRoutes(app: FastifyInstance) {
         .insert(egitmen)
         .values({ ...body, userId: sub, approvalStatus: "pending" })
         .returning();
+
+      if (!created) {
+        return reply.status(500).send({ success: false, error: "Profil olusturulamadi" });
+      }
 
       await createAuditLog({
         userId: sub,
@@ -78,7 +81,7 @@ export async function egitmenRoutes(app: FastifyInstance) {
   app.get(
     "/api/egitmen/danisanlar",
     { preHandler: requireRole("egitmen") },
-    async (request, reply) => {
+    async (_request, reply) => {
       // TODO: Egitmen-danisan iliskisi tablosu olusturulacak
       return reply.send({ success: true, data: [], message: "Henuz danisan atanmamis" });
     },

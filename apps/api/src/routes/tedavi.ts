@@ -1,9 +1,8 @@
 import type { FastifyInstance } from "fastify";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { tedavi } from "../db/schema/tedavi.js";
 import { tahlil } from "../db/schema/tahlil.js";
-import { users } from "../db/schema/users.js";
 import { requireAuth, requireRole, getUser } from "../middleware/auth.js";
 import { createAuditLog } from "../middleware/audit.js";
 
@@ -21,6 +20,10 @@ export async function tedaviRoutes(app: FastifyInstance) {
         treatmentDate: body.treatmentDate || new Date(),
       })
       .returning();
+
+    if (!created) {
+      return reply.status(500).send({ success: false, error: "Tedavi kaydi olusturulamadi" });
+    }
 
     await createAuditLog({
       userId: sub,
@@ -90,6 +93,10 @@ export async function tedaviRoutes(app: FastifyInstance) {
         danisanId: body.danisanId || sub,
       })
       .returning();
+
+    if (!created) {
+      return reply.status(500).send({ success: false, error: "Tahlil kaydi olusturulamadi" });
+    }
 
     await createAuditLog({
       userId: sub,

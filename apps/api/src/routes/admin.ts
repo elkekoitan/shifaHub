@@ -11,7 +11,7 @@ export async function adminRoutes(app: FastifyInstance) {
   app.get(
     "/api/admin/egitmen/pending",
     { preHandler: requireRole("admin") },
-    async (request, reply) => {
+    async (_request, reply) => {
       const pending = await db
         .select({
           id: egitmen.id,
@@ -113,7 +113,6 @@ export async function adminRoutes(app: FastifyInstance) {
     "/api/admin/stats",
     { preHandler: requireRole("admin") },
     async (_request, reply) => {
-      const [userCount] = await db.select().from(users);
       // TODO: Implement proper count queries
 
       return reply.send({

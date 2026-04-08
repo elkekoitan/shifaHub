@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { danisan } from "../db/schema/danisan.js";
 import { users } from "../db/schema/users.js";
-import { requireAuth, requireRole, getUser } from "../middleware/auth.js";
+import { requireRole, getUser } from "../middleware/auth.js";
 import { createAuditLog } from "../middleware/audit.js";
 
 export async function danisanRoutes(app: FastifyInstance) {
@@ -49,6 +49,10 @@ export async function danisanRoutes(app: FastifyInstance) {
         .insert(danisan)
         .values({ ...body, userId: sub })
         .returning();
+
+      if (!created) {
+        return reply.status(500).send({ success: false, error: "Profil olusturulamadi" });
+      }
 
       await createAuditLog({
         userId: sub,

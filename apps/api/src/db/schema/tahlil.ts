@@ -4,7 +4,6 @@ import {
   varchar,
   text,
   timestamp,
-  numeric,
   jsonb,
 } from "drizzle-orm/pg-core";
 import { users } from "./users.js";

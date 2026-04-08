@@ -1,6 +1,7 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
 import * as jose from "jose";
-import type { UserRole } from "@shifahub/shared";
+
+type UserRole = "danisan" | "egitmen" | "admin" | "tabip";
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "dev-secret-change-me");
 

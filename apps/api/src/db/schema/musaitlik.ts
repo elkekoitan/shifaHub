@@ -5,7 +5,6 @@ import {
   timestamp,
   integer,
   boolean,
-  jsonb,
 } from "drizzle-orm/pg-core";
 import { users } from "./users.js";
 

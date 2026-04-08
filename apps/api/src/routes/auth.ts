@@ -70,6 +70,10 @@ export async function authRoutes(app: FastifyInstance) {
       })
       .returning({ id: users.id, email: users.email, role: users.role });
 
+    if (!newUser) {
+      return reply.status(500).send({ success: false, error: "Kullanici olusturulamadi" });
+    }
+
     // Create KVKK consent record
     await db.insert(kvkkConsent).values({
       userId: newUser.id,

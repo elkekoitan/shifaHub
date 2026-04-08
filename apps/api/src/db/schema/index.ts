@@ -19,8 +19,10 @@ export * from "./tahlil.js";
 export * from "./mesaj.js";
 export * from "./bildirim.js";
 
-// Faz 2+
-// export * from "./stok.js";
-// export * from "./odeme.js";
+// Faz 2 - Stok & Finans
+export * from "./stok.js";
+export * from "./odeme.js";
+
+// Faz 2+ (henuz implement edilmedi)
 // export * from "./komplikasyon.js";
 // export * from "./kulliyat.js";
