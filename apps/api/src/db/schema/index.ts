@@ -15,10 +15,12 @@ export * from "./musaitlik.js";
 export * from "./tedavi.js";
 export * from "./tahlil.js";
 
+// Sprint 5 - Mesajlasma & Bildirim
+export * from "./mesaj.js";
+export * from "./bildirim.js";
+
 // Faz 2+
 // export * from "./stok.js";
 // export * from "./odeme.js";
 // export * from "./komplikasyon.js";
-// export * from "./bildirim.js";
-// export * from "./mesaj.js";
 // export * from "./kulliyat.js";
