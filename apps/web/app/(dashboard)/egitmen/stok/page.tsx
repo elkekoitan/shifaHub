@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useApi } from "@/hooks/use-api";
+import { useApi, useApiMutation } from "@/hooks/use-api";
 
 const CATEGORIES = [
   { value: "kupa", label: "Kupalar" },
@@ -32,7 +32,18 @@ type StokItem = {
 
 export default function EgitmenStokPage() {
   const [showForm, setShowForm] = useState(false);
-  const { data: stokList, loading, error } = useApi<StokItem[]>("/api/stok");
+  const { data: stokList, loading, error, refetch } = useApi<StokItem[]>("/api/stok");
+  const { mutate, loading: mutLoading, error: mutError } = useApiMutation();
+  const [success, setSuccess] = useState(false);
+
+  // Form state
+  const [name, setName] = useState("");
+  const [category, setCategory] = useState("kupa");
+  const [quantity, setQuantity] = useState("");
+  const [unit, setUnit] = useState("adet");
+  const [minimumLevel, setMinimumLevel] = useState("");
+  const [unitPrice, setUnitPrice] = useState("");
+  const [expiryDate, setExpiryDate] = useState("");
 
   const items = stokList ?? [];
   const kritikCount = items.filter((s) => s.quantity <= s.minimumLevel).length;
@@ -42,14 +53,60 @@ export default function EgitmenStokPage() {
     (s) => s.expiryDate && new Date(s.expiryDate) <= thirtyDaysLater,
   ).length;
 
+  const resetForm = () => {
+    setName("");
+    setCategory("kupa");
+    setQuantity("");
+    setUnit("adet");
+    setMinimumLevel("");
+    setUnitPrice("");
+    setExpiryDate("");
+  };
+
+  const handleSubmit = async () => {
+    setSuccess(false);
+
+    if (!name.trim()) return;
+
+    const body = {
+      name: name.trim(),
+      category,
+      quantity: Number(quantity) || 0,
+      unit: unit.trim() || "adet",
+      minimumLevel: Number(minimumLevel) || 5,
+      unitPrice: Number(unitPrice) || 0,
+      expiryDate: expiryDate || undefined,
+    };
+
+    const result = await mutate("/api/stok", body);
+    if (result) {
+      setSuccess(true);
+      resetForm();
+      setShowForm(false);
+      refetch();
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Stok Yonetimi</h1>
-        <Button onClick={() => setShowForm(!showForm)}>
+        <Button onClick={() => { setShowForm(!showForm); setSuccess(false); }}>
           {showForm ? "Kapat" : "Yeni Malzeme Ekle"}
         </Button>
       </div>
+
+      {success && (
+        <div className="rounded-md border border-green-200 bg-green-50 p-4 text-green-800 text-sm">
+          Malzeme basariyla eklendi.
+        </div>
+      )}
+
+      {mutError && (
+        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-red-800 text-sm">
+          {mutError}
+        </div>
+      )}
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
@@ -87,11 +144,19 @@ export default function EgitmenStokPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Malzeme Adi</Label>
-                <Input placeholder="Ornek: Cam Kupa 5cm" />
+                <Input
+                  placeholder="Ornek: Cam Kupa 5cm"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Kategori</Label>
-                <select className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm">
+                <select
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                >
                   {CATEGORIES.map((c) => (
                     <option key={c.value} value={c.value}>{c.label}</option>
                   ))}
@@ -101,28 +166,58 @@ export default function EgitmenStokPage() {
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>Miktar</Label>
-                <Input type="number" placeholder="0" />
+                <Input
+                  type="number"
+                  placeholder="0"
+                  value={quantity}
+                  onChange={(e) => setQuantity(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Birim</Label>
-                <Input placeholder="adet" />
+                <Input
+                  placeholder="adet"
+                  value={unit}
+                  onChange={(e) => setUnit(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Minimum Seviye</Label>
-                <Input type="number" placeholder="5" />
+                <Input
+                  type="number"
+                  placeholder="5"
+                  value={minimumLevel}
+                  onChange={(e) => setMinimumLevel(e.target.value)}
+                />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Birim Fiyat (TL)</Label>
-                <Input type="number" step="0.01" placeholder="0.00" />
+                <Input
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={unitPrice}
+                  onChange={(e) => setUnitPrice(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Son Kullanma Tarihi</Label>
-                <Input type="date" />
+                <Input
+                  type="date"
+                  value={expiryDate}
+                  onChange={(e) => setExpiryDate(e.target.value)}
+                />
               </div>
             </div>
-            <Button className="w-full">Malzeme Ekle</Button>
+            <Button
+              className="w-full"
+              disabled={mutLoading || !name.trim()}
+              onClick={handleSubmit}
+            >
+              {mutLoading ? "Ekleniyor..." : "Malzeme Ekle"}
+            </Button>
           </CardContent>
         </Card>
       )}

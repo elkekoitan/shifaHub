@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useApi } from "@/hooks/use-api";
+import { useApi, useApiMutation } from "@/hooks/use-api";
 
 type GunlukKasa = {
   totalAmount: number;
@@ -48,19 +48,74 @@ const statusColor: Record<string, string> = {
 
 export default function EgitmenOdemePage() {
   const [showForm, setShowForm] = useState(false);
-  const { data: kasa, loading: kasaLoading } = useApi<GunlukKasa>("/api/odeme/gunluk-kasa");
-  const { data: odemeList, loading: listLoading, error } = useApi<OdemeItem[]>("/api/odeme");
+  const { data: kasa, loading: kasaLoading, refetch: refetchKasa } = useApi<GunlukKasa>("/api/odeme/gunluk-kasa");
+  const { data: odemeList, loading: listLoading, error, refetch: refetchList } = useApi<OdemeItem[]>("/api/odeme");
+  const { mutate, loading: mutLoading, error: mutError } = useApiMutation();
+  const [success, setSuccess] = useState(false);
+
+  // Form state
+  const [danisanId, setDanisanId] = useState("");
+  const [amount, setAmount] = useState("");
+  const [paidAmount, setPaidAmount] = useState("");
+  const [method, setMethod] = useState("nakit");
+  const [status, setStatus] = useState("paid");
+  const [description, setDescription] = useState("");
 
   const payments = odemeList ?? [];
+
+  const resetForm = () => {
+    setDanisanId("");
+    setAmount("");
+    setPaidAmount("");
+    setMethod("nakit");
+    setStatus("paid");
+    setDescription("");
+  };
+
+  const handleSubmit = async () => {
+    setSuccess(false);
+
+    if (!amount) return;
+
+    const body = {
+      danisanId: danisanId.trim() || undefined,
+      amount: Number(amount),
+      paidAmount: paidAmount ? Number(paidAmount) : Number(amount),
+      method,
+      status,
+      description: description.trim(),
+    };
+
+    const result = await mutate("/api/odeme", body);
+    if (result) {
+      setSuccess(true);
+      resetForm();
+      setShowForm(false);
+      refetchList();
+      refetchKasa();
+    }
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Odeme Yonetimi</h1>
-        <Button onClick={() => setShowForm(!showForm)}>
+        <Button onClick={() => { setShowForm(!showForm); setSuccess(false); }}>
           {showForm ? "Kapat" : "Yeni Odeme Kaydi"}
         </Button>
       </div>
+
+      {success && (
+        <div className="rounded-md border border-green-200 bg-green-50 p-4 text-green-800 text-sm">
+          Odeme kaydi basariyla olusturuldu.
+        </div>
+      )}
+
+      {mutError && (
+        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-red-800 text-sm">
+          {mutError}
+        </div>
+      )}
 
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
@@ -111,35 +166,79 @@ export default function EgitmenOdemePage() {
             <CardTitle>Odeme Kaydi</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Danisan ID</Label>
+              <Input
+                placeholder="Danisan ID (opsiyonel)"
+                value={danisanId}
+                onChange={(e) => setDanisanId(e.target.value)}
+              />
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Tutar (TL)</Label>
-                <Input type="number" step="0.01" placeholder="0.00" />
+                <Input
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
+                <Label>Odenen Tutar (TL)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  placeholder="Tutar ile ayni"
+                  value={paidAmount}
+                  onChange={(e) => setPaidAmount(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
                 <Label>Odeme Yontemi</Label>
-                <select className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm">
+                <select
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                  value={method}
+                  onChange={(e) => setMethod(e.target.value)}
+                >
                   <option value="nakit">Nakit</option>
                   <option value="kart">Kredi/Banka Karti</option>
                   <option value="havale">Havale</option>
                   <option value="eft">EFT</option>
                 </select>
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Durum</Label>
-              <select className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm">
-                <option value="paid">Odendi</option>
-                <option value="pending">Beklemede</option>
-                <option value="partial">Kismi Odeme</option>
-                <option value="free">Ucretsiz</option>
-              </select>
+              <div className="space-y-2">
+                <Label>Durum</Label>
+                <select
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                >
+                  <option value="paid">Odendi</option>
+                  <option value="pending">Beklemede</option>
+                  <option value="partial">Kismi Odeme</option>
+                  <option value="free">Ucretsiz</option>
+                </select>
+              </div>
             </div>
             <div className="space-y-2">
               <Label>Aciklama</Label>
-              <Input placeholder="Tedavi aciklamasi" />
+              <Input
+                placeholder="Tedavi aciklamasi"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
             </div>
-            <Button className="w-full">Odemeyi Kaydet</Button>
+            <Button
+              className="w-full"
+              disabled={mutLoading || !amount}
+              onClick={handleSubmit}
+            >
+              {mutLoading ? "Kaydediliyor..." : "Odemeyi Kaydet"}
+            </Button>
           </CardContent>
         </Card>
       )}

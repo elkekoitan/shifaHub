@@ -12,6 +12,7 @@ const navItems: Record<string, { label: string; href: string; icon: string }[]> 
     { label: "Tedavilerim", href: "/danisan/tedavi", icon: "💊" },
     { label: "Tahlillerim", href: "/danisan/tahlil", icon: "🔬" },
     { label: "Mesajlar", href: "/danisan/mesaj", icon: "💬" },
+    { label: "Bildirimler", href: "/bildirim", icon: "🔔" },
     { label: "Profilim", href: "/danisan/profil", icon: "👤" },
   ],
   egitmen: [
@@ -23,6 +24,7 @@ const navItems: Record<string, { label: string; href: string; icon: string }[]> 
     { label: "Stok", href: "/egitmen/stok", icon: "📦" },
     { label: "Odemeler", href: "/egitmen/odeme", icon: "💰" },
     { label: "Acil Durum", href: "/egitmen/acil", icon: "🚨" },
+    { label: "Bildirimler", href: "/bildirim", icon: "🔔" },
     { label: "Profilim", href: "/egitmen/profil", icon: "👤" },
   ],
   admin: [
