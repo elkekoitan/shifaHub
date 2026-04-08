@@ -97,6 +97,7 @@ export default function DanisanDetayPage() {
         </div>
         <div className="flex gap-2">
           <Button asChild size="sm"><Link href="/egitmen/tedavi">Tedavi Kaydi</Link></Button>
+          <Button asChild size="sm" variant="secondary"><Link href={`/egitmen/danisan/${userId}/rapor`}>Rapor</Link></Button>
           <Button asChild size="sm" variant="outline"><Link href="/egitmen/danisan">Geri</Link></Button>
         </div>
       </div>
