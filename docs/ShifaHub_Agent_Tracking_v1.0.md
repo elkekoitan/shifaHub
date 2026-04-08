@@ -1,7 +1,8 @@
 # ShifaHub Agent Tracking Document v1.0
 
-> Son Guncelleme: 2026-04-08
-> Durum: Faz 0 -> Faz 1 Gecis (Altyapi Kurulumu)
+> Son Guncelleme: 2026-04-08 09:30
+> Durum: Sprint 1 Devam Ediyor (%60 tamamlandi)
+> MVP Ilerlemesi: ~%15 (12 haftanin 1. haftasi)
 
 ---
 
@@ -59,19 +60,19 @@ ShifaHub, 14 uzman ajandan olusan event-driven bir mimari kullanir. Her ajan ken
 
 ## 3. Sprint Bazli Ajan Atamalari
 
-### Sprint 1 (Hafta 1-2): Altyapi & Auth - 40 SP
+### Sprint 1 (Hafta 1-2): Altyapi & Auth - 40 SP [%60 TAMAMLANDI]
 | Gorev | Ajan | SP | Durum |
 |-------|------|----|-------|
-| Monorepo kurulumu (Turborepo) | - | 5 | Backlog |
-| Next.js 16 scaffold | - | 5 | Backlog |
-| PostgreSQL schema (Drizzle) | - | 8 | Backlog |
-| JWT + MFA auth sistemi | Auth Agent | 8 | Backlog |
-| RBAC (4 rol) | Auth Agent | 5 | Backlog |
-| KVKK consent modulu | Compliance Agent | 5 | Backlog |
-| Coolify CI/CD pipeline | - | 3 | Backlog |
-| Docker Compose (dev) | - | 3 | Backlog |
-| ESLint + Prettier + Husky | - | 2 | Backlog |
-| shadcn/ui component library | - | 3 | Backlog |
+| Monorepo kurulumu (Turborepo) | - | 5 | DONE |
+| Next.js 16 scaffold | - | 5 | DONE |
+| PostgreSQL schema (Drizzle) | - | 8 | DONE |
+| JWT + MFA auth sistemi | Auth Agent | 8 | IN PROGRESS (MFA kaldi) |
+| RBAC (4 rol) | Auth Agent | 5 | DONE |
+| KVKK consent modulu | Compliance Agent | 5 | DONE |
+| Coolify CI/CD pipeline | - | 3 | DONE |
+| Docker Compose (dev) | - | 3 | DONE |
+| ESLint + Prettier + Husky | - | 2 | DONE |
+| shadcn/ui component library | - | 3 | DONE |
 
 ### Sprint 2 (Hafta 3-4): Kayit & Profil - 44 SP
 | Gorev | Ajan | SP | Durum |
@@ -219,8 +220,8 @@ x = Mesaj gonderir (satir -> sutun)
 
 | Hafta | Tarih | Sprint | Planlanan SP | Tamamlanan SP | Velocity | Notlar |
 |-------|-------|--------|-------------|---------------|----------|--------|
-| 0 | 2026-04-08 | Faz 0 | - | - | - | Dokumantasyon + Altyapi kurulumu |
-| 1 | - | Sprint 1 | 20 | - | - | - |
+| 0 | 2026-04-08 | Faz 0 | - | - | - | Dokumantasyon + Altyapi kurulumu tamamlandi |
+| 1 | 2026-04-08 | Sprint 1 | 20 | 24 | 24 | Auth, RBAC, DB schema, UI, Dashboard - 5 commit |
 | 2 | - | Sprint 1 | 20 | - | - | - |
 | 3 | - | Sprint 2 | 22 | - | - | - |
 | 4 | - | Sprint 2 | 22 | - | - | - |
@@ -245,8 +246,8 @@ x = Mesaj gonderir (satir -> sutun)
 | Qdrant | uofpc8pob54jxyboli5brilh | restarting | 6333 | service |
 | Evolution API | gq3wsvvj5480gmyth5629tob | restarting | 8080 | service |
 | Grafana | i72m1nqoqpwvkvoqehmhqxeu | running:healthy | 3000 | service |
-| Frontend | - | Kod sonrasi | 3000 | - |
-| Backend | - | Kod sonrasi | 4000 | - |
+| Frontend | q9rqagsabejx6y4sx7c9mzot | created | 3000 | application (git) |
+| Backend | sjqd2i13xbafofo81pkbzclq | created | 4000 | application (git) |
 
 ---
 
@@ -293,8 +294,33 @@ x = Mesaj gonderir (satir -> sutun)
 - CLAUDE.md proje kurallar dosyasi olusturuldu
 - Agent Tracking v1.0 dokumani olusturuldu (bu dosya)
 
-**Sonraki Adimlar:**
-- Coolify'da ShifaHub projesi olusturma
-- Altyapi servislerini deploy etme (PostgreSQL, Redis, MinIO, Qdrant)
-- Git repository baslatma
-- Monorepo scaffold (Turborepo)
+### Hafta 1 (Sprint 1) - 2026-04-08
+**Tamamlanan:**
+- Coolify'da ShifaHub projesi olusturuldu (8 kaynak: 2 DB, 3 service, 3 app)
+- PostgreSQL 17 + Redis 8 running:healthy
+- Grafana + Qdrant running:healthy
+- MinIO + Evolution API configuring/degraded (calisma devam ediyor)
+- Git repo: github.com/elkekoitan/shifaHub.git (5 commit)
+- Turborepo monorepo scaffold (apps/web, apps/api, packages/*)
+- npm install (410+ paket)
+- ESLint 10 + Prettier + Husky pre-commit
+- shadcn/ui: Button, Input, Label, Card, Sidebar componentleri
+- Tailwind CSS 4 tema (teal primary, CSS variables)
+- /giris sayfasi (email/sifre login formu)
+- /kayit sayfasi (2 adimli wizard + KVKK onay)
+- Dashboard layout (sidebar + 3 rol navigasyonu)
+- Danisan/Egitmen/Admin dashboard sayfalari
+- DB schema: users, danisan, egitmen, audit_log, kvkk_consent (Drizzle ORM)
+- JWT Auth API: register, login, refresh, me (Argon2 + jose)
+- RBAC middleware: requireAuth, requireRole (4 rol)
+- Audit middleware: KVKK uyumlu log helper
+- AuthAgent class: BaseAgent extend, JWT/Argon2/KVKK methods
+- Danisan API: profil CRUD, egitmen icin liste
+- Admin API: egitmen onay/red akisi
+- Coolify frontend + backend GitHub entegrasyonu
+
+**Sprint 1 Kalan:**
+- MFA (TOTP - otpauth)
+- Email dogrulama (Resend)
+- Sifre sifirlama akisi
+- Ilk production deploy testi
