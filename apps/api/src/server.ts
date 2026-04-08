@@ -7,6 +7,8 @@ import { logger } from "./lib/logger.js";
 import { authRoutes } from "./routes/auth.js";
 import { danisanRoutes } from "./routes/danisan.js";
 import { adminRoutes } from "./routes/admin.js";
+import { mfaRoutes } from "./routes/mfa.js";
+import { emailVerifyRoutes } from "./routes/email-verify.js";
 
 const app = Fastify({
   logger: logger,
@@ -29,6 +31,8 @@ await app.register(rateLimit, {
 await app.register(authRoutes);
 await app.register(danisanRoutes);
 await app.register(adminRoutes);
+await app.register(mfaRoutes);
+await app.register(emailVerifyRoutes);
 
 // Health check
 app.get("/health", async () => ({
