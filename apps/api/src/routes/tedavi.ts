@@ -12,12 +12,16 @@ export async function tedaviRoutes(app: FastifyInstance) {
     const { sub } = getUser(request);
     const body = request.body as typeof tedavi.$inferInsert;
 
+    const treatmentDate = body.treatmentDate ? new Date(body.treatmentDate as unknown as string) : new Date();
+    const nextSessionDate = body.nextSessionDate ? new Date(body.nextSessionDate as unknown as string) : undefined;
+
     const [created] = await db
       .insert(tedavi)
       .values({
         ...body,
         egitmenId: sub,
-        treatmentDate: body.treatmentDate || new Date(),
+        treatmentDate,
+        nextSessionDate,
       })
       .returning();
 

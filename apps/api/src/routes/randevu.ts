@@ -19,7 +19,7 @@ const createAppointmentSchema = z.object({
 // Valid state transitions
 const VALID_TRANSITIONS: Record<string, string[]> = {
   requested: ["confirmed", "cancelled"],
-  confirmed: ["reminded", "cancelled"],
+  confirmed: ["reminded", "arrived", "cancelled"],
   reminded: ["arrived", "cancelled", "no_show"],
   arrived: ["treated"],
   treated: ["completed"],
