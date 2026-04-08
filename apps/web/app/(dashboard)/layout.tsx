@@ -27,6 +27,7 @@ const navItems: Record<string, { label: string; href: string; icon: string }[]> 
   ],
   admin: [
     { label: "Dashboard", href: "/admin", icon: "📊" },
+    { label: "Kullanicilar", href: "/admin/kullanicilar", icon: "👤" },
     { label: "Egitmenler", href: "/admin/egitmen", icon: "👨‍⚕️" },
     { label: "Danisanlar", href: "/admin/danisan", icon: "👥" },
     { label: "KVKK", href: "/admin/kvkk", icon: "🔒" },

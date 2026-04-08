@@ -14,8 +14,18 @@ interface PendingEgitmen {
   clinicCity: string;
 }
 
+interface Stats {
+  totalUsers: number;
+  totalDanisan: number;
+  totalEgitmen: number;
+  pendingEgitmen: number;
+  totalRandevu: number;
+  totalTedavi: number;
+}
+
 export default function AdminDashboard() {
-  const { data: pending, loading, refetch } = useApi<PendingEgitmen[]>("/api/admin/egitmen/pending");
+  const { data: pending, refetch } = useApi<PendingEgitmen[]>("/api/admin/egitmen/pending");
+  const { data: stats } = useApi<Stats>("/api/admin/stats");
   const { mutate } = useApiMutation();
 
   async function handleApprove(id: string) {
@@ -37,19 +47,53 @@ export default function AdminDashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Onay Bekleyen</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Toplam Kullanici</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-amber-600">{pending?.length ?? 0}</p>
+            <p className="text-2xl font-bold">{stats?.totalUsers || 0}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">KVKK Denetim</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Danisan</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-green-600">OK</p>
-            <p className="text-xs text-muted-foreground">Son 24 saat temiz</p>
+            <p className="text-2xl font-bold text-blue-600">{stats?.totalDanisan || 0}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Egitmen</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold text-teal-600">{stats?.totalEgitmen || 0}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Onay Bekleyen</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold text-amber-600">{stats?.pendingEgitmen || 0}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Toplam Randevu</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">{stats?.totalRandevu || 0}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Toplam Tedavi</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">{stats?.totalTedavi || 0}</p>
           </CardContent>
         </Card>
         <Card className="md:col-span-2">
@@ -57,16 +101,16 @@ export default function AdminDashboard() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Hizli Erisim</CardTitle>
           </CardHeader>
           <CardContent className="flex gap-2 flex-wrap">
+            <Button asChild variant="outline" size="sm"><Link href="/admin/kullanicilar">Kullanicilar</Link></Button>
             <Button asChild variant="outline" size="sm"><Link href="/admin/egitmen">Egitmenler</Link></Button>
+            <Button asChild variant="outline" size="sm"><Link href="/admin/danisan">Danisanlar</Link></Button>
             <Button asChild variant="outline" size="sm"><Link href="/admin/kvkk">KVKK</Link></Button>
             <Button asChild variant="outline" size="sm"><Link href="/admin/sistem">Sistem</Link></Button>
           </CardContent>
         </Card>
       </div>
 
-      {loading ? (
-        <p className="text-muted-foreground">Yukleniyor...</p>
-      ) : pending && pending.length > 0 ? (
+      {pending && pending.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Onay Bekleyen Egitmenler</CardTitle>
@@ -85,12 +129,6 @@ export default function AdminDashboard() {
                 </div>
               </div>
             ))}
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardContent className="py-8 text-center text-muted-foreground">
-            Onay bekleyen egitmen bulunmuyor.
           </CardContent>
         </Card>
       )}
