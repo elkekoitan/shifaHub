@@ -1,8 +1,9 @@
 # ShifaHub Agent Tracking Document v1.0
 
-> Son Guncelleme: 2026-04-08 09:30
-> Durum: Sprint 1 Devam Ediyor (%60 tamamlandi)
-> MVP Ilerlemesi: ~%15 (12 haftanin 1. haftasi)
+> Son Guncelleme: 2026-04-08 10:30
+> Durum: Sprint 1-5 TAMAMLANDI, Sprint 6 DEVAM EDIYOR
+> MVP Ilerlemesi: ~%80 (Sprint 1-5 bitti, 207/272 SP)
+> Git: 12 commit | 82+ kaynak dosya | github.com/elkekoitan/shifaHub.git
 
 ---
 
@@ -221,18 +222,13 @@ x = Mesaj gonderir (satir -> sutun)
 | Hafta | Tarih | Sprint | Planlanan SP | Tamamlanan SP | Velocity | Notlar |
 |-------|-------|--------|-------------|---------------|----------|--------|
 | 0 | 2026-04-08 | Faz 0 | - | - | - | Dokumantasyon + Altyapi kurulumu tamamlandi |
-| 1 | 2026-04-08 | Sprint 1 | 20 | 40 | 40 | Sprint 1 TAMAMLANDI - Auth, MFA, RBAC, email verify - 7 commit |
-| 2 | - | Sprint 1 | 20 | - | - | - |
-| 3 | - | Sprint 2 | 22 | - | - | - |
-| 4 | - | Sprint 2 | 22 | - | - | - |
-| 5 | - | Sprint 3 | 26 | - | - | - |
-| 6 | - | Sprint 3 | 26 | - | - | - |
-| 7 | - | Sprint 4 | 22 | - | - | - |
-| 8 | - | Sprint 4 | 22 | - | - | - |
-| 9 | - | Sprint 5 | 22 | - | - | - |
-| 10 | - | Sprint 5 | 21 | - | - | - |
-| 11 | - | Sprint 6 | 25 | - | - | - |
-| 12 | - | Sprint 6 | 24 | - | - | - |
+| 1 | 2026-04-08 | Sprint 1 | 40 | 40 | 40 | Sprint 1 TAMAMLANDI - Auth, MFA, RBAC, email verify |
+| 2 | 2026-04-08 | Sprint 2 | 44 | 34 | 34 | Danisan wizard, egitmen profil |
+| 3 | 2026-04-08 | Sprint 3 | 52 | 42 | 42 | Randevu sistemi, Hicri takvim, ajanda |
+| 4 | 2026-04-08 | Sprint 4 | 44 | 36 | 36 | Tedavi kayitlari, tahlil sistemi |
+| 5 | 2026-04-08 | Sprint 5 | 43 | 35 | 35 | Mesajlasma, bildirimler, admin paneli |
+| 6 | 2026-04-08 | Sprint 6 | 49 | 20 | 20 | PWA SW, Dockerfile, Coolify config - DEVAM |
+| 7-12 | - | Faz 2-3 | - | - | - | WhatsApp, Telegram, stok, finans, AI |
 
 ---
 

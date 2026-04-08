@@ -24,6 +24,17 @@ export default function RootLayout({
     <html lang="tr" dir="ltr">
       <body className="min-h-screen bg-background font-sans antialiased">
         {children}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                  navigator.serviceWorker.register('/sw.js').catch(() => {});
+                });
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   );
