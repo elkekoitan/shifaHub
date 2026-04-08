@@ -1,9 +1,9 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { Sidebar } from "@/components/ui/sidebar";
-
-// TODO: Bu bilgiler auth context'ten gelecek
-const role = "danisan";
+import { useAuth } from "@/providers/auth-provider";
 
 const navItems: Record<string, { label: string; href: string; icon: string }[]> = {
   danisan: [
@@ -35,12 +35,40 @@ const navItems: Record<string, { label: string; href: string; icon: string }[]> 
 };
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const { user, isLoading, isAuthenticated, logout } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push("/giris");
+    }
+  }, [isLoading, isAuthenticated, router]);
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-muted-foreground">Yukleniyor...</p>
+      </div>
+    );
+  }
+
+  if (!user) return null;
+
+  const role = user.role || "danisan";
   const items = navItems[role] || navItems.danisan;
 
   return (
     <div className="min-h-screen">
       <Sidebar items={items} role={role} />
       <main className="ml-64 min-h-screen bg-background">
+        <header className="flex items-center justify-between border-b px-6 py-3">
+          <span className="text-sm text-muted-foreground">
+            Hos geldiniz, <strong>{user.firstName} {user.lastName}</strong>
+          </span>
+          <button onClick={logout} className="text-sm text-muted-foreground hover:text-destructive">
+            Cikis Yap
+          </button>
+        </header>
         <div className="p-6">{children}</div>
       </main>
     </div>

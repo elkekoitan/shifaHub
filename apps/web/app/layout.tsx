@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { AuthProvider } from "@/providers/auth-provider";
 
 export const metadata: Metadata = {
   title: "ShifaHub - Butunsel Tedavi Yonetim Platformu",
@@ -23,7 +24,7 @@ export default function RootLayout({
   return (
     <html lang="tr" dir="ltr">
       <body className="min-h-screen bg-background font-sans antialiased">
-        {children}
+        <AuthProvider>{children}</AuthProvider>
         <script
           dangerouslySetInnerHTML={{
             __html: `
