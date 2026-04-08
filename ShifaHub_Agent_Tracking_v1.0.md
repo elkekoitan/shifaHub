@@ -245,8 +245,8 @@ x = Mesaj gonderir (satir -> sutun)
 | Qdrant | uofpc8pob54jxyboli5brilh | restarting | 6333 | service |
 | Evolution API | gq3wsvvj5480gmyth5629tob | restarting | 8080 | service |
 | Grafana | i72m1nqoqpwvkvoqehmhqxeu | running:healthy | 3000 | service |
-| Frontend | - | Kod sonrasi | 3000 | - |
-| Backend | - | Kod sonrasi | 4000 | - |
+| Frontend | q9rqagsabejx6y4sx7c9mzot | created | 3000 | application (git) |
+| Backend | sjqd2i13xbafofo81pkbzclq | created | 4000 | application (git) |
 
 ---
 
