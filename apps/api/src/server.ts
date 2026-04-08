@@ -17,6 +17,7 @@ import { stokRoutes } from "./routes/stok.js";
 import { odemeRoutes } from "./routes/odeme.js";
 import { acilRoutes } from "./routes/acil.js";
 import { protokolRoutes } from "./routes/protokol.js";
+import { uploadRoutes } from "./routes/upload.js";
 
 const app = Fastify({
   logger: loggerConfig,
@@ -49,6 +50,7 @@ await app.register(stokRoutes);
 await app.register(odemeRoutes);
 await app.register(acilRoutes);
 await app.register(protokolRoutes);
+await app.register(uploadRoutes);
 
 // Health check
 app.get("/health", async () => ({
