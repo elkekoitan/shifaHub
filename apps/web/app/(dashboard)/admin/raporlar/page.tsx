@@ -81,6 +81,43 @@ export default function AdminRaporlarPage() {
           </div>
         </CardContent>
       </Card>
+      <HaftalikRapor />
     </div>
+  );
+}
+
+function HaftalikRapor() {
+  const { data: weekly, loading } = useApi<Array<{ gun: string; randevu: number; tedavi: number }>>("/api/admin/stats/weekly");
+
+  return (
+    <Card>
+      <CardHeader><CardTitle>Haftalik Rapor</CardTitle></CardHeader>
+      <CardContent>
+        {loading ? (
+          <p className="text-center text-muted-foreground py-4">Yukleniyor...</p>
+        ) : !weekly || weekly.length === 0 ? (
+          <p className="text-center text-muted-foreground py-4">Haftalik veri bulunamadi.</p>
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50">
+              <tr>
+                <th className="text-left p-3 font-medium">Gun</th>
+                <th className="text-left p-3 font-medium">Randevu</th>
+                <th className="text-left p-3 font-medium">Tedavi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {weekly.map((row, i) => (
+                <tr key={i} className="border-t hover:bg-muted/30">
+                  <td className="p-3">{row.gun}</td>
+                  <td className="p-3 font-medium">{row.randevu}</td>
+                  <td className="p-3 font-medium text-green-600">{row.tedavi}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </CardContent>
+    </Card>
   );
 }

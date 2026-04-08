@@ -6,6 +6,7 @@ import { users } from "../db/schema/users.js";
 import { danisan } from "../db/schema/danisan.js";
 import { randevu } from "../db/schema/randevu.js";
 import { tedavi } from "../db/schema/tedavi.js";
+import { tahlil } from "../db/schema/tahlil.js";
 import { auditLog } from "../db/schema/audit_log.js";
 import { requireRole, getUser } from "../middleware/auth.js";
 import { createAuditLog } from "../middleware/audit.js";
@@ -288,5 +289,94 @@ export async function adminRoutes(app: FastifyInstance) {
       .limit(limit);
 
     return reply.send({ success: true, data: logs });
+  });
+
+  // ==========================================
+  // KVKK VERI SILME + EXPORT
+  // ==========================================
+
+  // DELETE /api/admin/users/:id/data - KVKK veri silme (right to erasure)
+  app.delete("/api/admin/users/:id/data", { preHandler: requireRole("admin") }, async (request, reply) => {
+    const { sub } = getUser(request);
+    const { id } = request.params as { id: string };
+
+    if (id === sub) return reply.status(400).send({ success: false, error: "Kendi verilerinizi silemezsiniz" });
+
+    const [user] = await db.select().from(users).where(eq(users.id, id)).limit(1);
+    if (!user) return reply.status(404).send({ success: false, error: "Kullanici bulunamadi" });
+
+    // Cascade delete - sirasyla bagimli tablolardan sil
+    await db.delete(tedavi).where(eq(tedavi.danisanId, id));
+    await db.delete(tahlil).where(eq(tahlil.danisanId, id));
+    await db.delete(randevu).where(eq(randevu.danisanId, id));
+    await db.delete(danisan).where(eq(danisan.userId, id));
+
+    await createAuditLog({
+      userId: sub, action: "delete", tableName: "users", recordId: id,
+      description: `KVKK m.7 - Kullanici verileri silindi: ${user.email}`, request,
+    });
+
+    // Kullaniciyi pasif yap (tamamen silmek yerine)
+    await db.update(users).set({ isActive: false, firstName: "SILINDI", lastName: "SILINDI" }).where(eq(users.id, id));
+
+    return reply.send({ success: true, message: "Kullanici verileri KVKK m.7 kapsaminda silindi" });
+  });
+
+  // GET /api/admin/users/:id/export - KVKK veri export (data portability)
+  app.get("/api/admin/users/:id/export", { preHandler: requireRole("admin") }, async (request, reply) => {
+    const { id } = request.params as { id: string };
+
+    const [user] = await db.select().from(users).where(eq(users.id, id)).limit(1);
+    if (!user) return reply.status(404).send({ success: false, error: "Kullanici bulunamadi" });
+
+    const profil = await db.select().from(danisan).where(eq(danisan.userId, id)).limit(1);
+    const tedaviler = await db.select().from(tedavi).where(eq(tedavi.danisanId, id));
+    const tahliller = await db.select().from(tahlil).where(eq(tahlil.danisanId, id));
+    const randevular = await db.select().from(randevu).where(eq(randevu.danisanId, id));
+
+    const exportData = {
+      exportDate: new Date().toISOString(),
+      kvkkReference: "KVKK m.11 - Veri tasima hakki",
+      user: { email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role, createdAt: user.createdAt },
+      profil: profil[0] || null,
+      tedaviler,
+      tahliller,
+      randevular,
+    };
+
+    await createAuditLog({
+      userId: (request as any).user?.sub, action: "export", tableName: "users", recordId: id,
+      description: `KVKK m.11 - Veri export: ${user.email}`, request,
+    });
+
+    return reply.send({ success: true, data: exportData });
+  });
+
+  // ==========================================
+  // HAFTALIK RAPOR
+  // ==========================================
+
+  // GET /api/admin/stats/weekly - Son 7 gun breakdown
+  app.get("/api/admin/stats/weekly", { preHandler: requireRole("admin") }, async (_request, reply) => {
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      date.setHours(0, 0, 0, 0);
+      const nextDay = new Date(date);
+      nextDay.setDate(nextDay.getDate() + 1);
+
+      const dayRandevu = await db.select().from(randevu).where(sql`${randevu.createdAt} >= ${date} AND ${randevu.createdAt} < ${nextDay}`);
+      const dayTedavi = await db.select().from(tedavi).where(sql`${tedavi.createdAt} >= ${date} AND ${tedavi.createdAt} < ${nextDay}`);
+
+      days.push({
+        date: date.toISOString().split("T")[0],
+        dayName: date.toLocaleDateString("tr-TR", { weekday: "short" }),
+        randevu: dayRandevu.length,
+        tedavi: dayTedavi.length,
+      });
+    }
+
+    return reply.send({ success: true, data: days });
   });
 }

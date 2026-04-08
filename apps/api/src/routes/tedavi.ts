@@ -5,6 +5,7 @@ import { tedavi } from "../db/schema/tedavi.js";
 import { tahlil } from "../db/schema/tahlil.js";
 import { stok, stokHareket } from "../db/schema/stok.js";
 import { bildirim } from "../db/schema/bildirim.js";
+import { danisan } from "../db/schema/danisan.js";
 import { requireAuth, requireRole, getUser } from "../middleware/auth.js";
 import { createAuditLog } from "../middleware/audit.js";
 
@@ -35,7 +36,31 @@ export async function tedaviRoutes(app: FastifyInstance) {
       }
     }
 
-    // 2. Tedavi kaydi olustur
+    // 2. Kontrendikasyon kontrolu
+    const warnings: string[] = [];
+    if (body.danisanId && body.treatmentType) {
+      const [danisanProfil] = await db.select().from(danisan).where(eq(danisan.userId, body.danisanId as string)).limit(1);
+      if (danisanProfil) {
+        const diseases = (danisanProfil.chronicDiseases || []) as string[];
+        const meds = (danisanProfil.currentMedications || []) as string[];
+        const isPregnant = danisanProfil.pregnancyStatus;
+
+        if (isPregnant && ["hacamat_yas", "solucan"].includes(body.treatmentType)) {
+          warnings.push("UYARI: Hamilelik durumunda bu tedavi tipi uygulanmamali");
+        }
+        if (diseases.some(d => d.toLowerCase().includes("kanama")) && ["hacamat_yas", "solucan"].includes(body.treatmentType)) {
+          warnings.push("UYARI: Kanama bozuklugu - kan aldirma tedavileri riskli");
+        }
+        if (diseases.some(d => d.toLowerCase().includes("hemofili"))) {
+          warnings.push("UYARI: Hemofili tanisi - invaziv tedavilerden kacinilmali");
+        }
+        if (meds.some(m => m.toLowerCase().includes("sulandirici") || m.toLowerCase().includes("warfarin") || m.toLowerCase().includes("aspirin"))) {
+          warnings.push("UYARI: Kan sulandirici ilac kullanimi - kanama riski yuksek");
+        }
+      }
+    }
+
+    // 3. Tedavi kaydi olustur
     const { usedItems: _usedItems, ...tedaviData } = body;
     const [created] = await db
       .insert(tedavi)
@@ -46,7 +71,7 @@ export async function tedaviRoutes(app: FastifyInstance) {
       return reply.status(500).send({ success: false, error: "Tedavi kaydi olusturulamadi" });
     }
 
-    // 3. Stok dusme
+    // 4. Stok dusme
     if (body.usedItems && body.usedItems.length > 0) {
       for (const item of body.usedItems) {
         const [stokItem] = await db.select().from(stok).where(eq(stok.id, item.stokId)).limit(1);
@@ -75,7 +100,7 @@ export async function tedaviRoutes(app: FastifyInstance) {
       }
     }
 
-    // 4. Danisana bildirim gonder
+    // 5. Danisana bildirim gonder
     if (body.danisanId) {
       await db.insert(bildirim).values({
         userId: body.danisanId as string,
@@ -95,7 +120,7 @@ export async function tedaviRoutes(app: FastifyInstance) {
       request,
     });
 
-    return reply.status(201).send({ success: true, data: created });
+    return reply.status(201).send({ success: true, data: created, warnings: warnings.length > 0 ? warnings : undefined });
   });
 
   // GET /api/tedavi/danisan/:danisanId

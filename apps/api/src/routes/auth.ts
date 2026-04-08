@@ -45,7 +45,7 @@ async function generateTokens(userId: string, role: string) {
 
 export async function authRoutes(app: FastifyInstance) {
   // POST /api/auth/register
-  app.post("/api/auth/register", async (request, reply) => {
+  app.post("/api/auth/register", { config: { rateLimit: { max: 3, timeWindow: "1 hour" } } }, async (request, reply) => {
     const body = registerSchema.parse(request.body);
 
     // Check existing user
@@ -106,7 +106,7 @@ export async function authRoutes(app: FastifyInstance) {
   });
 
   // POST /api/auth/login
-  app.post("/api/auth/login", async (request, reply) => {
+  app.post("/api/auth/login", { config: { rateLimit: { max: 5, timeWindow: "15 minutes" } } }, async (request, reply) => {
     const body = loginSchema.parse(request.body);
 
     const [user] = await db

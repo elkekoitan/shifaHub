@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { useApi, useApiMutation } from "@/hooks/use-api";
+import { useAuth } from "@/providers/auth-provider";
 
 interface UserItem {
   id: string;
@@ -26,9 +27,14 @@ const rolColors: Record<string, string> = {
   tabip: "bg-orange-100 text-orange-800",
 };
 
+const API_URL = typeof window !== "undefined" && window.location.protocol === "https:"
+  ? "/api/proxy"
+  : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000");
+
 export default function AdminKullanicilarPage() {
   const { data: allUsers, loading, refetch } = useApi<UserItem[]>("/api/admin/users");
   const { mutate } = useApiMutation();
+  const { token } = useAuth();
   const [search, setSearch] = useState("");
   const [filterRole, setFilterRole] = useState("all");
 
@@ -53,6 +59,33 @@ export default function AdminKullanicilarPage() {
   async function deleteUser(id: string) {
     if (!confirm("Bu kullaniciyi silmek istediginize emin misiniz?")) return;
     await mutate(`/api/admin/users/${id}`, {}, "DELETE");
+    refetch();
+  }
+
+  async function exportUser(id: string) {
+    try {
+      const res = await fetch(`${API_URL}/api/admin/users/${id}/export`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json();
+      const blob = new Blob([JSON.stringify(json.data || json, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `kullanici-${id}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      alert("Export sirasinda hata olustu");
+    }
+  }
+
+  async function deleteUserData(id: string) {
+    if (!confirm("Bu kullanicinin tum verilerini silmek istediginize emin misiniz? Bu islem geri alinamaz!")) return;
+    if (!confirm("KVKK geregince veri silme islemi baslayacak. Devam etmek istiyor musunuz?")) return;
+    await mutate(`/api/admin/users/${id}/data`, {}, "DELETE");
     refetch();
   }
 
@@ -109,11 +142,13 @@ export default function AdminKullanicilarPage() {
                       {u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString("tr-TR") : "-"}
                     </td>
                     <td className="p-3 text-right">
-                      <div className="flex gap-1 justify-end">
+                      <div className="flex gap-1 justify-end flex-wrap">
+                        <Button size="sm" variant="outline" onClick={() => exportUser(u.id)}>Export</Button>
                         <Button size="sm" variant="outline" onClick={() => changeRole(u.id)}>Rol</Button>
                         <Button size="sm" variant={u.isActive ? "secondary" : "default"} onClick={() => toggleActive(u.id)}>
                           {u.isActive ? "Pasif Yap" : "Aktif Yap"}
                         </Button>
+                        <Button size="sm" variant="destructive" onClick={() => deleteUserData(u.id)}>Veri Sil</Button>
                         <Button size="sm" variant="destructive" onClick={() => deleteUser(u.id)}>Sil</Button>
                       </div>
                     </td>
