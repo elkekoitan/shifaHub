@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { eq, desc, and, sql } from "drizzle-orm";
+import { eq, desc, and, gte } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { odeme } from "../db/schema/odeme.js";
 import { requireRole, getUser } from "../middleware/auth.js";
@@ -64,7 +64,7 @@ export async function odemeRoutes(app: FastifyInstance) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      const conditions = [sql`${odeme.createdAt} >= ${today}`];
+      const conditions = [gte(odeme.createdAt, today)];
       if (role === "egitmen") conditions.push(eq(odeme.egitmenId, sub));
 
       const payments = await db

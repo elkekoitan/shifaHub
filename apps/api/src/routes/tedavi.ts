@@ -90,11 +90,14 @@ export async function tedaviRoutes(app: FastifyInstance) {
     const { sub } = getUser(request);
     const body = request.body as typeof tahlil.$inferInsert;
 
+    const testDate = body.testDate ? new Date(body.testDate as unknown as string) : new Date();
+
     const [created] = await db
       .insert(tahlil)
       .values({
         ...body,
         danisanId: body.danisanId || sub,
+        testDate,
       })
       .returning();
 
