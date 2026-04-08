@@ -23,6 +23,8 @@ export * from "./bildirim.js";
 export * from "./stok.js";
 export * from "./odeme.js";
 
-// Faz 2+ (henuz implement edilmedi)
-// export * from "./komplikasyon.js";
+// Faz 2 - Komplikasyon
+export * from "./komplikasyon.js";
+
+// Faz 3 (AI/Knowledge)
 // export * from "./kulliyat.js";
