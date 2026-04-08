@@ -83,6 +83,8 @@ export default function AdminRaporlarPage() {
       </Card>
       <HaftalikRapor />
       <EgitmenPerformans />
+      <DanisanIlerleme />
+      <TedaviDagilimi />
     </div>
   );
 }
@@ -157,6 +159,111 @@ function HaftalikRapor() {
               ))}
             </tbody>
           </table>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function DanisanIlerleme() {
+  const { data, loading } = useApi<Array<{
+    id: string; firstName: string; lastName: string; city: string;
+    mainComplaints: string[]; createdAt: string;
+  }>>("/api/admin/danisanlar");
+
+  const danisanlar = data ?? [];
+
+  return (
+    <Card>
+      <CardHeader><CardTitle>Danisan Ilerleme Raporu</CardTitle></CardHeader>
+      <CardContent>
+        {loading ? (
+          <p className="text-center text-muted-foreground py-4">Yukleniyor...</p>
+        ) : danisanlar.length === 0 ? (
+          <p className="text-center text-muted-foreground py-4">Danisan verisi bulunamadi.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="text-left p-3 font-medium">Danisan</th>
+                  <th className="text-left p-3 font-medium">Sehir</th>
+                  <th className="text-left p-3 font-medium">Kayit Tarihi</th>
+                  <th className="text-left p-3 font-medium">Sikayet Sayisi</th>
+                  <th className="text-left p-3 font-medium">Ilerleme</th>
+                </tr>
+              </thead>
+              <tbody>
+                {danisanlar.map((d) => {
+                  const sikayetSayisi = d.mainComplaints?.length || 0;
+                  const progressWidth = Math.min(100, sikayetSayisi * 20);
+                  return (
+                    <tr key={d.id} className="border-t hover:bg-muted/30">
+                      <td className="p-3 font-medium">{d.firstName} {d.lastName}</td>
+                      <td className="p-3 text-muted-foreground">{d.city || "-"}</td>
+                      <td className="p-3 text-muted-foreground">{new Date(d.createdAt).toLocaleDateString("tr-TR")}</td>
+                      <td className="p-3">{sikayetSayisi}</td>
+                      <td className="p-3">
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-blue-600 h-2 rounded-full transition-all"
+                            style={{ width: `${progressWidth}%` }}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function TedaviDagilimi() {
+  const { data, loading } = useApi<Array<{ type: string; count: number }>>("/api/admin/stats/tedavi-dagilim");
+
+  const items = data ?? [];
+  const maxCount = items.length > 0 ? Math.max(...items.map((i) => i.count)) : 1;
+
+  const TREATMENT_LABELS: Record<string, string> = {
+    hacamat_kuru: "Kuru Hacamat",
+    hacamat_yas: "Yas Hacamat",
+    solucan: "Solucan (Hirudoterapi)",
+    sujok: "Sujok Terapi",
+    refleksoloji: "Refleksoloji",
+    akupunktur: "Akupunktur",
+    fitoterapi: "Fitoterapi",
+  };
+
+  return (
+    <Card>
+      <CardHeader><CardTitle>Tedavi Dagilimi</CardTitle></CardHeader>
+      <CardContent>
+        {loading ? (
+          <p className="text-center text-muted-foreground py-4">Yukleniyor...</p>
+        ) : items.length === 0 ? (
+          <p className="text-center text-muted-foreground py-4">Tedavi verisi bulunamadi.</p>
+        ) : (
+          <div className="space-y-3">
+            {items.map((item) => (
+              <div key={item.type} className="space-y-1">
+                <div className="flex justify-between text-sm">
+                  <span>{TREATMENT_LABELS[item.type] || item.type}</span>
+                  <span className="font-bold">{item.count}</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div
+                    className="bg-teal-600 h-3 rounded-full transition-all"
+                    style={{ width: `${(item.count / maxCount) * 100}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </CardContent>
     </Card>

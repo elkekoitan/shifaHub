@@ -17,6 +17,12 @@ const TREATMENT_TYPES = [
   { value: "fitoterapi", label: "Fitoterapi" },
 ];
 
+const BODY_AREAS = [
+  "Bas", "Boyun", "Omuz", "Sirt (ust)", "Sirt (alt)", "Bel",
+  "Gogus", "Karin", "Kol (sag)", "Kol (sol)",
+  "Bacak (sag)", "Bacak (sol)", "Ayak", "El",
+];
+
 export default function EgitmenTedaviPage() {
   const { mutate, loading, error } = useApiMutation();
   const [success, setSuccess] = useState(false);
@@ -35,6 +41,7 @@ export default function EgitmenTedaviPage() {
   const [appliedTreatment, setAppliedTreatment] = useState("");
   const [recommendations, setRecommendations] = useState("");
   const [nextSessionDate, setNextSessionDate] = useState("");
+  const [bodyArea, setBodyArea] = useState("");
 
   const handleSubmit = async () => {
     setSuccess(false);
@@ -59,6 +66,7 @@ export default function EgitmenTedaviPage() {
       appliedTreatment,
       recommendations,
       nextSessionDate: nextSessionDate || undefined,
+      bodyArea: bodyArea || undefined,
     };
 
     const result = await mutate("/api/tedavi", body);
@@ -78,6 +86,7 @@ export default function EgitmenTedaviPage() {
       setAppliedTreatment("");
       setRecommendations("");
       setNextSessionDate("");
+      setBodyArea("");
     }
   };
 

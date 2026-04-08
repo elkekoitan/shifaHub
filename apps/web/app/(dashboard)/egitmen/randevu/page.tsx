@@ -1,7 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { HijriDisplay } from "@/components/calendar/hijri-display";
 import { useApi, useApiMutation } from "@/hooks/use-api";
 
@@ -35,7 +38,52 @@ export default function EgitmenRandevuPage() {
   const { data: randevuList, loading, error, refetch } = useApi<RandevuItem[]>("/api/randevu");
   const { mutate, loading: mutating } = useApiMutation();
 
-  const items = randevuList ?? [];
+  // Filtre state
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+
+  const allItems = randevuList ?? [];
+
+  // Client-side filtreleme
+  const items = allItems.filter((r) => {
+    if (dateFrom) {
+      const rDate = new Date(r.scheduledAt);
+      const fromDate = new Date(dateFrom);
+      fromDate.setHours(0, 0, 0, 0);
+      if (rDate < fromDate) return false;
+    }
+    if (dateTo) {
+      const rDate = new Date(r.scheduledAt);
+      const toDate = new Date(dateTo);
+      toDate.setHours(23, 59, 59, 999);
+      if (rDate > toDate) return false;
+    }
+    if (statusFilter && r.status !== statusFilter) return false;
+    return true;
+  });
+
+  // CSV export
+  const handleCsvExport = () => {
+    const header = "Tarih,Saat,Tedavi,Durum,Sure";
+    const rows = items.map((r) => {
+      const date = new Date(r.scheduledAt);
+      const tarih = date.toLocaleDateString("tr-TR");
+      const saat = date.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
+      const tedaviStr = (r.treatmentType || "Belirtilmemis").replace(/,/g, " ");
+      const durum = (statusLabel[r.status] ?? r.status).replace(/,/g, " ");
+      const sure = `${r.duration || 0} dk`;
+      return `${tarih},${saat},${tedaviStr},${durum},${sure}`;
+    });
+    const csv = [header, ...rows].join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `randevular_${new Date().toISOString().split("T")[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -98,9 +146,51 @@ export default function EgitmenRandevuPage() {
         </Card>
       </div>
 
+      {/* Filtreler */}
       <Card>
         <CardHeader>
-          <CardTitle>Randevu Listesi</CardTitle>
+          <CardTitle>Filtrele</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col sm:flex-row gap-4 items-end">
+            <div className="space-y-1 flex-1">
+              <Label className="text-xs">Baslangic Tarihi</Label>
+              <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+            </div>
+            <div className="space-y-1 flex-1">
+              <Label className="text-xs">Bitis Tarihi</Label>
+              <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+            </div>
+            <div className="space-y-1 flex-1">
+              <Label className="text-xs">Durum</Label>
+              <select
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="">Tumu</option>
+                <option value="pending">Onay Bekliyor</option>
+                <option value="confirmed">Onaylandi</option>
+                <option value="completed">Tamamlandi</option>
+                <option value="cancelled">Iptal</option>
+                <option value="no_show">Gelmedi</option>
+              </select>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => { setDateFrom(""); setDateTo(""); setStatusFilter(""); }}>
+              Temizle
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Randevu Listesi ({items.length})</CardTitle>
+            <Button size="sm" variant="outline" onClick={handleCsvExport} disabled={items.length === 0}>
+              CSV Indir
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {loading ? (

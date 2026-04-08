@@ -38,6 +38,7 @@ const navItems: Record<string, { label: string; href: string; icon: string }[]> 
     { label: "Danisanlar", href: "/admin/danisan", icon: "👥" },
     { label: "KVKK", href: "/admin/kvkk", icon: "🔒" },
     { label: "Raporlar", href: "/admin/raporlar", icon: "📈" },
+    { label: "Bildirim Gonder", href: "/admin/bildirim-gonder", icon: "📢" },
     { label: "Sistem", href: "/admin/sistem", icon: "⚙️" },
   ],
 };

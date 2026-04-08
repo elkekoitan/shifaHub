@@ -19,6 +19,7 @@ interface FullDanisan {
     id: string; treatmentType: string; sessionNumber: number; treatmentDate: string;
     complaints: unknown; findings: string; appliedTreatment: string; recommendations: string;
     vitalSigns: { bloodPressure?: string; pulse?: number; weight?: number } | null;
+    beforeImageUrls?: string[]; afterImageUrls?: string[];
   }>;
   tahliller: Array<{ id: string; testType: string; testDate: string; labName: string; values: unknown[] }>;
   randevular: Array<{ id: string; scheduledAt: string; status: string; treatmentType: string; duration: number }>;
@@ -242,6 +243,42 @@ export default function DanisanDetayPage() {
                 {t.findings && <div><p className="text-xs text-muted-foreground">Bulgular:</p><p className="text-sm">{t.findings}</p></div>}
                 {t.appliedTreatment && <div><p className="text-xs text-muted-foreground">Tedavi:</p><p className="text-sm">{t.appliedTreatment}</p></div>}
                 {t.recommendations && <div><p className="text-xs text-muted-foreground">Oneriler:</p><p className="text-sm text-primary">{t.recommendations}</p></div>}
+                {/* Oncesi / Sonrasi gorsel karsilastirma */}
+                {((t.beforeImageUrls && t.beforeImageUrls.length > 0) || (t.afterImageUrls && t.afterImageUrls.length > 0)) && (
+                  <div className="border-t pt-3 mt-3">
+                    <p className="text-xs text-muted-foreground mb-2 font-medium">Oncesi / Sonrasi Gorseller</p>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-xs font-semibold text-center mb-2 text-amber-700">Oncesi</p>
+                        {t.beforeImageUrls && t.beforeImageUrls.length > 0 ? (
+                          <div className="space-y-2">
+                            {t.beforeImageUrls.map((url, idx) => (
+                              <img key={idx} src={url} alt={`Oncesi ${idx + 1}`} className="w-full rounded-md border object-cover max-h-48" />
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center h-32 bg-muted/50 rounded-md border border-dashed">
+                            <span className="text-xs text-muted-foreground">Gorsel yok</span>
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-center mb-2 text-green-700">Sonrasi</p>
+                        {t.afterImageUrls && t.afterImageUrls.length > 0 ? (
+                          <div className="space-y-2">
+                            {t.afterImageUrls.map((url, idx) => (
+                              <img key={idx} src={url} alt={`Sonrasi ${idx + 1}`} className="w-full rounded-md border object-cover max-h-48" />
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center h-32 bg-muted/50 rounded-md border border-dashed">
+                            <span className="text-xs text-muted-foreground">Gorsel yok</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}

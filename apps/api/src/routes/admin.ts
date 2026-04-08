@@ -8,6 +8,7 @@ import { randevu } from "../db/schema/randevu.js";
 import { tedavi } from "../db/schema/tedavi.js";
 import { tahlil } from "../db/schema/tahlil.js";
 import { auditLog } from "../db/schema/audit_log.js";
+import { bildirim } from "../db/schema/bildirim.js";
 import { requireRole, getUser } from "../middleware/auth.js";
 import { createAuditLog } from "../middleware/audit.js";
 
@@ -311,6 +312,32 @@ export async function adminRoutes(app: FastifyInstance) {
     }
 
     return reply.send({ success: true, data: results });
+  });
+
+  // GET /api/admin/stats/tedavi-dagilim
+  app.get("/api/admin/stats/tedavi-dagilim", { preHandler: requireRole("admin") }, async (_request, reply) => {
+    const all = await db.select().from(tedavi);
+    const dist: Record<string, number> = {};
+    all.forEach((t) => { const k = t.treatmentType || "belirtilmemis"; dist[k] = (dist[k] || 0) + 1; });
+    const data = Object.entries(dist).map(([type, count]) => ({ type, count })).sort((a, b) => b.count - a.count);
+    return reply.send({ success: true, data });
+  });
+
+  // POST /api/admin/bildirim/toplu
+  app.post("/api/admin/bildirim/toplu", { preHandler: requireRole("admin") }, async (request, reply) => {
+    const { sub } = getUser(request);
+    const { title, body, target } = request.body as { title: string; body: string; target: string };
+    let targetUsers;
+    if (target === "danisan") targetUsers = await db.select({ id: users.id }).from(users).where(eq(users.role, "danisan"));
+    else if (target === "egitmen") targetUsers = await db.select({ id: users.id }).from(users).where(eq(users.role, "egitmen"));
+    else targetUsers = await db.select({ id: users.id }).from(users);
+    let count = 0;
+    for (const u of targetUsers) {
+      await db.insert(bildirim).values({ userId: u.id, type: "sistem", title, body });
+      count++;
+    }
+    await createAuditLog({ userId: sub, action: "create", tableName: "bildirim", description: `Toplu bildirim: ${count} kisi (${target})`, request });
+    return reply.send({ success: true, message: `${count} kullaniciya bildirim gonderildi` });
   });
 
   // ==========================================
