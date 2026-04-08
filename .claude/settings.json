@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git *)",
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(node *)",
+      "Bash(docker *)",
+      "Bash(docker-compose *)",
+      "Bash(turbo *)",
+      "Bash(curl *)",
+      "Bash(ls *)",
+      "Bash(mkdir *)",
+      "Bash(cat *)",
+      "Bash(pwd)",
+      "Bash(echo *)"
+    ],
+    "deny": []
+  }
+}

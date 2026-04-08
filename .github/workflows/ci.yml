@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm run test
+
+  deploy-staging:
+    name: Deploy to Staging
+    needs: quality
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+
+    steps:
+      - name: Trigger Coolify Deploy
+        run: |
+          curl -X POST "${{ secrets.COOLIFY_WEBHOOK_STAGING }}" \
+            -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}"
+
+  deploy-production:
+    name: Deploy to Production
+    needs: quality
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    environment: production
+
+    steps:
+      - name: Trigger Coolify Deploy
+        run: |
+          curl -X POST "${{ secrets.COOLIFY_WEBHOOK_PRODUCTION }}" \
+            -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}"
