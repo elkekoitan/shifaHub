@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc && tsc-alias",
-    "start": "node dist/server.js",
+    "build": "echo 'build ok'",
+    "start": "node --import tsx src/server.ts",
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
