@@ -19,8 +19,6 @@ export default function DanisanRandevuPage() {
   const [selectedTreatment, setSelectedTreatment] = useState("");
   const [complaints, setComplaints] = useState("");
 
-  const displayDate = selectedDate ? new Date(selectedDate) : new Date();
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
