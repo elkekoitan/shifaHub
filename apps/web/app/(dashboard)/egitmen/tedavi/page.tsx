@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,17 +19,59 @@ const TREATMENT_TYPES = [
 ];
 
 const BODY_AREAS = [
-  "Bas", "Boyun", "Omuz", "Sirt (ust)", "Sirt (alt)", "Bel",
-  "Gogus", "Karin", "Kol (sag)", "Kol (sol)",
-  "Bacak (sag)", "Bacak (sol)", "Ayak", "El",
+  "Bas",
+  "Boyun",
+  "Omuz",
+  "Sirt (ust)",
+  "Sirt (alt)",
+  "Bel",
+  "Gogus",
+  "Karin",
+  "Kol (sag)",
+  "Kol (sol)",
+  "Bacak (sag)",
+  "Bacak (sol)",
+  "Ayak",
+  "El",
 ];
 
+type StokItem = {
+  id: string;
+  name: string;
+  category: string;
+  quantity: number;
+  unit: string;
+  unitPrice: number;
+};
+
+type ProtokolItem = {
+  id: string;
+  title: string;
+  status: string;
+  complaints: Array<{
+    description: string;
+    priority: number;
+    treatmentMethod: string;
+    estimatedSessions: number;
+    sessionInterval: string;
+  }>;
+};
+
+type UsedItem = {
+  stokId: string;
+  quantity: number;
+};
+
 export default function EgitmenTedaviPage() {
+  const searchParams = useSearchParams();
   const { mutate, loading, error } = useApiMutation();
   const [success, setSuccess] = useState(false);
-  const { data: danisanlar, loading: danisanlarLoading } = useApi<
-    Array<{ userId: string; firstName: string; lastName: string }>
-  >("/api/danisan/list");
+  const [warnings, setWarnings] = useState<string[]>([]);
+
+  const { data: danisanlar, loading: danisanlarLoading } =
+    useApi<Array<{ userId: string; firstName: string; lastName: string }>>("/api/danisan/list");
+
+  const { data: stokList } = useApi<StokItem[]>("/api/stok");
 
   // Form state
   const [danisanId, setDanisanId] = useState("");
@@ -45,15 +88,64 @@ export default function EgitmenTedaviPage() {
   const [recommendations, setRecommendations] = useState("");
   const [nextSessionDate, setNextSessionDate] = useState("");
   const [bodyArea, setBodyArea] = useState("");
+  const [randevuId, setRandevuId] = useState("");
+  const [protokolId, setProtokolId] = useState("");
+
+  // Stok secimi
+  const [usedItems, setUsedItems] = useState<UsedItem[]>([]);
+
+  // Protokol listesi (danisan secilince yukle)
+  const { data: protokoller, refetch: refetchProtokoller } = useApi<ProtokolItem[]>(
+    danisanId ? `/api/protokol/danisan/${danisanId}` : "",
+    { skip: !danisanId },
+  );
+
+  // URL parametrelerinden otomatik doldur (Randevu -> Tedavi Baslat)
+  useEffect(() => {
+    const paramDanisanId = searchParams.get("danisanId");
+    const paramTreatmentType = searchParams.get("treatmentType");
+    const paramRandevuId = searchParams.get("randevuId");
+
+    if (paramDanisanId) setDanisanId(paramDanisanId);
+    if (paramTreatmentType) setTreatmentType(paramTreatmentType);
+    if (paramRandevuId) setRandevuId(paramRandevuId);
+  }, [searchParams]);
+
+  // Danisan degistiginde protokolleri yeniden yukle
+  useEffect(() => {
+    if (danisanId) {
+      refetchProtokoller();
+    }
+  }, [danisanId, refetchProtokoller]);
+
+  const addStokItem = () => {
+    setUsedItems([...usedItems, { stokId: "", quantity: 1 }]);
+  };
+
+  const removeStokItem = (index: number) => {
+    setUsedItems(usedItems.filter((_, i) => i !== index));
+  };
+
+  const updateStokItem = (index: number, field: keyof UsedItem, value: string | number) => {
+    const updated = [...usedItems];
+    if (field === "stokId") {
+      updated[index] = { ...updated[index]!, stokId: value as string };
+    } else {
+      updated[index] = { ...updated[index]!, quantity: Number(value) };
+    }
+    setUsedItems(updated);
+  };
 
   const handleSubmit = async () => {
     setSuccess(false);
+    setWarnings([]);
 
     if (!danisanId.trim() || !treatmentType) {
       return;
     }
 
     const complaints = [complaint1, complaint2, complaint3].filter((c) => c.trim() !== "");
+    const validUsedItems = usedItems.filter((i) => i.stokId && i.quantity > 0);
 
     const body = {
       danisanId: danisanId.trim(),
@@ -70,11 +162,17 @@ export default function EgitmenTedaviPage() {
       recommendations,
       nextSessionDate: nextSessionDate || undefined,
       bodyArea: bodyArea || undefined,
+      randevuId: randevuId || undefined,
+      protokolId: protokolId || undefined,
+      usedItems: validUsedItems.length > 0 ? validUsedItems : undefined,
     };
 
-    const result = await mutate("/api/tedavi", body);
+    const result = (await mutate("/api/tedavi", body)) as { warnings?: string[] } | null;
     if (result) {
       setSuccess(true);
+      if (result.warnings) {
+        setWarnings(result.warnings);
+      }
       // Reset form
       setDanisanId("");
       setTreatmentType("");
@@ -90,16 +188,31 @@ export default function EgitmenTedaviPage() {
       setRecommendations("");
       setNextSessionDate("");
       setBodyArea("");
+      setRandevuId("");
+      setProtokolId("");
+      setUsedItems([]);
     }
   };
 
+  const availableStok = (stokList ?? []).filter((s) => s.quantity > 0);
+
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Tedavi Kaydi Olustur</h1>
+      <h1 className="text-2xl font-bold">
+        {randevuId ? "Tedavi Kaydi (Randevudan)" : "Tedavi Kaydi Olustur"}
+      </h1>
 
       {success && (
         <div className="rounded-md border border-green-200 bg-green-50 p-4 text-green-800 text-sm">
-          Tedavi kaydi basariyla olusturuldu.
+          Tedavi kaydi basariyla olusturuldu. Odeme kaydi otomatik olusturuldu.
+        </div>
+      )}
+
+      {warnings.length > 0 && (
+        <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-amber-800 text-sm space-y-1">
+          {warnings.map((w, i) => (
+            <p key={i}>{w}</p>
+          ))}
         </div>
       )}
 
@@ -119,12 +232,13 @@ export default function EgitmenTedaviPage() {
             <select
               className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
               value={danisanId}
-              onChange={(e) => setDanisanId(e.target.value)}
+              onChange={(e) => {
+                setDanisanId(e.target.value);
+                setProtokolId("");
+              }}
               disabled={danisanlarLoading}
             >
-              <option value="">
-                {danisanlarLoading ? "Yukleniyor..." : "Danisan Seciniz"}
-              </option>
+              <option value="">{danisanlarLoading ? "Yukleniyor..." : "Danisan Seciniz"}</option>
               {(danisanlar ?? []).map((d) => (
                 <option key={d.userId} value={d.userId}>
                   {d.firstName} {d.lastName}
@@ -134,6 +248,58 @@ export default function EgitmenTedaviPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Protokol Secimi (danisan secildiyse) */}
+      {danisanId && protokoller && protokoller.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Protokol Baglantisi</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <Label>Aktif Protokol</Label>
+              <select
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                value={protokolId}
+                onChange={(e) => {
+                  setProtokolId(e.target.value);
+                  // Secilen protokolden otomatik doldur
+                  if (e.target.value) {
+                    const prot = protokoller.find((p) => p.id === e.target.value);
+                    if (prot && prot.complaints && prot.complaints.length > 0) {
+                      const firstComplaint = prot.complaints[0];
+                      if (firstComplaint?.treatmentMethod) {
+                        const match = TREATMENT_TYPES.find(
+                          (t) =>
+                            firstComplaint.treatmentMethod
+                              .toLowerCase()
+                              .includes(t.value.replace("_", " ")) ||
+                            t.label
+                              .toLowerCase()
+                              .includes(firstComplaint.treatmentMethod.toLowerCase()),
+                        );
+                        if (match) setTreatmentType(match.value);
+                      }
+                      if (firstComplaint?.description) {
+                        setComplaint1(firstComplaint.description);
+                      }
+                    }
+                  }
+                }}
+              >
+                <option value="">Protokol Secin (opsiyonel)</option>
+                {protokoller
+                  .filter((p) => p.status === "active")
+                  .map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.title} ({(p.complaints || []).length} sikayet)
+                    </option>
+                  ))}
+              </select>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
@@ -150,7 +316,9 @@ export default function EgitmenTedaviPage() {
               >
                 <option value="">Seciniz</option>
                 {TREATMENT_TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>{t.label}</option>
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
                 ))}
               </select>
             </div>
@@ -183,7 +351,9 @@ export default function EgitmenTedaviPage() {
               >
                 <option value="">Bolge seciniz</option>
                 {BODY_AREAS.map((area) => (
-                  <option key={area} value={area}>{area}</option>
+                  <option key={area} value={area}>
+                    {area}
+                  </option>
                 ))}
               </select>
             </div>
@@ -295,6 +465,76 @@ export default function EgitmenTedaviPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Kullanilan Malzemeler */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Kullanilan Malzemeler</CardTitle>
+            <Button size="sm" variant="outline" onClick={addStokItem} type="button">
+              + Malzeme Ekle
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {usedItems.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              Tedavide kullanilan malzeme eklemek icin butona tiklayin.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {usedItems.map((item, index) => {
+                const selectedStok = availableStok.find((s) => s.id === item.stokId);
+                return (
+                  <div
+                    key={index}
+                    className="flex flex-col sm:flex-row gap-2 items-end border rounded-lg p-3"
+                  >
+                    <div className="flex-1 space-y-1">
+                      <Label className="text-xs">Malzeme</Label>
+                      <select
+                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                        value={item.stokId}
+                        onChange={(e) => updateStokItem(index, "stokId", e.target.value)}
+                      >
+                        <option value="">Malzeme seciniz</option>
+                        {availableStok.map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.name} (Mevcut: {s.quantity} {s.unit})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="w-24 space-y-1">
+                      <Label className="text-xs">Miktar</Label>
+                      <Input
+                        type="number"
+                        min="1"
+                        max={selectedStok?.quantity ?? 999}
+                        value={item.quantity}
+                        onChange={(e) => updateStokItem(index, "quantity", e.target.value)}
+                      />
+                    </div>
+                    {selectedStok && (
+                      <span className="text-xs text-muted-foreground whitespace-nowrap pb-2">
+                        {selectedStok.unit}
+                      </span>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => removeStokItem(index)}
+                      type="button"
+                    >
+                      Sil
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <Button
         className="w-full"

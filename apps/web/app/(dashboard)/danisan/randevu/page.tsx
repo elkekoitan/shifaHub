@@ -9,9 +9,15 @@ import { HijriDisplay } from "@/components/calendar/hijri-display";
 import { useApi, useApiMutation } from "@/hooks/use-api";
 
 const TREATMENT_TYPES = [
-  "Kuru Hacamat", "Yas Hacamat", "Solucan Tedavisi",
-  "Sujok Terapi", "Refleksoloji", "Akupunktur",
-  "Fitoterapi", "Aromaterapi", "Diger",
+  "Kuru Hacamat",
+  "Yas Hacamat",
+  "Solucan Tedavisi",
+  "Sujok Terapi",
+  "Refleksoloji",
+  "Akupunktur",
+  "Fitoterapi",
+  "Aromaterapi",
+  "Diger",
 ];
 
 type Egitmen = {
@@ -26,6 +32,8 @@ type Randevu = {
   duration: number;
   treatmentType: string;
   status: string;
+  egitmenFirstName?: string;
+  egitmenLastName?: string;
 };
 
 export default function DanisanRandevuPage() {
@@ -99,7 +107,7 @@ export default function DanisanRandevuPage() {
     setSuccessMessage(
       isRecurring && repeatCount > 1
         ? `${createdCount} randevu basariyla olusturuldu.`
-        : "Randevu talebiniz basariyla olusturuldu."
+        : "Randevu talebiniz basariyla olusturuldu.",
     );
     setSelectedDate("");
     setSelectedTime("");
@@ -112,17 +120,27 @@ export default function DanisanRandevuPage() {
   };
 
   const statusLabel: Record<string, string> = {
-    pending: "Beklemede",
+    requested: "Beklemede",
     confirmed: "Onaylandi",
-    cancelled: "Iptal",
+    reminded: "Hatirlatildi",
+    arrived: "Geldiniz",
+    treated: "Tedavi Edildi",
     completed: "Tamamlandi",
+    cancelled: "Iptal",
+    no_show: "Katilim Yok",
+    ertelendi: "Ertelendi",
   };
 
   const statusColor: Record<string, string> = {
-    pending: "bg-amber-100 text-amber-800",
+    requested: "bg-amber-100 text-amber-800",
     confirmed: "bg-green-100 text-green-800",
-    cancelled: "bg-red-100 text-red-800",
+    reminded: "bg-sky-100 text-sky-800",
+    arrived: "bg-indigo-100 text-indigo-800",
+    treated: "bg-purple-100 text-purple-800",
     completed: "bg-blue-100 text-blue-800",
+    cancelled: "bg-red-100 text-red-800",
+    no_show: "bg-gray-100 text-gray-800",
+    ertelendi: "bg-orange-100 text-orange-800",
   };
 
   return (
@@ -190,7 +208,9 @@ export default function DanisanRandevuPage() {
                   const min = i % 2 === 0 ? "00" : "30";
                   return `${hour.toString().padStart(2, "0")}:${min}`;
                 }).map((time) => (
-                  <option key={time} value={time}>{time}</option>
+                  <option key={time} value={time}>
+                    {time}
+                  </option>
                 ))}
               </select>
             </div>
@@ -204,7 +224,9 @@ export default function DanisanRandevuPage() {
               >
                 <option value="">Seciniz</option>
                 {TREATMENT_TYPES.map((t) => (
-                  <option key={t} value={t}>{t}</option>
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
                 ))}
               </select>
             </div>
@@ -239,7 +261,9 @@ export default function DanisanRandevuPage() {
                       min={2}
                       max={12}
                       value={repeatCount}
-                      onChange={(e) => setRepeatCount(Math.min(12, Math.max(2, Number(e.target.value))))}
+                      onChange={(e) =>
+                        setRepeatCount(Math.min(12, Math.max(2, Number(e.target.value))))
+                      }
                       className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
                     />
                   </div>
@@ -280,26 +304,35 @@ export default function DanisanRandevuPage() {
               </p>
             ) : (
               <div className="space-y-3">
-                {randevular.map((r) => (
-                  <div
-                    key={r.id}
-                    className="flex items-center justify-between border rounded-lg p-3"
-                  >
-                    <div className="space-y-1">
-                      <p className="font-medium">{r.treatmentType || "Randevu"}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(r.scheduledAt).toLocaleDateString("tr-TR")} -{" "}
-                        {new Date(r.scheduledAt).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}
-                        {" "}({r.duration} dk)
-                      </p>
-                    </div>
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full ${statusColor[r.status] ?? "bg-gray-100 text-gray-800"}`}
+                {randevular.map((r) => {
+                  const egitmenAd = `${r.egitmenFirstName || ""} ${r.egitmenLastName || ""}`.trim();
+                  return (
+                    <div
+                      key={r.id}
+                      className="flex items-center justify-between border rounded-lg p-3"
                     >
-                      {statusLabel[r.status] ?? r.status}
-                    </span>
-                  </div>
-                ))}
+                      <div className="space-y-1">
+                        <p className="font-medium">{r.treatmentType || "Randevu"}</p>
+                        {egitmenAd && (
+                          <p className="text-xs font-medium text-primary">Egitmen: {egitmenAd}</p>
+                        )}
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(r.scheduledAt).toLocaleDateString("tr-TR")} -{" "}
+                          {new Date(r.scheduledAt).toLocaleTimeString("tr-TR", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}{" "}
+                          ({r.duration} dk)
+                        </p>
+                      </div>
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full ${statusColor[r.status] ?? "bg-gray-100 text-gray-800"}`}
+                      >
+                        {statusLabel[r.status] ?? r.status}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </CardContent>

@@ -1,21 +1,18 @@
-import {
-  pgTable,
-  uuid,
-  varchar,
-  text,
-  timestamp,
-  integer,
-  jsonb,
-} from "drizzle-orm/pg-core";
+import { pgTable, uuid, varchar, text, timestamp, integer, jsonb } from "drizzle-orm/pg-core";
 import { users } from "./users";
 
 export const tedavi = pgTable("tedavi", {
   id: uuid("id").primaryKey().defaultRandom(),
 
   // Iliskiler
-  danisanId: uuid("danisan_id").notNull().references(() => users.id),
-  egitmenId: uuid("egitmen_id").notNull().references(() => users.id),
+  danisanId: uuid("danisan_id")
+    .notNull()
+    .references(() => users.id),
+  egitmenId: uuid("egitmen_id")
+    .notNull()
+    .references(() => users.id),
   randevuId: uuid("randevu_id"), // opsiyonel randevu baglantisi
+  protokolId: uuid("protokol_id"), // opsiyonel protokol baglantisi
 
   // Tedavi bilgileri
   treatmentType: varchar("treatment_type", { length: 50 }).notNull(),
@@ -23,11 +20,15 @@ export const tedavi = pgTable("tedavi", {
   treatmentDate: timestamp("treatment_date").notNull(),
 
   // Sikayetler (oncelik bazli, max 5)
-  complaints: jsonb("complaints").$type<{
-    priority: number;
-    description: string;
-    bodyArea?: string;
-  }[]>().default([]),
+  complaints: jsonb("complaints")
+    .$type<
+      {
+        priority: number;
+        description: string;
+        bodyArea?: string;
+      }[]
+    >()
+    .default([]),
 
   // Bulgular
   findings: text("findings"),

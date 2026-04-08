@@ -1,8 +1,9 @@
 import type { FastifyInstance } from "fastify";
-import { eq, and, gte, lte, desc } from "drizzle-orm";
+import { eq, and, gte, lte, desc, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "../db/index.js";
 import { randevu } from "../db/schema/randevu.js";
+import { users } from "../db/schema/users.js";
 import { musaitlik } from "../db/schema/musaitlik.js";
 import { bildirim } from "../db/schema/bildirim.js";
 import { requireAuth, getUser } from "../middleware/auth.js";
@@ -20,13 +21,14 @@ const createAppointmentSchema = z.object({
 // Valid state transitions
 const VALID_TRANSITIONS: Record<string, string[]> = {
   requested: ["confirmed", "cancelled"],
-  confirmed: ["reminded", "arrived", "cancelled"],
-  reminded: ["arrived", "cancelled", "no_show"],
+  confirmed: ["reminded", "arrived", "cancelled", "ertelendi"],
+  reminded: ["arrived", "cancelled", "no_show", "ertelendi"],
   arrived: ["treated"],
   treated: ["completed"],
   completed: [],
   cancelled: [],
   no_show: [],
+  ertelendi: ["confirmed", "cancelled"],
 };
 
 export async function randevuRoutes(app: FastifyInstance) {
@@ -50,9 +52,7 @@ export async function randevuRoutes(app: FastifyInstance) {
         ),
       );
 
-    const activeConflicts = conflicts.filter(
-      (c) => !["cancelled", "no_show"].includes(c.status),
-    );
+    const activeConflicts = conflicts.filter((c) => !["cancelled", "no_show"].includes(c.status));
 
     if (activeConflicts.length > 0) {
       return reply.status(409).send({
@@ -115,7 +115,7 @@ export async function randevuRoutes(app: FastifyInstance) {
     const { sub, role } = getUser(request);
     const query = request.query as { from?: string; to?: string; status?: string };
 
-    let conditions = [];
+    const conditions = [];
 
     if (role === "danisan") {
       conditions.push(eq(randevu.danisanId, sub));
@@ -135,56 +135,73 @@ export async function randevuRoutes(app: FastifyInstance) {
       .orderBy(desc(randevu.scheduledAt))
       .limit(50);
 
-    return reply.send({ success: true, data: results });
+    // Danisan ve egitmen adlarini ekle
+    const userIds = [...new Set(results.flatMap((r) => [r.danisanId, r.egitmenId]))];
+    const userMap = new Map<string, { firstName: string; lastName: string }>();
+    if (userIds.length > 0) {
+      const userRecords = await db
+        .select({ id: users.id, firstName: users.firstName, lastName: users.lastName })
+        .from(users)
+        .where(inArray(users.id, userIds));
+      for (const u of userRecords) {
+        userMap.set(u.id, { firstName: u.firstName, lastName: u.lastName });
+      }
+    }
+
+    const enriched = results.map((r) => ({
+      ...r,
+      danisanFirstName: userMap.get(r.danisanId)?.firstName ?? "",
+      danisanLastName: userMap.get(r.danisanId)?.lastName ?? "",
+      egitmenFirstName: userMap.get(r.egitmenId)?.firstName ?? "",
+      egitmenLastName: userMap.get(r.egitmenId)?.lastName ?? "",
+    }));
+
+    return reply.send({ success: true, data: enriched });
   });
 
   // PATCH /api/randevu/:id/status - Randevu durumunu guncelle
-  app.patch(
-    "/api/randevu/:id/status",
-    { preHandler: requireAuth() },
-    async (request, reply) => {
-      const { sub } = getUser(request);
-      const { id } = request.params as { id: string };
-      const { status } = request.body as { status: string };
+  app.patch("/api/randevu/:id/status", { preHandler: requireAuth() }, async (request, reply) => {
+    const { sub } = getUser(request);
+    const { id } = request.params as { id: string };
+    const { status } = request.body as { status: string };
 
-      const [existing] = await db.select().from(randevu).where(eq(randevu.id, id)).limit(1);
+    const [existing] = await db.select().from(randevu).where(eq(randevu.id, id)).limit(1);
 
-      if (!existing) {
-        return reply.status(404).send({ success: false, error: "Randevu bulunamadi" });
-      }
+    if (!existing) {
+      return reply.status(404).send({ success: false, error: "Randevu bulunamadi" });
+    }
 
-      // State machine kontrolu
-      const allowedTransitions = VALID_TRANSITIONS[existing.status] || [];
-      if (!allowedTransitions.includes(status)) {
-        return reply.status(400).send({
-          success: false,
-          error: `"${existing.status}" durumundan "${status}" durumuna gecilemez`,
-        });
-      }
-
-      const [updated] = await db
-        .update(randevu)
-        .set({
-          status: status as any,
-          statusChangedAt: new Date(),
-          updatedAt: new Date(),
-          ...(status === "cancelled" && { cancelledBy: sub }),
-        })
-        .where(eq(randevu.id, id))
-        .returning();
-
-      await createAuditLog({
-        userId: sub,
-        action: "update",
-        tableName: "randevu",
-        recordId: id,
-        description: `Randevu durumu: ${existing.status} -> ${status}`,
-        request,
+    // State machine kontrolu
+    const allowedTransitions = VALID_TRANSITIONS[existing.status] || [];
+    if (!allowedTransitions.includes(status)) {
+      return reply.status(400).send({
+        success: false,
+        error: `"${existing.status}" durumundan "${status}" durumuna gecilemez`,
       });
+    }
 
-      return reply.send({ success: true, data: updated });
-    },
-  );
+    const [updated] = await db
+      .update(randevu)
+      .set({
+        status: status as any,
+        statusChangedAt: new Date(),
+        updatedAt: new Date(),
+        ...(status === "cancelled" && { cancelledBy: sub }),
+      })
+      .where(eq(randevu.id, id))
+      .returning();
+
+    await createAuditLog({
+      userId: sub,
+      action: "update",
+      tableName: "randevu",
+      recordId: id,
+      description: `Randevu durumu: ${existing.status} -> ${status}`,
+      request,
+    });
+
+    return reply.send({ success: true, data: updated });
+  });
 
   // GET /api/randevu/musaitlik/:egitmenId - Egitmen musaitlik bilgisi
   app.get("/api/randevu/musaitlik/:egitmenId", async (request, reply) => {

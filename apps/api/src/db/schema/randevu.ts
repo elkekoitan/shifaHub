@@ -1,12 +1,4 @@
-import {
-  pgTable,
-  uuid,
-  varchar,
-  text,
-  timestamp,
-  integer,
-  pgEnum,
-} from "drizzle-orm/pg-core";
+import { pgTable, uuid, varchar, text, timestamp, integer, pgEnum } from "drizzle-orm/pg-core";
 import { users } from "./users";
 
 export const appointmentStatusEnum = pgEnum("appointment_status", [
@@ -18,14 +10,19 @@ export const appointmentStatusEnum = pgEnum("appointment_status", [
   "completed",
   "cancelled",
   "no_show",
+  "ertelendi",
 ]);
 
 export const randevu = pgTable("randevu", {
   id: uuid("id").primaryKey().defaultRandom(),
 
   // Iliskiler
-  danisanId: uuid("danisan_id").notNull().references(() => users.id),
-  egitmenId: uuid("egitmen_id").notNull().references(() => users.id),
+  danisanId: uuid("danisan_id")
+    .notNull()
+    .references(() => users.id),
+  egitmenId: uuid("egitmen_id")
+    .notNull()
+    .references(() => users.id),
 
   // Zaman
   scheduledAt: timestamp("scheduled_at").notNull(),
