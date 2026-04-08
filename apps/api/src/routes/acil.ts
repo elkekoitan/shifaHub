@@ -2,6 +2,8 @@ import type { FastifyInstance } from "fastify";
 import { eq, desc } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { komplikasyon } from "../db/schema/komplikasyon.js";
+import { bildirim } from "../db/schema/bildirim.js";
+import { users } from "../db/schema/users.js";
 import { requireRole, getUser } from "../middleware/auth.js";
 import { createAuditLog } from "../middleware/audit.js";
 
@@ -23,12 +25,31 @@ export async function acilRoutes(app: FastifyInstance) {
     // Severity bazli bildirim zinciri
     const severity = parseInt(created.severity);
     if (severity >= 3) {
-      // TODO: Notification Agent -> Sorumlu tabip bildirim
+      // Admin'lere bildirim gonder
+      const admins = await db.select({ id: users.id }).from(users).where(eq(users.role, "admin"));
+      for (const admin of admins) {
+        await db.insert(bildirim).values({
+          userId: admin.id,
+          type: "sistem",
+          title: `Komplikasyon Raporu (Seviye ${severity})`,
+          body: `Yuksek seviyeli komplikasyon rapor edildi: ${created.type || "Belirtilmemis"}`,
+          actionUrl: "/admin/sistem",
+        });
+      }
       app.log.warn({ komplikasyonId: created.id, severity }, "Yuksek seviyeli komplikasyon!");
     }
     if (severity >= 4) {
-      // TODO: Telegram Agent -> Admin acil bildirim
-      app.log.error({ komplikasyonId: created.id, severity }, "Kritik komplikasyon - admin bildirim!");
+      // Egitmene de uyari bildirimi
+      await db.insert(bildirim).values({
+        userId: sub,
+        type: "sistem",
+        title: `KRITIK: Komplikasyon Seviye ${severity}`,
+        body: `Kritik seviyede komplikasyon kaydedildi. Sorumlu tabip bilgilendirildi.`,
+      });
+      app.log.error(
+        { komplikasyonId: created.id, severity },
+        "Kritik komplikasyon - admin bildirim!",
+      );
     }
 
     await createAuditLog({
@@ -44,20 +65,24 @@ export async function acilRoutes(app: FastifyInstance) {
   });
 
   // GET /api/acil - Komplikasyon listesi
-  app.get("/api/acil", { preHandler: requireRole("egitmen", "admin", "tabip") }, async (request, reply) => {
-    const { sub, role } = getUser(request);
+  app.get(
+    "/api/acil",
+    { preHandler: requireRole("egitmen", "admin", "tabip") },
+    async (request, reply) => {
+      const { sub, role } = getUser(request);
 
-    const conditions = role === "egitmen" ? eq(komplikasyon.egitmenId, sub) : undefined;
+      const conditions = role === "egitmen" ? eq(komplikasyon.egitmenId, sub) : undefined;
 
-    const results = await db
-      .select()
-      .from(komplikasyon)
-      .where(conditions)
-      .orderBy(desc(komplikasyon.createdAt))
-      .limit(50);
+      const results = await db
+        .select()
+        .from(komplikasyon)
+        .where(conditions)
+        .orderBy(desc(komplikasyon.createdAt))
+        .limit(50);
 
-    return reply.send({ success: true, data: results });
-  });
+      return reply.send({ success: true, data: results });
+    },
+  );
 
   // PATCH /api/acil/:id/followup - Takip notu ekle
   app.patch(
@@ -68,9 +93,11 @@ export async function acilRoutes(app: FastifyInstance) {
       const { period, note } = request.body as { period: "24h" | "48h" | "1w"; note: string };
 
       const updateField =
-        period === "24h" ? { followUp24h: note }
-        : period === "48h" ? { followUp48h: note }
-        : { followUp1w: note };
+        period === "24h"
+          ? { followUp24h: note }
+          : period === "48h"
+            ? { followUp48h: note }
+            : { followUp1w: note };
 
       const [updated] = await db
         .update(komplikasyon)

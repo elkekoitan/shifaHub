@@ -96,43 +96,55 @@ export async function emailVerifyRoutes(app: FastifyInstance) {
   });
 
   // POST /api/email/forgot-password - Sifre sifirlama talebi
-  app.post("/api/email/forgot-password", async (request, reply) => {
-    const { email } = request.body as { email: string };
+  app.post(
+    "/api/email/forgot-password",
+    { config: { rateLimit: { max: 3, timeWindow: "15 minutes" } } },
+    async (request, reply) => {
+      const { email } = request.body as { email: string };
 
-    const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
-    // Guvenlik: kullanici var/yok bilgisini verme
-    if (!user) {
-      return reply.send({ success: true, message: "Eger bu email kayitliysa sifirlama linki gonderildi" });
-    }
+      const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+      // Guvenlik: kullanici var/yok bilgisini verme
+      if (!user) {
+        return reply.send({
+          success: true,
+          message: "Eger bu email kayitliysa sifirlama linki gonderildi",
+        });
+      }
 
-    const token = generateToken();
-    resetTokens.set(token, {
-      userId: user.id,
-      expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1 saat
-    });
+      const token = generateToken();
+      resetTokens.set(token, {
+        userId: user.id,
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1 saat
+      });
 
-    // TODO: Resend API ile sifre sifirlama emaili gonder
-    app.log.info({ email, token }, "Password reset token generated");
+      // TODO: Resend API ile sifre sifirlama emaili gonder
+      app.log.info({ email, token }, "Password reset token generated");
 
-    await createAuditLog({
-      userId: user.id,
-      action: "update",
-      tableName: "users",
-      recordId: user.id,
-      description: "Sifre sifirlama talebi",
-      request,
-    });
+      await createAuditLog({
+        userId: user.id,
+        action: "update",
+        tableName: "users",
+        recordId: user.id,
+        description: "Sifre sifirlama talebi",
+        request,
+      });
 
-    return reply.send({
-      success: true,
-      message: "Eger bu email kayitliysa sifirlama linki gonderildi",
-      ...(process.env.NODE_ENV !== "production" && { devToken: token }),
-    });
-  });
+      return reply.send({
+        success: true,
+        message: "Eger bu email kayitliysa sifirlama linki gonderildi",
+        ...(process.env.NODE_ENV !== "production" && { devToken: token }),
+      });
+    },
+  );
 
   // POST /api/email/reset-password - Sifre sifirla
   app.post("/api/email/reset-password", async (request, reply) => {
     const { token, newPassword } = request.body as { token: string; newPassword: string };
+
+    // Sifre guclulucu kontrolu
+    if (!newPassword || newPassword.length < 8) {
+      return reply.status(400).send({ success: false, error: "Sifre en az 8 karakter olmalidir" });
+    }
 
     const stored = resetTokens.get(token);
     if (!stored || stored.expiresAt < new Date()) {

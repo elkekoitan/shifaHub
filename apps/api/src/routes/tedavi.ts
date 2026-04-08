@@ -175,14 +175,12 @@ export async function tedaviRoutes(app: FastifyInstance) {
       request,
     });
 
-    return reply
-      .status(201)
-      .send({
-        success: true,
-        data: created,
-        odeme: createdOdeme,
-        warnings: warnings.length > 0 ? warnings : undefined,
-      });
+    return reply.status(201).send({
+      success: true,
+      data: created,
+      odeme: createdOdeme,
+      warnings: warnings.length > 0 ? warnings : undefined,
+    });
   });
 
   // GET /api/tedavi/danisan/:danisanId
@@ -287,7 +285,7 @@ export async function tedaviRoutes(app: FastifyInstance) {
     return reply.send({ success: true, data: updated });
   });
 
-  // DELETE /api/tedavi/:id - Tedavi sil
+  // DELETE /api/tedavi/:id - Tedavi sil (stok iade + odeme iptal)
   app.delete("/api/tedavi/:id", { preHandler: requireRole("egitmen") }, async (request, reply) => {
     const { sub } = getUser(request);
     const { id } = request.params as { id: string };
@@ -297,16 +295,47 @@ export async function tedaviRoutes(app: FastifyInstance) {
     if (existing.egitmenId !== sub)
       return reply.status(403).send({ success: false, error: "Bu tedaviyi silme yetkiniz yok" });
 
+    // Stok iade: bu tedaviye ait cikis hareketlerini bul ve geri ekle
+    const hareketler = await db
+      .select()
+      .from(stokHareket)
+      .where(and(eq(stokHareket.tedaviId, id), eq(stokHareket.type, "cikis")));
+
+    for (const hareket of hareketler) {
+      const [stokItem] = await db.select().from(stok).where(eq(stok.id, hareket.stokId)).limit(1);
+      if (stokItem) {
+        await db
+          .update(stok)
+          .set({ quantity: stokItem.quantity + hareket.quantity, updatedAt: new Date() })
+          .where(eq(stok.id, hareket.stokId));
+        // Iade hareketi kaydet
+        await db.insert(stokHareket).values({
+          stokId: hareket.stokId,
+          userId: sub,
+          type: "giris",
+          quantity: hareket.quantity,
+          reason: `Tedavi silindi - stok iade`,
+          tedaviId: id,
+        });
+      }
+    }
+
+    // Iliskili odeme kayitlarini iptal et
+    const [iliskiliOdeme] = await db.select().from(odeme).where(eq(odeme.tedaviId, id)).limit(1);
+    if (iliskiliOdeme && iliskiliOdeme.status === "pending") {
+      await db.delete(odeme).where(eq(odeme.id, iliskiliOdeme.id));
+    }
+
     await db.delete(tedavi).where(eq(tedavi.id, id));
     await createAuditLog({
       userId: sub,
       action: "delete",
       tableName: "tedavi",
       recordId: id,
-      description: "Tedavi silindi",
+      description: `Tedavi silindi. Stok iade: ${hareketler.length} kalem`,
       request,
     });
-    return reply.send({ success: true, message: "Tedavi silindi" });
+    return reply.send({ success: true, message: "Tedavi silindi, stok iade edildi" });
   });
 
   // GET /api/tedavi/:id

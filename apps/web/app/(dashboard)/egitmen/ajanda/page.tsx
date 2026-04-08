@@ -11,22 +11,32 @@ interface Appointment {
   treatmentType: string;
   status: string;
   danisanId: string;
+  danisanFirstName?: string;
+  danisanLastName?: string;
 }
 
 const statusColors: Record<string, string> = {
-  scheduled: "bg-blue-100 text-blue-800",
+  requested: "bg-amber-100 text-amber-800",
   confirmed: "bg-green-100 text-green-800",
-  completed: "bg-gray-100 text-gray-800",
+  reminded: "bg-sky-100 text-sky-800",
+  arrived: "bg-indigo-100 text-indigo-800",
+  treated: "bg-purple-100 text-purple-800",
+  completed: "bg-blue-100 text-blue-800",
   cancelled: "bg-red-100 text-red-800",
-  pending: "bg-yellow-100 text-yellow-800",
+  no_show: "bg-gray-100 text-gray-800",
+  ertelendi: "bg-orange-100 text-orange-800",
 };
 
 const statusLabels: Record<string, string> = {
-  scheduled: "Planli",
+  requested: "Onay Bekliyor",
   confirmed: "Onaylandi",
+  reminded: "Hatirlatildi",
+  arrived: "Geldi",
+  treated: "Tedavi Edildi",
   completed: "Tamamlandi",
   cancelled: "Iptal",
-  pending: "Bekliyor",
+  no_show: "Gelmedi",
+  ertelendi: "Ertelendi",
 };
 
 export default function EgitmenAjandaPage() {
@@ -65,9 +75,7 @@ export default function EgitmenAjandaPage() {
         <HijriDisplay date={today} />
       </div>
 
-      {loading && (
-        <p className="text-sm text-muted-foreground">Randevular yukleniyor...</p>
-      )}
+      {loading && <p className="text-sm text-muted-foreground">Randevular yukleniyor...</p>}
 
       <div className="overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0">
         <div className="grid grid-cols-7 gap-2 min-w-[700px]">
@@ -87,15 +95,15 @@ export default function EgitmenAjandaPage() {
                         <p className="text-[10px] text-muted-foreground">-</p>
                       )}
                       {dayAppointments.map((apt) => (
-                        <div
-                          key={apt.id}
-                          className="rounded border p-1.5 text-left"
-                        >
-                          <p className="text-[11px] font-semibold">
-                            {formatTime(apt.scheduledAt)}
-                          </p>
+                        <div key={apt.id} className="rounded border p-1.5 text-left">
+                          <p className="text-[11px] font-semibold">{formatTime(apt.scheduledAt)}</p>
+                          {apt.danisanFirstName && (
+                            <p className="text-[10px] font-medium truncate">
+                              {apt.danisanFirstName} {apt.danisanLastName}
+                            </p>
+                          )}
                           <p className="text-[10px] text-muted-foreground truncate">
-                            {apt.treatmentType}
+                            {apt.treatmentType || "Tedavi"}
                           </p>
                           <span
                             className={`inline-block mt-0.5 px-1 py-0.5 text-[9px] rounded-full ${

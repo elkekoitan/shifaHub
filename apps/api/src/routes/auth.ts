@@ -27,7 +27,7 @@ const JWT_REFRESH_SECRET = new TextEncoder().encode(
   process.env.JWT_REFRESH_SECRET || "dev-refresh-secret-change-me",
 );
 
-async function generateTokens(userId: string, role: string) {
+export async function generateTokens(userId: string, role: string) {
   const accessToken = await new jose.SignJWT({ sub: userId, role })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
@@ -45,127 +45,151 @@ async function generateTokens(userId: string, role: string) {
 
 export async function authRoutes(app: FastifyInstance) {
   // POST /api/auth/register
-  app.post("/api/auth/register", { config: { rateLimit: { max: 3, timeWindow: "1 hour" } } }, async (request, reply) => {
-    const body = registerSchema.parse(request.body);
+  app.post(
+    "/api/auth/register",
+    { config: { rateLimit: { max: 3, timeWindow: "1 hour" } } },
+    async (request, reply) => {
+      const body = registerSchema.parse(request.body);
 
-    // Check existing user
-    const existing = await db.select().from(users).where(eq(users.email, body.email)).limit(1);
-    if (existing.length > 0) {
-      return reply.status(409).send({ success: false, error: "Bu e-posta adresi zaten kayitli" });
-    }
+      // Check existing user
+      const existing = await db.select().from(users).where(eq(users.email, body.email)).limit(1);
+      if (existing.length > 0) {
+        return reply.status(409).send({ success: false, error: "Bu e-posta adresi zaten kayitli" });
+      }
 
-    // Hash password
-    const passwordHash = await argon2.hash(body.password);
+      // Hash password
+      const passwordHash = await argon2.hash(body.password);
 
-    // Create user
-    const [newUser] = await db
-      .insert(users)
-      .values({
-        email: body.email,
-        passwordHash,
-        firstName: body.firstName,
-        lastName: body.lastName,
-        phone: body.phone,
-        role: body.role,
-      })
-      .returning({ id: users.id, email: users.email, role: users.role });
+      // Create user
+      const [newUser] = await db
+        .insert(users)
+        .values({
+          email: body.email,
+          passwordHash,
+          firstName: body.firstName,
+          lastName: body.lastName,
+          phone: body.phone,
+          role: body.role,
+        })
+        .returning({ id: users.id, email: users.email, role: users.role });
 
-    if (!newUser) {
-      return reply.status(500).send({ success: false, error: "Kullanici olusturulamadi" });
-    }
+      if (!newUser) {
+        return reply.status(500).send({ success: false, error: "Kullanici olusturulamadi" });
+      }
 
-    // Create KVKK consent record
-    await db.insert(kvkkConsent).values({
-      userId: newUser.id,
-      purpose: "saglik_verisi_isleme",
-      description: "Kisisel saglik verilerimin ShifaHub platformunda islenmesini kabul ediyorum",
-      version: 1,
-      ipAddress: request.ip,
-      userAgent: request.headers["user-agent"] || "",
-    });
+      // Create KVKK consent record
+      await db.insert(kvkkConsent).values({
+        userId: newUser.id,
+        purpose: "saglik_verisi_isleme",
+        description: "Kisisel saglik verilerimin ShifaHub platformunda islenmesini kabul ediyorum",
+        version: 1,
+        ipAddress: request.ip,
+        userAgent: request.headers["user-agent"] || "",
+      });
 
-    // Audit log
-    await db.insert(auditLog).values({
-      userId: newUser.id,
-      action: "create",
-      tableName: "users",
-      recordId: newUser.id,
-      ipAddress: request.ip,
-      description: `Yeni ${body.role} kaydi: ${body.email}`,
-    });
+      // Audit log
+      await db.insert(auditLog).values({
+        userId: newUser.id,
+        action: "create",
+        tableName: "users",
+        recordId: newUser.id,
+        ipAddress: request.ip,
+        description: `Yeni ${body.role} kaydi: ${body.email}`,
+      });
 
-    const tokens = await generateTokens(newUser.id, newUser.role);
+      const tokens = await generateTokens(newUser.id, newUser.role);
 
-    return reply.status(201).send({
-      success: true,
-      data: {
-        user: { id: newUser.id, email: newUser.email, role: newUser.role },
-        ...tokens,
-      },
-    });
-  });
+      return reply.status(201).send({
+        success: true,
+        data: {
+          user: { id: newUser.id, email: newUser.email, role: newUser.role },
+          ...tokens,
+        },
+      });
+    },
+  );
 
   // POST /api/auth/login
-  app.post("/api/auth/login", { config: { rateLimit: { max: 5, timeWindow: "15 minutes" } } }, async (request, reply) => {
-    const body = loginSchema.parse(request.body);
+  app.post(
+    "/api/auth/login",
+    { config: { rateLimit: { max: 5, timeWindow: "15 minutes" } } },
+    async (request, reply) => {
+      const body = loginSchema.parse(request.body);
 
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.email, body.email))
-      .limit(1);
+      const [user] = await db.select().from(users).where(eq(users.email, body.email)).limit(1);
 
-    if (!user) {
-      return reply.status(401).send({ success: false, error: "Gecersiz e-posta veya sifre" });
-    }
+      if (!user) {
+        return reply.status(401).send({ success: false, error: "Gecersiz e-posta veya sifre" });
+      }
 
-    if (!user.isActive) {
-      return reply.status(403).send({ success: false, error: "Hesabiniz pasif durumda" });
-    }
+      if (!user.isActive) {
+        return reply.status(403).send({ success: false, error: "Hesabiniz pasif durumda" });
+      }
 
-    const validPassword = await argon2.verify(user.passwordHash, body.password);
-    if (!validPassword) {
-      // Audit failed login
+      const validPassword = await argon2.verify(user.passwordHash, body.password);
+      if (!validPassword) {
+        // Audit failed login
+        await db.insert(auditLog).values({
+          userId: user.id,
+          action: "login",
+          tableName: "users",
+          recordId: user.id,
+          ipAddress: request.ip,
+          description: "Basarisiz giris denemesi",
+        });
+        return reply.status(401).send({ success: false, error: "Gecersiz e-posta veya sifre" });
+      }
+
+      // Update last login
+      await db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, user.id));
+
+      // Audit successful login
       await db.insert(auditLog).values({
         userId: user.id,
         action: "login",
         tableName: "users",
         recordId: user.id,
         ipAddress: request.ip,
-        description: "Basarisiz giris denemesi",
+        description: "Basarili giris",
       });
-      return reply.status(401).send({ success: false, error: "Gecersiz e-posta veya sifre" });
-    }
 
-    // Update last login
-    await db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, user.id));
+      // MFA kontrolu: MFA aktifse token verme, once dogrulama iste
+      if (user.isMfaEnabled) {
+        return reply.send({
+          success: true,
+          data: {
+            requireMfa: true,
+            userId: user.id,
+            user: {
+              id: user.id,
+              email: user.email,
+              role: user.role,
+              firstName: user.firstName,
+              lastName: user.lastName,
+            },
+          },
+        });
+      }
 
-    // Audit successful login
-    await db.insert(auditLog).values({
-      userId: user.id,
-      action: "login",
-      tableName: "users",
-      recordId: user.id,
-      ipAddress: request.ip,
-      description: "Basarili giris",
-    });
+      const tokens = await generateTokens(user.id, user.role);
 
-    const tokens = await generateTokens(user.id, user.role);
-
-    return reply.send({
-      success: true,
-      data: {
-        user: {
-          id: user.id,
-          email: user.email,
-          role: user.role,
-          firstName: user.firstName,
-          lastName: user.lastName,
+      return reply.send({
+        success: true,
+        data: {
+          user: {
+            id: user.id,
+            email: user.email,
+            role: user.role,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            isMfaEnabled: user.isMfaEnabled,
+            isEmailVerified: user.isEmailVerified,
+          },
+          ...tokens,
         },
-        ...tokens,
-      },
-    });
-  });
+      });
+    },
+  );
 
   // POST /api/auth/refresh
   app.post("/api/auth/refresh", async (request, reply) => {

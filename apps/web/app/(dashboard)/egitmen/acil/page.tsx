@@ -21,26 +21,70 @@ interface Komplikasyon {
   type: string;
   description: string;
   status: string;
+  danisanId: string;
+  tedaviId?: string;
+  followUp24h?: string;
+  followUp48h?: string;
+  followUp1w?: string;
+  resolution?: string;
   createdAt: string;
 }
 
 export default function EgitmenAcilPage() {
   const [severity, setSeverity] = useState("1");
+  const [danisanId, setDanisanId] = useState("");
+  const [tedaviId, setTedaviId] = useState("");
+  const [followupId, setFollowupId] = useState("");
+  const [followupPeriod, setFollowupPeriod] = useState<"24h" | "48h" | "1w">("24h");
+  const [followupNote, setFollowupNote] = useState("");
+  const [resolveId, setResolveId] = useState("");
+  const [resolution, setResolution] = useState("");
+
   const { data: komplikasyonlar, loading, refetch } = useApi<Komplikasyon[]>("/api/acil");
+  const { data: danisanlar } =
+    useApi<Array<{ userId: string; firstName: string; lastName: string }>>("/api/danisan/list");
   const { mutate, loading: submitting } = useApiMutation();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!danisanId) return;
     const fd = new FormData(e.currentTarget);
     await mutate("/api/acil", {
       severity,
       type: fd.get("type"),
       description: fd.get("description"),
-      danisanId: "00000000-0000-0000-0000-000000000000",
+      danisanId,
+      tedaviId: tedaviId || undefined,
     });
     refetch();
+    setDanisanId("");
+    setTedaviId("");
+    setSeverity("1");
     (e.target as HTMLFormElement).reset();
   }
+
+  async function handleFollowup() {
+    if (!followupId || !followupNote.trim()) return;
+    await mutate(
+      `/api/acil/${followupId}/followup`,
+      { period: followupPeriod, note: followupNote },
+      "PATCH",
+    );
+    setFollowupId("");
+    setFollowupNote("");
+    refetch();
+  }
+
+  async function handleResolve() {
+    if (!resolveId || !resolution.trim()) return;
+    await mutate(`/api/acil/${resolveId}/resolve`, { resolution }, "PATCH");
+    setResolveId("");
+    setResolution("");
+    refetch();
+  }
+
+  const openKomplikasyonlar = (komplikasyonlar ?? []).filter((k) => k.status !== "resolved");
+  const resolvedKomplikasyonlar = (komplikasyonlar ?? []).filter((k) => k.status === "resolved");
 
   return (
     <div className="space-y-6">
@@ -53,11 +97,32 @@ export default function EgitmenAcilPage() {
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
+              <Label>Danisan</Label>
+              <select
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                value={danisanId}
+                onChange={(e) => setDanisanId(e.target.value)}
+                required
+              >
+                <option value="">Danisan seciniz</option>
+                {(danisanlar ?? []).map((d) => (
+                  <option key={d.userId} value={d.userId}>
+                    {d.firstName} {d.lastName}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-2">
               <Label>Ciddiyet Seviyesi</Label>
               <div className="grid grid-cols-5 gap-2">
                 {SEVERITY_LABELS.map((s) => (
-                  <button key={s.level} type="button" onClick={() => setSeverity(s.level)}
-                    className={`p-3 rounded-lg text-center transition-all ${severity === s.level ? s.color + " ring-2 ring-offset-1" : "bg-muted hover:bg-accent"}`}>
+                  <button
+                    key={s.level}
+                    type="button"
+                    onClick={() => setSeverity(s.level)}
+                    className={`p-3 rounded-lg text-center transition-all ${severity === s.level ? s.color + " ring-2 ring-offset-1" : "bg-muted hover:bg-accent"}`}
+                  >
                     <p className="text-lg font-bold">{s.level}</p>
                     <p className="text-xs font-medium">{s.label}</p>
                   </button>
@@ -70,53 +135,201 @@ export default function EgitmenAcilPage() {
             </div>
             <div className="space-y-2">
               <Label>Detayli Aciklama</Label>
-              <textarea name="description" className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm min-h-[120px]"
-                placeholder="Komplikasyonun detayli aciklamasi..." required />
+              <textarea
+                name="description"
+                className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm min-h-[120px]"
+                placeholder="Komplikasyonun detayli aciklamasi..."
+                required
+              />
             </div>
-            <Button type="submit" className="w-full bg-red-600 hover:bg-red-700" disabled={submitting}>
+            <Button
+              type="submit"
+              className="w-full bg-red-600 hover:bg-red-700"
+              disabled={submitting || !danisanId}
+            >
               {submitting ? "Raporlaniyor..." : "Komplikasyon Raporla"}
             </Button>
           </CardContent>
         </form>
       </Card>
 
+      {/* Acik Komplikasyonlar */}
       <Card>
         <CardHeader>
-          <CardTitle>Komplikasyon Gecmisi</CardTitle>
+          <CardTitle>Acik Komplikasyonlar ({openKomplikasyonlar.length})</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
             <p className="text-center text-muted-foreground py-4">Yukleniyor...</p>
-          ) : komplikasyonlar && komplikasyonlar.length > 0 ? (
+          ) : openKomplikasyonlar.length > 0 ? (
             <div className="space-y-3">
-              {komplikasyonlar.map((k) => {
+              {openKomplikasyonlar.map((k) => {
                 const sev = SEVERITY_LABELS.find((s) => s.level === k.severity);
                 return (
-                  <div key={k.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className={`px-2 py-0.5 text-xs rounded-full ${sev?.color || "bg-gray-100"}`}>
-                          Seviye {k.severity}
+                  <div key={k.id} className="p-4 border rounded-lg space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`px-2 py-0.5 text-xs rounded-full ${sev?.color || "bg-gray-100"}`}
+                        >
+                          Seviye {k.severity} - {sev?.label}
                         </span>
-                        <span className={`px-2 py-0.5 text-xs rounded-full ${k.status === "resolved" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}>
-                          {k.status === "resolved" ? "Cozuldu" : "Acik"}
+                        <span className="px-2 py-0.5 text-xs rounded-full bg-yellow-100 text-yellow-800">
+                          {k.status === "following" ? "Takipte" : "Acik"}
                         </span>
                       </div>
-                      <p className="font-medium">{k.type}</p>
-                      <p className="text-sm text-muted-foreground line-clamp-2">{k.description}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {new Date(k.createdAt).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
-                      </p>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(k.createdAt).toLocaleDateString("tr-TR")}
+                      </span>
                     </div>
+                    <p className="font-medium">{k.type}</p>
+                    <p className="text-sm text-muted-foreground">{k.description}</p>
+
+                    {/* Takip notlari */}
+                    <div className="grid grid-cols-3 gap-2 text-xs">
+                      <div
+                        className={`p-2 rounded ${k.followUp24h ? "bg-green-50" : "bg-muted/50"}`}
+                      >
+                        <p className="font-medium">24 Saat</p>
+                        <p className="text-muted-foreground">{k.followUp24h || "Bekliyor"}</p>
+                      </div>
+                      <div
+                        className={`p-2 rounded ${k.followUp48h ? "bg-green-50" : "bg-muted/50"}`}
+                      >
+                        <p className="font-medium">48 Saat</p>
+                        <p className="text-muted-foreground">{k.followUp48h || "Bekliyor"}</p>
+                      </div>
+                      <div
+                        className={`p-2 rounded ${k.followUp1w ? "bg-green-50" : "bg-muted/50"}`}
+                      >
+                        <p className="font-medium">1 Hafta</p>
+                        <p className="text-muted-foreground">{k.followUp1w || "Bekliyor"}</p>
+                      </div>
+                    </div>
+
+                    {/* Takip notu ekle */}
+                    {followupId === k.id ? (
+                      <div className="flex gap-2 items-end">
+                        <select
+                          className="flex h-9 rounded-md border border-input bg-transparent px-2 py-1 text-sm w-24"
+                          value={followupPeriod}
+                          onChange={(e) =>
+                            setFollowupPeriod(e.target.value as "24h" | "48h" | "1w")
+                          }
+                        >
+                          <option value="24h">24 Saat</option>
+                          <option value="48h">48 Saat</option>
+                          <option value="1w">1 Hafta</option>
+                        </select>
+                        <Input
+                          placeholder="Takip notu..."
+                          value={followupNote}
+                          onChange={(e) => setFollowupNote(e.target.value)}
+                          className="flex-1"
+                        />
+                        <Button size="sm" onClick={handleFollowup} disabled={!followupNote.trim()}>
+                          Kaydet
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => setFollowupId("")}>
+                          Iptal
+                        </Button>
+                      </div>
+                    ) : resolveId === k.id ? (
+                      <div className="flex gap-2 items-end">
+                        <Input
+                          placeholder="Cozum aciklamasi..."
+                          value={resolution}
+                          onChange={(e) => setResolution(e.target.value)}
+                          className="flex-1"
+                        />
+                        <Button
+                          size="sm"
+                          onClick={handleResolve}
+                          disabled={!resolution.trim()}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          Coz
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => setResolveId("")}>
+                          Iptal
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setFollowupId(k.id);
+                            setResolveId("");
+                          }}
+                        >
+                          Takip Notu Ekle
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-green-700 border-green-300"
+                          onClick={() => {
+                            setResolveId(k.id);
+                            setFollowupId("");
+                          }}
+                        >
+                          Cozuldu Olarak Isaretle
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 );
               })}
             </div>
           ) : (
-            <p className="text-center text-muted-foreground py-8">Komplikasyon raporu bulunmuyor.</p>
+            <p className="text-center text-muted-foreground py-8">Acik komplikasyon bulunmuyor.</p>
           )}
         </CardContent>
       </Card>
+
+      {/* Cozulmus */}
+      {resolvedKomplikasyonlar.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Cozulmus Komplikasyonlar ({resolvedKomplikasyonlar.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {resolvedKomplikasyonlar.map((k) => {
+                const sev = SEVERITY_LABELS.find((s) => s.level === k.severity);
+                return (
+                  <div
+                    key={k.id}
+                    className="flex items-center justify-between p-3 border rounded-lg opacity-75"
+                  >
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span
+                          className={`px-2 py-0.5 text-xs rounded-full ${sev?.color || "bg-gray-100"}`}
+                        >
+                          Seviye {k.severity}
+                        </span>
+                        <span className="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-800">
+                          Cozuldu
+                        </span>
+                      </div>
+                      <p className="font-medium text-sm">{k.type}</p>
+                      {k.resolution && (
+                        <p className="text-xs text-muted-foreground">Cozum: {k.resolution}</p>
+                      )}
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(k.createdAt).toLocaleDateString("tr-TR")}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
