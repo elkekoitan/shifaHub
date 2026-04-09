@@ -46,12 +46,14 @@ export function checkContraindications(
     pregnancyStatus?: boolean | null;
     chronicDiseases?: string[] | null;
     currentMedications?: string[] | null;
+    allergies?: string[] | null;
   },
 ): string[] {
   const warnings: string[] = [];
 
   const diseases = (danisanProfil.chronicDiseases ?? []) as string[];
   const meds = (danisanProfil.currentMedications ?? []) as string[];
+  const allergies = (danisanProfil.allergies ?? []) as string[];
   const isPregnant = danisanProfil.pregnancyStatus;
 
   // Hamilelik uyarisi
@@ -75,6 +77,34 @@ export function checkContraindications(
   // Kan sulandirici
   if (meds.some((m) => BLOOD_THINNER_DRUGS.some((k) => m.toLowerCase().includes(k)))) {
     warnings.push("UYARI: Kan sulandirici ilac kullanimi - kanama riski yuksek");
+  }
+
+  // Alerji kontrolu — kan sulandirici alerjisi + invaziv tedavi
+  if (
+    allergies.some((a) => BLOOD_THINNER_DRUGS.some((k) => a.toLowerCase().includes(k))) &&
+    INVASIVE_TREATMENT_TYPES.includes(treatmentType)
+  ) {
+    warnings.push(
+      `UYARI: Alerji tespit edildi (${allergies.join(", ")}) — invaziv tedavi oncesi dikkat`,
+    );
+  }
+
+  // Genel alerji uyarisi — herhangi bir alerji varsa bilgilendir
+  if (allergies.length > 0) {
+    warnings.push(`BILGI: Danisanin alerjileri: ${allergies.join(", ")}`);
+  }
+
+  // Diyabet + hacamat uyarisi
+  if (
+    diseases.some((d) => d.toLowerCase().includes("diyabet")) &&
+    BLOOD_TREATMENT_TYPES.includes(treatmentType)
+  ) {
+    warnings.push("UYARI: Diyabet — yara iyilesmesi yavastir, dikkatli olunmali");
+  }
+
+  // Hipertansiyon uyarisi
+  if (diseases.some((d) => d.toLowerCase().includes("hipertansiyon"))) {
+    warnings.push("BILGI: Hipertansiyon — tansiyon olcumu tedavi oncesi yapilmali");
   }
 
   return warnings;
@@ -228,14 +258,28 @@ export async function createTreatment(input: CreateTreatmentInput) {
     totalCost = stockResult.totalCost;
   }
 
-  // 5. Otomatik odeme kaydi
+  // 5. Otomatik odeme kaydi — baz fiyat + stok maliyeti
+  const BASE_PRICES: Record<string, number> = {
+    hacamat_kuru: 300,
+    hacamat_yas: 400,
+    solucan: 500,
+    sujok: 250,
+    refleksoloji: 200,
+    akupunktur: 350,
+    fitoterapi: 200,
+    ozon: 450,
+    kupa: 250,
+  };
+  const basePrice = BASE_PRICES[treatmentType] ?? 200;
+  const finalAmount = basePrice + totalCost;
+
   const [createdOdeme] = await db
     .insert(odeme)
     .values({
       danisanId,
       egitmenId,
       tedaviId: created.id,
-      amount: totalCost.toFixed(2),
+      amount: finalAmount.toFixed(2),
       status: "pending",
       description: `${treatmentType} - Seans ${sessionNumber}`,
     })
