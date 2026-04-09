@@ -16,8 +16,7 @@ const CATEGORIES = [
   { value: "diger", label: "Diger" },
 ];
 
-const categoryLabel = (val: string) =>
-  CATEGORIES.find((c) => c.value === val)?.label ?? val;
+const categoryLabel = (val: string) => CATEGORIES.find((c) => c.value === val)?.label ?? val;
 
 type StokItem = {
   id: string;
@@ -28,13 +27,22 @@ type StokItem = {
   minimumLevel: number;
   unitPrice: number;
   expiryDate: string;
+  isExpired?: boolean;
+  isExpiringSoon?: boolean;
+  isCritical?: boolean;
 };
 
 export default function EgitmenStokPage() {
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState("");
   const { data: stokList, loading, error, refetch } = useApi<StokItem[]>("/api/stok");
   const { mutate, loading: mutLoading, error: mutError } = useApiMutation();
   const [success, setSuccess] = useState(false);
+
+  // Hareket state
+  const [hareketId, setHareketId] = useState("");
+  const [hareketType, setHareketType] = useState<"giris" | "cikis">("giris");
+  const [hareketQty, setHareketQty] = useState("");
 
   // Form state
   const [name, setName] = useState("");
@@ -61,11 +69,24 @@ export default function EgitmenStokPage() {
     setMinimumLevel("");
     setUnitPrice("");
     setExpiryDate("");
+    setEditingId("");
+  };
+
+  const handleEdit = (item: StokItem) => {
+    setEditingId(item.id);
+    setName(item.name);
+    setCategory(item.category);
+    setQuantity(String(item.quantity));
+    setUnit(item.unit || "adet");
+    setMinimumLevel(String(item.minimumLevel || 5));
+    setUnitPrice(String(item.unitPrice || 0));
+    setExpiryDate(item.expiryDate ? new Date(item.expiryDate).toISOString().split("T")[0]! : "");
+    setShowForm(true);
+    setSuccess(false);
   };
 
   const handleSubmit = async () => {
     setSuccess(false);
-
     if (!name.trim()) return;
 
     const body = {
@@ -78,7 +99,13 @@ export default function EgitmenStokPage() {
       expiryDate: expiryDate || undefined,
     };
 
-    const result = await mutate("/api/stok", body);
+    let result;
+    if (editingId) {
+      result = await mutate(`/api/stok/${editingId}`, body, "PUT");
+    } else {
+      result = await mutate("/api/stok", body);
+    }
+
     if (result) {
       setSuccess(true);
       resetForm();
@@ -87,11 +114,28 @@ export default function EgitmenStokPage() {
     }
   };
 
+  const handleHareket = async () => {
+    if (!hareketId || !hareketQty) return;
+    await mutate(`/api/stok/${hareketId}/hareket`, {
+      type: hareketType,
+      quantity: Number(hareketQty),
+      reason: `Manuel ${hareketType}`,
+    });
+    setHareketId("");
+    setHareketQty("");
+    refetch();
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Stok Yonetimi</h1>
-        <Button onClick={() => { setShowForm(!showForm); setSuccess(false); }}>
+        <Button
+          onClick={() => {
+            setShowForm(!showForm);
+            setSuccess(false);
+          }}
+        >
           {showForm ? "Kapat" : "Yeni Malzeme Ekle"}
         </Button>
       </div>
@@ -138,7 +182,7 @@ export default function EgitmenStokPage() {
       {showForm && (
         <Card>
           <CardHeader>
-            <CardTitle>Yeni Malzeme Ekle</CardTitle>
+            <CardTitle>{editingId ? "Malzeme Duzenle" : "Yeni Malzeme Ekle"}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -158,7 +202,9 @@ export default function EgitmenStokPage() {
                   onChange={(e) => setCategory(e.target.value)}
                 >
                   {CATEGORIES.map((c) => (
-                    <option key={c.value} value={c.value}>{c.label}</option>
+                    <option key={c.value} value={c.value}>
+                      {c.label}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -175,11 +221,7 @@ export default function EgitmenStokPage() {
               </div>
               <div className="space-y-2">
                 <Label>Birim</Label>
-                <Input
-                  placeholder="adet"
-                  value={unit}
-                  onChange={(e) => setUnit(e.target.value)}
-                />
+                <Input placeholder="adet" value={unit} onChange={(e) => setUnit(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label>Minimum Seviye</Label>
@@ -211,12 +253,8 @@ export default function EgitmenStokPage() {
                 />
               </div>
             </div>
-            <Button
-              className="w-full"
-              disabled={mutLoading || !name.trim()}
-              onClick={handleSubmit}
-            >
-              {mutLoading ? "Ekleniyor..." : "Malzeme Ekle"}
+            <Button className="w-full" disabled={mutLoading || !name.trim()} onClick={handleSubmit}>
+              {mutLoading ? "Kaydediliyor..." : editingId ? "Guncelle" : "Malzeme Ekle"}
             </Button>
           </CardContent>
         </Card>
@@ -237,42 +275,131 @@ export default function EgitmenStokPage() {
             </p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b text-left">
-                    <th className="pb-2 font-medium">Malzeme</th>
-                    <th className="pb-2 font-medium">Kategori</th>
-                    <th className="pb-2 font-medium">Miktar</th>
-                    <th className="pb-2 font-medium">Birim</th>
-                    <th className="pb-2 font-medium">Min. Seviye</th>
-                    <th className="pb-2 font-medium">Birim Fiyat</th>
-                    <th className="pb-2 font-medium">SKT</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((item) => {
-                    const isLow = item.quantity <= item.minimumLevel;
-                    return (
-                      <tr
-                        key={item.id}
-                        className={`border-b ${isLow ? "bg-red-50 text-red-700" : ""}`}
-                      >
-                        <td className="py-2 font-medium">{item.name}</td>
-                        <td className="py-2">{categoryLabel(item.category)}</td>
-                        <td className={`py-2 ${isLow ? "font-bold" : ""}`}>{item.quantity}</td>
-                        <td className="py-2">{item.unit}</td>
-                        <td className="py-2">{item.minimumLevel}</td>
-                        <td className="py-2">{item.unitPrice?.toFixed(2)} TL</td>
-                        <td className="py-2">
+              <div className="space-y-3">
+                {items.map((item) => {
+                  const isLow = item.isCritical || item.quantity <= (item.minimumLevel || 5);
+                  const isExpired =
+                    item.isExpired || (item.expiryDate && new Date(item.expiryDate) < now);
+                  const isExpiringSoon = item.isExpiringSoon;
+                  const rowClass = isExpired
+                    ? "bg-red-50 border-red-300"
+                    : isLow
+                      ? "bg-amber-50 border-amber-300"
+                      : isExpiringSoon
+                        ? "bg-orange-50 border-orange-300"
+                        : "";
+                  return (
+                    <div key={item.id} className={`border rounded-lg p-3 space-y-2 ${rowClass}`}>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">{item.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {categoryLabel(item.category)}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {isExpired && (
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-red-200 text-red-800">
+                              Suresi Gecmis
+                            </span>
+                          )}
+                          {isLow && !isExpired && (
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-amber-200 text-amber-800">
+                              Kritik
+                            </span>
+                          )}
+                          {isExpiringSoon && !isExpired && (
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-orange-200 text-orange-800">
+                              SKT Yaklasik
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-4 gap-2 text-xs">
+                        <div>
+                          <span className="text-muted-foreground">Miktar:</span>{" "}
+                          <strong>
+                            {item.quantity} {item.unit}
+                          </strong>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Min:</span>{" "}
+                          {item.minimumLevel || 5}
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Fiyat:</span>{" "}
+                          {Number(item.unitPrice || 0).toFixed(2)} TL
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">SKT:</span>{" "}
                           {item.expiryDate
                             ? new Date(item.expiryDate).toLocaleDateString("tr-TR")
                             : "-"}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                        </div>
+                      </div>
+                      {/* Hareket formu */}
+                      {hareketId === item.id ? (
+                        <div className="flex gap-2 items-end pt-1">
+                          <select
+                            className="flex h-8 rounded-md border border-input bg-transparent px-2 py-1 text-xs w-20"
+                            value={hareketType}
+                            onChange={(e) => setHareketType(e.target.value as "giris" | "cikis")}
+                          >
+                            <option value="giris">Giris</option>
+                            <option value="cikis">Cikis</option>
+                          </select>
+                          <Input
+                            type="number"
+                            min="1"
+                            placeholder="Miktar"
+                            className="h-8 w-20 text-xs"
+                            value={hareketQty}
+                            onChange={(e) => setHareketQty(e.target.value)}
+                          />
+                          <Button
+                            size="sm"
+                            className="h-8 text-xs"
+                            onClick={handleHareket}
+                            disabled={!hareketQty}
+                          >
+                            Kaydet
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 text-xs"
+                            onClick={() => setHareketId("")}
+                          >
+                            Iptal
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex gap-2 pt-1">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-xs"
+                            onClick={() => handleEdit(item)}
+                          >
+                            Duzenle
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-xs"
+                            onClick={() => {
+                              setHareketId(item.id);
+                              setHareketQty("");
+                            }}
+                          >
+                            Stok Hareketi
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </CardContent>

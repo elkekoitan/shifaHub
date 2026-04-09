@@ -43,8 +43,7 @@ export default function DanisanEgitmenPage() {
     return egitmenler.filter((e) => {
       const cityMatch =
         !cityFilter || e.clinicCity.toLowerCase().includes(cityFilter.toLowerCase());
-      const specMatch =
-        !specialtyFilter || e.specialties.includes(specialtyFilter);
+      const specMatch = !specialtyFilter || e.specialties.includes(specialtyFilter);
       return cityMatch && specMatch;
     });
   }, [egitmenler, cityFilter, specialtyFilter]);
@@ -74,13 +73,9 @@ export default function DanisanEgitmenPage() {
         </select>
       </div>
 
-      {loading && (
-        <p className="text-sm text-muted-foreground">Egitmenler yukleniyor...</p>
-      )}
+      {loading && <p className="text-sm text-muted-foreground">Egitmenler yukleniyor...</p>}
 
-      {error && (
-        <p className="text-sm text-red-600">{error}</p>
-      )}
+      {error && <p className="text-sm text-red-600">{error}</p>}
 
       {!loading && filtered.length === 0 && (
         <p className="text-sm text-muted-foreground">Sonuc bulunamadi.</p>
@@ -111,16 +106,14 @@ export default function DanisanEgitmenPage() {
               </div>
 
               {egitmen.bio && (
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {egitmen.bio}
-                </p>
+                <p className="text-sm text-muted-foreground line-clamp-2">{egitmen.bio}</p>
               )}
 
               <p className="text-xs text-muted-foreground">
                 Seans suresi: {egitmen.defaultSessionDuration} dk
               </p>
 
-              <Link href="/danisan/randevu">
+              <Link href={`/danisan/randevu?egitmenId=${egitmen.userId}`}>
                 <Button className="w-full mt-2">Randevu Al</Button>
               </Link>
             </CardContent>

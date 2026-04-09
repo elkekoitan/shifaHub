@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,11 +38,18 @@ type Randevu = {
 };
 
 export default function DanisanRandevuPage() {
+  const searchParams = useSearchParams();
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [selectedTreatment, setSelectedTreatment] = useState("");
   const [complaints, setComplaints] = useState("");
   const [egitmenId, setEgitmenId] = useState("");
+
+  // URL'den egitmenId oku (egitmen arama sayfasindan geliyorsa)
+  useEffect(() => {
+    const paramEgitmenId = searchParams.get("egitmenId");
+    if (paramEgitmenId) setEgitmenId(paramEgitmenId);
+  }, [searchParams]);
   const [success, setSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
