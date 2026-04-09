@@ -4,10 +4,23 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { HijriDisplay } from "@/components/calendar/hijri-display";
+import { StatCard } from "@/components/layout/stat-card";
+import { EmptyState } from "@/components/layout/empty-state";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useApi, useApiMutation } from "@/hooks/use-api";
+import {
+  Calendar,
+  Clock,
+  Users,
+  CheckCircle,
+  Filter,
+  Download,
+  ChevronRight,
+  AlertCircle,
+} from "lucide-react";
 
 type RandevuItem = {
   id: string;
@@ -20,32 +33,21 @@ type RandevuItem = {
   complaints: string;
   danisanFirstName?: string;
   danisanLastName?: string;
-  egitmenFirstName?: string;
-  egitmenLastName?: string;
 };
 
-const statusLabel: Record<string, string> = {
-  requested: "Onay Bekliyor",
-  confirmed: "Onaylandi",
-  reminded: "Hatirlatildi",
-  arrived: "Geldi",
-  treated: "Tedavi Edildi",
-  completed: "Tamamlandi",
-  cancelled: "Iptal",
-  no_show: "Gelmedi",
-  ertelendi: "Ertelendi",
-};
-
-const statusColor: Record<string, string> = {
-  requested: "bg-amber-100 text-amber-800",
-  confirmed: "bg-green-100 text-green-800",
-  reminded: "bg-sky-100 text-sky-800",
-  arrived: "bg-indigo-100 text-indigo-800",
-  treated: "bg-purple-100 text-purple-800",
-  completed: "bg-blue-100 text-blue-800",
-  cancelled: "bg-red-100 text-red-800",
-  no_show: "bg-gray-100 text-gray-800",
-  ertelendi: "bg-orange-100 text-orange-800",
+const STATUS_CONFIG: Record<
+  string,
+  { label: string; variant: "default" | "secondary" | "destructive" | "outline" }
+> = {
+  requested: { label: "Onay Bekliyor", variant: "secondary" },
+  confirmed: { label: "Onaylandi", variant: "default" },
+  reminded: { label: "Hatirlatildi", variant: "outline" },
+  arrived: { label: "Geldi", variant: "default" },
+  treated: { label: "Tedavi Edildi", variant: "default" },
+  completed: { label: "Tamamlandi", variant: "outline" },
+  cancelled: { label: "Iptal", variant: "destructive" },
+  no_show: { label: "Gelmedi", variant: "destructive" },
+  ertelendi: { label: "Ertelendi", variant: "secondary" },
 };
 
 type StatusAction = {
@@ -59,8 +61,8 @@ function getStatusActions(status: string): StatusAction[] {
   switch (status) {
     case "requested":
       return [
-        { label: "Onayla", newStatus: "confirmed", variant: "default" },
-        { label: "Iptal Et", newStatus: "cancelled", variant: "destructive" },
+        { label: "✓ Onayla", newStatus: "confirmed", variant: "default" },
+        { label: "Iptal", newStatus: "cancelled", variant: "destructive" },
       ];
     case "confirmed":
     case "reminded":
@@ -68,12 +70,12 @@ function getStatusActions(status: string): StatusAction[] {
         { label: "Geldi", newStatus: "arrived", variant: "default" },
         { label: "Gelmedi", newStatus: "no_show", variant: "outline" },
         { label: "Ertele", newStatus: "ertelendi", variant: "outline" },
-        { label: "Iptal Et", newStatus: "cancelled", variant: "destructive" },
+        { label: "Iptal", newStatus: "cancelled", variant: "destructive" },
       ];
     case "arrived":
       return [
         {
-          label: "Tedavi Baslat",
+          label: "Tedavi Baslat →",
           newStatus: "treated",
           variant: "default",
           navigateToTedavi: true,
@@ -84,11 +86,33 @@ function getStatusActions(status: string): StatusAction[] {
     case "ertelendi":
       return [
         { label: "Tekrar Onayla", newStatus: "confirmed", variant: "default" },
-        { label: "Iptal Et", newStatus: "cancelled", variant: "destructive" },
+        { label: "Iptal", newStatus: "cancelled", variant: "destructive" },
       ];
     default:
       return [];
   }
+}
+
+function AppointmentSkeleton() {
+  return (
+    <div className="space-y-3">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="border rounded-xl p-4 space-y-3">
+          <div className="flex justify-between">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+            <Skeleton className="h-6 w-20 rounded-full" />
+          </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-8 w-20" />
+            <Skeleton className="h-8 w-16" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default function EgitmenRandevuPage() {
@@ -96,14 +120,13 @@ export default function EgitmenRandevuPage() {
   const { mutate, loading: mutating } = useApiMutation();
   const router = useRouter();
 
-  // Filtre state
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
 
   const allItems = randevuList ?? [];
 
-  // Client-side filtreleme
   const items = allItems.filter((r) => {
     if (dateFrom) {
       const rDate = new Date(r.scheduledAt);
@@ -121,7 +144,28 @@ export default function EgitmenRandevuPage() {
     return true;
   });
 
-  // CSV export
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  const bugunku = allItems.filter((r) => {
+    const d = new Date(r.scheduledAt);
+    return d >= today && d < tomorrow;
+  }).length;
+
+  const onayBekleyen = allItems.filter((r) => r.status === "requested").length;
+  const gelenler = allItems.filter((r) => r.status === "arrived").length;
+
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay() + 1);
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(endOfWeek.getDate() + 7);
+  const buHafta = allItems.filter((r) => {
+    const d = new Date(r.scheduledAt);
+    return d >= startOfWeek && d < endOfWeek;
+  }).length;
+
   const handleCsvExport = () => {
     const header = "Tarih,Saat,Danisan,Tedavi,Durum,Sure";
     const rows = items.map((r) => {
@@ -132,7 +176,7 @@ export default function EgitmenRandevuPage() {
         .trim()
         .replace(/,/g, " ");
       const tedaviStr = (r.treatmentType || "Belirtilmemis").replace(/,/g, " ");
-      const durum = (statusLabel[r.status] ?? r.status).replace(/,/g, " ");
+      const durum = (STATUS_CONFIG[r.status]?.label ?? r.status).replace(/,/g, " ");
       const sure = `${r.duration || 0} dk`;
       return `${tarih},${saat},${danisanAd},${tedaviStr},${durum},${sure}`;
     });
@@ -146,194 +190,217 @@ export default function EgitmenRandevuPage() {
     URL.revokeObjectURL(url);
   };
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
-  const bugunku = items.filter((r) => {
-    const d = new Date(r.scheduledAt);
-    return d >= today && d < tomorrow;
-  }).length;
-
-  const onayBekleyen = items.filter((r) => r.status === "requested").length;
-
-  const gelenler = items.filter((r) => r.status === "arrived").length;
-
-  const startOfWeek = new Date(today);
-  startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay() + 1);
-  const endOfWeek = new Date(startOfWeek);
-  endOfWeek.setDate(endOfWeek.getDate() + 7);
-
-  const buHafta = items.filter((r) => {
-    const d = new Date(r.scheduledAt);
-    return d >= startOfWeek && d < endOfWeek;
-  }).length;
-
   const handleAction = async (r: RandevuItem, action: StatusAction) => {
-    if (action.navigateToTedavi) {
-      // Tedavi Baslat: once durumu guncelle, sonra tedavi formuna yonlendir
+    try {
       await mutate(`/api/randevu/${r.id}/status`, { status: action.newStatus }, "PATCH");
-      const params = new URLSearchParams({
-        randevuId: r.id,
-        danisanId: r.danisanId,
-        ...(r.treatmentType ? { treatmentType: r.treatmentType } : {}),
-      });
-      router.push(`/egitmen/tedavi?${params.toString()}`);
-    } else {
-      await mutate(`/api/randevu/${r.id}/status`, { status: action.newStatus }, "PATCH");
-      refetch();
+      if (action.navigateToTedavi) {
+        const params = new URLSearchParams({
+          randevuId: r.id,
+          danisanId: r.danisanId,
+          ...(r.treatmentType ? { treatmentType: r.treatmentType } : {}),
+        });
+        router.push(`/egitmen/tedavi?${params.toString()}`);
+      } else {
+        refetch();
+      }
+    } catch {
+      // error handled by useApiMutation
     }
   };
 
+  const activeFilterCount = [dateFrom, dateTo, statusFilter].filter(Boolean).length;
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Randevu Yonetimi</h1>
-        <HijriDisplay date={new Date()} />
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold font-headline">Randevu Yonetimi</h1>
+          <p className="text-sm text-muted-foreground">
+            {new Date().toLocaleDateString("tr-TR", {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })}
+          </p>
+        </div>
+        <Button variant="outline" size="sm" onClick={handleCsvExport} disabled={items.length === 0}>
+          <Download className="h-4 w-4 mr-1.5" />
+          CSV
+        </Button>
       </div>
 
-      <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Bugunku</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{loading ? "..." : bugunku}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Onay Bekleyen</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-amber-600">{loading ? "..." : onayBekleyen}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Gelen Danisanlar</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-indigo-600">{loading ? "..." : gelenler}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Bu Hafta</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{loading ? "..." : buHafta}</p>
-          </CardContent>
-        </Card>
+      {/* Stats */}
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          title="Bugunki"
+          value={loading ? "..." : bugunku}
+          icon={Calendar}
+          loading={loading}
+        />
+        <StatCard
+          title="Onay Bekleyen"
+          value={loading ? "..." : onayBekleyen}
+          icon={Clock}
+          color={onayBekleyen > 0 ? "warning" : "default"}
+          loading={loading}
+        />
+        <StatCard
+          title="Gelen Danisanlar"
+          value={loading ? "..." : gelenler}
+          icon={Users}
+          color={gelenler > 0 ? "primary" : "default"}
+          loading={loading}
+        />
+        <StatCard
+          title="Bu Hafta"
+          value={loading ? "..." : buHafta}
+          icon={CheckCircle}
+          loading={loading}
+        />
       </div>
 
-      {/* Filtreler */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filtrele</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4 items-end">
-            <div className="space-y-1 flex-1">
-              <Label className="text-xs">Baslangic Tarihi</Label>
-              <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
-            </div>
-            <div className="space-y-1 flex-1">
-              <Label className="text-xs">Bitis Tarihi</Label>
-              <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
-            </div>
-            <div className="space-y-1 flex-1">
-              <Label className="text-xs">Durum</Label>
-              <select
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-              >
-                <option value="">Tumu</option>
-                <option value="requested">Onay Bekliyor</option>
-                <option value="confirmed">Onaylandi</option>
-                <option value="reminded">Hatirlatildi</option>
-                <option value="arrived">Geldi</option>
-                <option value="treated">Tedavi Edildi</option>
-                <option value="completed">Tamamlandi</option>
-                <option value="ertelendi">Ertelendi</option>
-                <option value="cancelled">Iptal</option>
-                <option value="no_show">Gelmedi</option>
-              </select>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setDateFrom("");
-                setDateTo("");
-                setStatusFilter("");
-              }}
-            >
-              Temizle
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Filter toggle */}
+      <div className="flex items-center gap-2">
+        <Button
+          variant={showFilters || activeFilterCount > 0 ? "default" : "outline"}
+          size="sm"
+          onClick={() => setShowFilters(!showFilters)}
+        >
+          <Filter className="h-4 w-4 mr-1.5" />
+          Filtrele
+          {activeFilterCount > 0 && (
+            <Badge variant="secondary" className="ml-1.5 h-5 px-1.5">
+              {activeFilterCount}
+            </Badge>
+          )}
+        </Button>
+        {activeFilterCount > 0 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setDateFrom("");
+              setDateTo("");
+              setStatusFilter("");
+            }}
+          >
+            Temizle
+          </Button>
+        )}
+      </div>
 
+      {/* Filters */}
+      {showFilters && (
+        <Card>
+          <CardContent className="pt-4">
+            <div className="flex flex-col sm:flex-row gap-4 items-end">
+              <div className="space-y-1 flex-1">
+                <Label className="text-xs">Baslangic Tarihi</Label>
+                <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+              </div>
+              <div className="space-y-1 flex-1">
+                <Label className="text-xs">Bitis Tarihi</Label>
+                <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+              </div>
+              <div className="space-y-1 flex-1">
+                <Label className="text-xs">Durum</Label>
+                <select
+                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  <option value="">Tum Durumlar</option>
+                  {Object.entries(STATUS_CONFIG).map(([val, cfg]) => (
+                    <option key={val} value={val}>
+                      {cfg.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Appointment list */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Randevu Listesi ({items.length})</CardTitle>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleCsvExport}
-              disabled={items.length === 0}
-            >
-              CSV Indir
-            </Button>
-          </div>
+          <CardTitle className="text-base">
+            Randevular{" "}
+            <span className="text-muted-foreground font-normal text-sm">({items.length})</span>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-sm text-muted-foreground text-center py-8">Yukleniyor...</p>
+            <AppointmentSkeleton />
           ) : error ? (
-            <p className="text-sm text-red-500 text-center py-8">{error}</p>
+            <div className="flex items-center gap-2 text-destructive text-sm py-8 justify-center">
+              <AlertCircle className="h-4 w-4" />
+              {error}
+            </div>
           ) : items.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">
-              Henuz randevu bulunmuyor. Danisanlar randevu talebi olusturdugunda burada
-              gorunecektir.
-            </p>
+            <EmptyState
+              icon={Calendar}
+              title="Randevu bulunamadi"
+              description={
+                activeFilterCount > 0
+                  ? "Filtreye uyan randevu yok. Filtreleri temizleyin."
+                  : "Danisanlar randevu talebi olusturduğunda burada gorunecektir."
+              }
+            />
           ) : (
             <div className="space-y-3">
               {items.map((r) => {
                 const actions = getStatusActions(r.status);
                 const danisanAd = `${r.danisanFirstName || ""} ${r.danisanLastName || ""}`.trim();
+                const cfg = STATUS_CONFIG[r.status];
+                const apptDate = new Date(r.scheduledAt);
+                const isToday =
+                  apptDate >= today && apptDate < new Date(today.getTime() + 86400000);
+
                 return (
-                  <div key={r.id} className="border rounded-lg p-4 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        {danisanAd && <p className="font-semibold text-base">{danisanAd}</p>}
-                        <p className="text-sm font-medium text-muted-foreground">
+                  <div
+                    key={r.id}
+                    className={`rounded-xl border p-4 space-y-3 transition-colors hover:bg-muted/30 ${
+                      isToday ? "border-primary/30 bg-primary/5" : ""
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-0.5 min-w-0">
+                        <p className="font-semibold truncate">{danisanAd || "Danisan"}</p>
+                        <p className="text-sm text-muted-foreground">
                           {r.treatmentType || "Tedavi"}
                         </p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(r.scheduledAt).toLocaleDateString("tr-TR")} -{" "}
-                          {new Date(r.scheduledAt).toLocaleTimeString("tr-TR", {
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Calendar className="h-3 w-3" />
+                          {apptDate.toLocaleDateString("tr-TR", {
+                            day: "numeric",
+                            month: "short",
+                          })}
+                          {" · "}
+                          <Clock className="h-3 w-3" />
+                          {apptDate.toLocaleTimeString("tr-TR", {
                             hour: "2-digit",
                             minute: "2-digit",
                           })}
-                          {r.duration ? ` (${r.duration} dk)` : ""}
-                        </p>
+                          {r.duration ? ` · ${r.duration} dk` : ""}
+                        </div>
                       </div>
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${statusColor[r.status] ?? "bg-gray-100 text-gray-800"}`}
-                      >
-                        {statusLabel[r.status] ?? r.status}
-                      </span>
+                      <Badge variant={cfg?.variant ?? "outline"} className="flex-shrink-0">
+                        {cfg?.label ?? r.status}
+                      </Badge>
                     </div>
+
                     {r.complaints && (
-                      <p className="text-sm text-muted-foreground">Sikayetler: {r.complaints}</p>
+                      <p className="text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
+                        {r.complaints}
+                      </p>
                     )}
+
                     {actions.length > 0 && (
-                      <div className="flex flex-wrap gap-2 pt-1">
+                      <div className="flex flex-wrap gap-2 pt-1 border-t border-border/50">
                         {actions.map((action) => (
                           <Button
                             key={action.newStatus}
@@ -341,8 +408,10 @@ export default function EgitmenRandevuPage() {
                             variant={action.variant}
                             onClick={() => handleAction(r, action)}
                             disabled={mutating}
+                            className="h-8 text-xs"
                           >
                             {action.label}
+                            {action.navigateToTedavi && <ChevronRight className="h-3 w-3 ml-1" />}
                           </Button>
                         ))}
                       </div>

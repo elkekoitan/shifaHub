@@ -1,8 +1,23 @@
 import type { Metadata, Viewport } from "next";
+import { Manrope, Noto_Serif } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/providers/auth-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+
+// Shifa Ether Typography — Stitch Design System
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-manrope",
+  display: "swap",
+});
+
+const notoSerif = Noto_Serif({
+  subsets: ["latin"],
+  variable: "--font-noto-serif",
+  display: "swap",
+  weight: ["400", "600", "700"],
+});
 
 export const metadata: Metadata = {
   title: "ShifaHub - Butunsel Tedavi Yonetim Platformu",
@@ -30,7 +45,12 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="tr" dir="ltr" suppressHydrationWarning>
+    <html
+      lang="tr"
+      dir="ltr"
+      suppressHydrationWarning
+      className={`${manrope.variable} ${notoSerif.variable}`}
+    >
       <head>
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-capable" content="yes" />
@@ -50,7 +70,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body className="min-h-screen bg-background font-sans antialiased touch-manipulation">
+      <body className="min-h-screen bg-background font-[family-name:var(--font-manrope)] antialiased touch-manipulation">
         <AuthProvider>
           <TooltipProvider>{children}</TooltipProvider>
         </AuthProvider>

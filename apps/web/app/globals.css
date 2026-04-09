@@ -3,96 +3,111 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
+  /* === Shifa Ether Design System (Stitch Generated) === */
+  /* Primary: Forest Emerald #306a4f */
+
   /* Light Mode */
-  --color-background: hsl(0 0% 100%);
-  --color-foreground: hsl(240 10% 3.9%);
+  --color-background: hsl(100 17% 97%);
+  --color-foreground: hsl(143 8% 19%);
   --color-card: hsl(0 0% 100%);
-  --color-card-foreground: hsl(240 10% 3.9%);
+  --color-card-foreground: hsl(143 8% 19%);
   --color-popover: hsl(0 0% 100%);
-  --color-popover-foreground: hsl(240 10% 3.9%);
-  --color-primary: hsl(166 72% 28%);
-  --color-primary-foreground: hsl(0 0% 98%);
-  --color-secondary: hsl(240 4.8% 95.9%);
-  --color-secondary-foreground: hsl(240 5.9% 10%);
-  --color-muted: hsl(240 4.8% 95.9%);
-  --color-muted-foreground: hsl(240 3.8% 46.1%);
-  --color-accent: hsl(240 4.8% 95.9%);
-  --color-accent-foreground: hsl(240 5.9% 10%);
-  --color-destructive: hsl(0 84.2% 60.2%);
-  --color-destructive-foreground: hsl(0 0% 98%);
-  --color-border: hsl(240 5.9% 90%);
-  --color-input: hsl(240 5.9% 90%);
-  --color-ring: hsl(166 72% 28%);
+  --color-popover-foreground: hsl(143 8% 19%);
+  --color-primary: hsl(152 38% 30%);
+  --color-primary-foreground: hsl(150 100% 95%);
+  --color-secondary: hsl(120 10% 93%);
+  --color-secondary-foreground: hsl(143 8% 19%);
+  --color-muted: hsl(120 10% 93%);
+  --color-muted-foreground: hsl(137 4% 37%);
+  --color-accent: hsl(145 24% 86%);
+  --color-accent-foreground: hsl(152 38% 18%);
+  --color-destructive: hsl(3 53% 44%);
+  --color-destructive-foreground: hsl(0 100% 98%);
+  --color-border: hsl(135 4% 68%);
+  --color-input: hsl(120 7% 87%);
+  --color-ring: hsl(152 38% 30%);
 
   /* Semantic Colors */
-  --color-success: hsl(142 71% 45%);
-  --color-success-foreground: hsl(0 0% 100%);
+  --color-success: hsl(152 38% 35%);
+  --color-success-foreground: hsl(150 100% 95%);
   --color-warning: hsl(38 92% 50%);
-  --color-warning-foreground: hsl(0 0% 100%);
-  --color-info: hsl(217 91% 60%);
-  --color-info-foreground: hsl(0 0% 100%);
+  --color-warning-foreground: hsl(38 60% 15%);
+  --color-info: hsl(185 41% 30%);
+  --color-info-foreground: hsl(185 80% 95%);
 
   /* Chart Colors */
-  --color-chart-1: hsl(166 72% 28%);
-  --color-chart-2: hsl(217 91% 60%);
+  --color-chart-1: hsl(152 38% 30%);
+  --color-chart-2: hsl(185 41% 30%);
   --color-chart-3: hsl(38 92% 50%);
-  --color-chart-4: hsl(142 71% 45%);
-  --color-chart-5: hsl(0 84.2% 60.2%);
+  --color-chart-4: hsl(147 67% 82%);
+  --color-chart-5: hsl(3 53% 44%);
 
-  /* Sidebar */
-  --color-sidebar-background: hsl(0 0% 98%);
-  --color-sidebar-foreground: hsl(240 5.3% 26.1%);
-  --color-sidebar-primary: hsl(166 72% 28%);
-  --color-sidebar-primary-foreground: hsl(0 0% 98%);
-  --color-sidebar-accent: hsl(166 72% 95%);
-  --color-sidebar-accent-foreground: hsl(166 72% 20%);
-  --color-sidebar-border: hsl(220 13% 91%);
-  --color-sidebar-ring: hsl(166 72% 28%);
+  /* Sidebar — Shifa Ether light surface */
+  --color-sidebar-background: hsl(100 17% 97%);
+  --color-sidebar-foreground: hsl(143 8% 19%);
+  --color-sidebar-primary: hsl(152 38% 30%);
+  --color-sidebar-primary-foreground: hsl(150 100% 95%);
+  --color-sidebar-accent: hsl(145 24% 90%);
+  --color-sidebar-accent-foreground: hsl(152 38% 20%);
+  --color-sidebar-border: hsl(120 7% 88%);
+  --color-sidebar-ring: hsl(152 38% 30%);
 
   /* Radius */
-  --radius: 0.625rem;
+  --radius: 0.5rem;
 }
 
-/* Dark Mode */
+/* Dark Mode — Shifa Ether Dark */
 .dark {
-  --color-background: hsl(222 47% 11%);
-  --color-foreground: hsl(210 40% 98%);
-  --color-card: hsl(222 47% 14%);
-  --color-card-foreground: hsl(210 40% 98%);
-  --color-popover: hsl(222 47% 14%);
-  --color-popover-foreground: hsl(210 40% 98%);
-  --color-primary: hsl(166 72% 45%);
-  --color-primary-foreground: hsl(222 47% 11%);
-  --color-secondary: hsl(217 33% 17%);
-  --color-secondary-foreground: hsl(210 40% 98%);
-  --color-muted: hsl(217 33% 17%);
-  --color-muted-foreground: hsl(215 20% 65%);
-  --color-accent: hsl(217 33% 17%);
-  --color-accent-foreground: hsl(210 40% 98%);
-  --color-destructive: hsl(0 63% 31%);
-  --color-destructive-foreground: hsl(210 40% 98%);
-  --color-border: hsl(217 33% 20%);
-  --color-input: hsl(217 33% 20%);
-  --color-ring: hsl(166 72% 45%);
+  --color-background: hsl(152 20% 8%);
+  --color-foreground: hsl(147 67% 82%);
+  --color-card: hsl(152 20% 11%);
+  --color-card-foreground: hsl(147 67% 82%);
+  --color-popover: hsl(152 20% 11%);
+  --color-popover-foreground: hsl(147 67% 82%);
+  --color-primary: hsl(147 67% 65%);
+  --color-primary-foreground: hsl(152 38% 8%);
+  --color-secondary: hsl(152 15% 17%);
+  --color-secondary-foreground: hsl(147 67% 82%);
+  --color-muted: hsl(152 15% 17%);
+  --color-muted-foreground: hsl(135 8% 55%);
+  --color-accent: hsl(152 20% 20%);
+  --color-accent-foreground: hsl(147 67% 82%);
+  --color-destructive: hsl(0 63% 40%);
+  --color-destructive-foreground: hsl(0 100% 95%);
+  --color-border: hsl(152 15% 22%);
+  --color-input: hsl(152 15% 20%);
+  --color-ring: hsl(147 67% 65%);
 
-  --color-success: hsl(142 71% 35%);
-  --color-warning: hsl(38 92% 40%);
-  --color-info: hsl(217 91% 50%);
+  --color-success: hsl(152 40% 45%);
+  --color-success-foreground: hsl(152 20% 8%);
+  --color-warning: hsl(38 92% 55%);
+  --color-warning-foreground: hsl(38 60% 10%);
+  --color-info: hsl(185 50% 45%);
+  --color-info-foreground: hsl(185 20% 8%);
 
-  --color-chart-1: hsl(166 72% 45%);
-  --color-chart-2: hsl(217 91% 55%);
-  --color-chart-3: hsl(38 92% 45%);
-  --color-chart-4: hsl(142 71% 40%);
-  --color-chart-5: hsl(0 84.2% 55%);
+  --color-chart-1: hsl(147 67% 65%);
+  --color-chart-2: hsl(185 50% 45%);
+  --color-chart-3: hsl(38 92% 55%);
+  --color-chart-4: hsl(145 24% 60%);
+  --color-chart-5: hsl(0 63% 55%);
 
-  --color-sidebar-background: hsl(222 47% 8%);
-  --color-sidebar-foreground: hsl(210 40% 80%);
-  --color-sidebar-primary: hsl(166 72% 45%);
-  --color-sidebar-primary-foreground: hsl(222 47% 11%);
-  --color-sidebar-accent: hsl(166 72% 15%);
-  --color-sidebar-accent-foreground: hsl(166 72% 80%);
-  --color-sidebar-border: hsl(217 33% 20%);
-  --color-sidebar-ring: hsl(166 72% 45%);
+  --color-sidebar-background: hsl(152 20% 6%);
+  --color-sidebar-foreground: hsl(135 8% 70%);
+  --color-sidebar-primary: hsl(147 67% 65%);
+  --color-sidebar-primary-foreground: hsl(152 38% 8%);
+  --color-sidebar-accent: hsl(152 20% 14%);
+  --color-sidebar-accent-foreground: hsl(147 67% 75%);
+  --color-sidebar-border: hsl(152 15% 15%);
+  --color-sidebar-ring: hsl(147 67% 65%);
+}
+
+/* Shifa Ether Typography Utilities */
+.font-headline {
+  font-family: var(--font-noto-serif), "Noto Serif", Georgia, serif;
+}
+
+.font-body {
+  font-family: var(--font-manrope), "Manrope", system-ui, sans-serif;
 }
 
 @layer base {
@@ -101,12 +116,18 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-manrope), "Manrope", system-ui, sans-serif;
     font-feature-settings:
       "rlig" 1,
       "calt" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     -webkit-tap-highlight-color: transparent;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-noto-serif), "Noto Serif", Georgia, serif;
   }
 
   /* Mobil input zoom onleme */
