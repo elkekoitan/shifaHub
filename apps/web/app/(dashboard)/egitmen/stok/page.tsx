@@ -5,7 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { StatCard } from "@/components/layout/stat-card";
+import { EmptyState } from "@/components/layout/empty-state";
 import { useApi, useApiMutation } from "@/hooks/use-api";
+import { Package, AlertTriangle, Clock, PackageOpen } from "lucide-react";
 
 const CATEGORIES = [
   { value: "kupa", label: "Kupalar" },
@@ -129,7 +133,7 @@ export default function EgitmenStokPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Stok Yonetimi</h1>
+        <h1 className="text-2xl font-bold font-headline">Stok Yonetimi</h1>
         <Button
           onClick={() => {
             setShowForm(!showForm);
@@ -141,42 +145,39 @@ export default function EgitmenStokPage() {
       </div>
 
       {success && (
-        <div className="rounded-md border border-green-200 bg-green-50 p-4 text-green-800 text-sm">
+        <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-green-800 text-sm">
           Malzeme basariyla eklendi.
         </div>
       )}
 
       {mutError && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-red-800 text-sm">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-800 text-sm">
           {mutError}
         </div>
       )}
 
       <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Toplam Kalem</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{items.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Kritik Stok</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-amber-600">{kritikCount}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Son Kullanma Yaklasan</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-red-600">{expiringCount}</p>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="Toplam Kalem"
+          value={items.length}
+          icon={Package}
+          color="default"
+          loading={loading}
+        />
+        <StatCard
+          title="Kritik Stok"
+          value={kritikCount}
+          icon={AlertTriangle}
+          color="warning"
+          loading={loading}
+        />
+        <StatCard
+          title="Son Kullanma Yaklasan"
+          value={expiringCount}
+          icon={Clock}
+          color="danger"
+          loading={loading}
+        />
       </div>
 
       {showForm && (
@@ -270,9 +271,11 @@ export default function EgitmenStokPage() {
           ) : error ? (
             <p className="text-sm text-red-500 text-center py-8">{error}</p>
           ) : items.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">
-              Henuz stok kaydi bulunmuyor.
-            </p>
+            <EmptyState
+              icon={PackageOpen}
+              title="Henuz stok kaydi bulunmuyor."
+              description="Yeni malzeme eklemek icin yukardaki butonu kullanin."
+            />
           ) : (
             <div className="overflow-x-auto">
               <div className="space-y-3">
@@ -289,7 +292,7 @@ export default function EgitmenStokPage() {
                         ? "bg-orange-50 border-orange-300"
                         : "";
                   return (
-                    <div key={item.id} className={`border rounded-lg p-3 space-y-2 ${rowClass}`}>
+                    <div key={item.id} className={`border rounded-xl p-3 space-y-2 ${rowClass}`}>
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium">{item.name}</p>
@@ -298,20 +301,10 @@ export default function EgitmenStokPage() {
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
-                          {isExpired && (
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-red-200 text-red-800">
-                              Suresi Gecmis
-                            </span>
-                          )}
-                          {isLow && !isExpired && (
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-amber-200 text-amber-800">
-                              Kritik
-                            </span>
-                          )}
+                          {isExpired && <Badge variant="destructive">Suresi Gecmis</Badge>}
+                          {isLow && !isExpired && <Badge variant="destructive">Kritik</Badge>}
                           {isExpiringSoon && !isExpired && (
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-orange-200 text-orange-800">
-                              SKT Yaklasik
-                            </span>
+                            <Badge variant="secondary">Son Kullanim</Badge>
                           )}
                         </div>
                       </div>

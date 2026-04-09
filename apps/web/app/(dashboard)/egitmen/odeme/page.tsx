@@ -5,7 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { StatCard } from "@/components/layout/stat-card";
 import { useApi, useApiMutation } from "@/hooks/use-api";
+import { Wallet, CheckCircle, Clock } from "lucide-react";
 
 type GunlukKasa = {
   totalAmount: number;
@@ -42,11 +45,13 @@ const statusLabel: Record<string, string> = {
   free: "Ucretsiz",
 };
 
-const statusColor: Record<string, string> = {
-  paid: "bg-green-100 text-green-800",
-  pending: "bg-amber-100 text-amber-800",
-  partial: "bg-blue-100 text-blue-800",
-  free: "bg-gray-100 text-gray-800",
+type BadgeVariant = "default" | "secondary" | "destructive" | "outline" | "ghost" | "link";
+
+const statusBadgeVariant: Record<string, BadgeVariant> = {
+  paid: "default",
+  pending: "secondary",
+  partial: "outline",
+  free: "outline",
 };
 
 export default function EgitmenOdemePage() {
@@ -146,7 +151,10 @@ export default function EgitmenOdemePage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Odeme Yonetimi</h1>
+        <h1 className="text-2xl font-bold font-headline flex items-center gap-2">
+          <Wallet className="h-6 w-6 text-primary" />
+          Odeme Yonetimi
+        </h1>
         <Button
           onClick={() => {
             setShowForm(!showForm);
@@ -159,29 +167,26 @@ export default function EgitmenOdemePage() {
       </div>
 
       {success && (
-        <div className="rounded-md border border-green-200 bg-green-50 p-4 text-green-800 text-sm">
+        <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-green-800 text-sm">
           {editingId ? "Odeme basariyla guncellendi." : "Odeme kaydi basariyla olusturuldu."}
         </div>
       )}
 
       {mutError && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-red-800 text-sm">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-800 text-sm">
           {mutError}
         </div>
       )}
 
       <div className="grid gap-4 grid-cols-2 md:grid-cols-5">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Bugun Toplam</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xl font-bold">
-              {kasaLoading ? "..." : `${Number(kasa?.totalAmount || 0).toFixed(2)} TL`}
-            </p>
-            <p className="text-xs text-muted-foreground">{kasa?.count || 0} islem</p>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="Bugun Toplam"
+          value={kasaLoading ? "..." : `₺${Number(kasa?.totalAmount || 0).toLocaleString("tr-TR")}`}
+          description={`${kasa?.count || 0} islem`}
+          icon={Wallet}
+          color="default"
+          loading={kasaLoading}
+        />
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">Nakit</CardTitle>
@@ -202,26 +207,22 @@ export default function EgitmenOdemePage() {
             </p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Tahsilat</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xl font-bold text-emerald-600">
-              {kasaLoading ? "..." : `${Number(kasa?.paidAmount || 0).toFixed(2)} TL`}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Bekleyen</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xl font-bold text-amber-600">
-              {kasaLoading ? "..." : `${Number(kasa?.pendingAmount || 0).toFixed(2)} TL`}
-            </p>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="Tahsilat"
+          value={kasaLoading ? "..." : `₺${Number(kasa?.paidAmount || 0).toLocaleString("tr-TR")}`}
+          icon={CheckCircle}
+          color="success"
+          loading={kasaLoading}
+        />
+        <StatCard
+          title="Bekleyen"
+          value={
+            kasaLoading ? "..." : `₺${Number(kasa?.pendingAmount || 0).toLocaleString("tr-TR")}`
+          }
+          icon={Clock}
+          color="warning"
+          loading={kasaLoading}
+        />
       </div>
 
       {showForm && (
@@ -333,7 +334,7 @@ export default function EgitmenOdemePage() {
           ) : (
             <div className="space-y-3">
               {payments.map((p) => (
-                <div key={p.id} className="border rounded-lg p-3 space-y-2">
+                <div key={p.id} className="border rounded-xl p-3 space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
                       <p className="font-medium">{p.description || "Odeme"}</p>
@@ -348,11 +349,9 @@ export default function EgitmenOdemePage() {
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full ${statusColor[p.status] ?? "bg-gray-100 text-gray-800"}`}
-                      >
+                      <Badge variant={statusBadgeVariant[p.status] ?? "outline"}>
                         {statusLabel[p.status] ?? p.status}
-                      </span>
+                      </Badge>
                       <div className="text-right">
                         <p className="font-bold">{Number(p.amount || 0).toFixed(2)} TL</p>
                         {p.status === "partial" && (
