@@ -4,182 +4,66 @@ import { db } from "../db/index.js";
 import { tedavi } from "../db/schema/tedavi.js";
 import { tahlil } from "../db/schema/tahlil.js";
 import { stok, stokHareket } from "../db/schema/stok.js";
-import { bildirim } from "../db/schema/bildirim.js";
-import { danisan } from "../db/schema/danisan.js";
 import { users } from "../db/schema/users.js";
 import { randevu } from "../db/schema/randevu.js";
 import { odeme } from "../db/schema/odeme.js";
 import { requireAuth, requireRole, getUser } from "../middleware/auth.js";
 import { createAuditLog } from "../middleware/audit.js";
+import { createTreatment } from "../services/treatment.service.js";
 
 export async function tedaviRoutes(app: FastifyInstance) {
-  // POST /api/tedavi - Yeni tedavi kaydi + stok dusme + bildirim
+  // POST /api/tedavi — Yeni tedavi kaydi (treatment.service.ts ile)
   app.post("/api/tedavi", { preHandler: requireRole("egitmen") }, async (request, reply) => {
     const { sub } = getUser(request);
-    const body = request.body as typeof tedavi.$inferInsert & {
+    const body = request.body as {
+      danisanId: string;
+      treatmentType: string;
+      treatmentDate?: string;
+      sessionNumber?: number;
+      complaints?: string[];
+      findings?: string;
+      vitalSigns?: { bloodPressure?: string; pulse?: number };
+      appliedTreatment?: string;
+      recommendations?: string;
+      nextSessionDate?: string;
+      bodyArea?: string;
+      randevuId?: string;
+      protokolId?: string;
       usedItems?: Array<{ stokId: string; quantity: number }>;
     };
 
-    const treatmentDate = body.treatmentDate
-      ? new Date(body.treatmentDate as unknown as string)
-      : new Date();
-    const nextSessionDate = body.nextSessionDate
-      ? new Date(body.nextSessionDate as unknown as string)
-      : undefined;
-
-    // 1. Stok yeterliligi kontrolu
-    if (body.usedItems && body.usedItems.length > 0) {
-      for (const item of body.usedItems) {
-        const [stokItem] = await db.select().from(stok).where(eq(stok.id, item.stokId)).limit(1);
-        if (!stokItem) {
-          return reply
-            .status(400)
-            .send({ success: false, error: `Stok kalemi bulunamadi: ${item.stokId}` });
-        }
-        if (stokItem.quantity < item.quantity) {
-          return reply.status(400).send({
-            success: false,
-            error: `Yetersiz stok: ${stokItem.name} (mevcut: ${stokItem.quantity}, istenen: ${item.quantity})`,
-          });
-        }
-      }
-    }
-
-    // 2. Kontrendikasyon kontrolu
-    const warnings: string[] = [];
-    if (body.danisanId && body.treatmentType) {
-      const [danisanProfil] = await db
-        .select()
-        .from(danisan)
-        .where(eq(danisan.userId, body.danisanId as string))
-        .limit(1);
-      if (danisanProfil) {
-        const diseases = (danisanProfil.chronicDiseases || []) as string[];
-        const meds = (danisanProfil.currentMedications || []) as string[];
-        const isPregnant = danisanProfil.pregnancyStatus;
-
-        if (isPregnant && ["hacamat_yas", "solucan"].includes(body.treatmentType)) {
-          warnings.push("UYARI: Hamilelik durumunda bu tedavi tipi uygulanmamali");
-        }
-        if (
-          diseases.some((d) => d.toLowerCase().includes("kanama")) &&
-          ["hacamat_yas", "solucan"].includes(body.treatmentType)
-        ) {
-          warnings.push("UYARI: Kanama bozuklugu - kan aldirma tedavileri riskli");
-        }
-        if (diseases.some((d) => d.toLowerCase().includes("hemofili"))) {
-          warnings.push("UYARI: Hemofili tanisi - invaziv tedavilerden kacinilmali");
-        }
-        if (
-          meds.some(
-            (m) =>
-              m.toLowerCase().includes("sulandirici") ||
-              m.toLowerCase().includes("warfarin") ||
-              m.toLowerCase().includes("aspirin"),
-          )
-        ) {
-          warnings.push("UYARI: Kan sulandirici ilac kullanimi - kanama riski yuksek");
-        }
-      }
-    }
-
-    // 3. Tedavi kaydi olustur
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { usedItems: _usedItems, ...tedaviData } = body;
-    const [created] = await db
-      .insert(tedavi)
-      .values({ ...tedaviData, egitmenId: sub, treatmentDate, nextSessionDate })
-      .returning();
-
-    if (!created) {
-      return reply.status(500).send({ success: false, error: "Tedavi kaydi olusturulamadi" });
-    }
-
-    // 4. Stok dusme
-    if (body.usedItems && body.usedItems.length > 0) {
-      for (const item of body.usedItems) {
-        const [stokItem] = await db.select().from(stok).where(eq(stok.id, item.stokId)).limit(1);
-        if (stokItem) {
-          const newQty = stokItem.quantity - item.quantity;
-          await db
-            .update(stok)
-            .set({ quantity: newQty, updatedAt: new Date() })
-            .where(eq(stok.id, item.stokId));
-          await db.insert(stokHareket).values({
-            stokId: item.stokId,
-            userId: sub,
-            type: "cikis",
-            quantity: item.quantity,
-            reason: `Tedavi: ${body.treatmentType} (Seans ${body.sessionNumber || 1})`,
-            tedaviId: created.id,
-          });
-
-          // Kritik stok uyarisi
-          if (newQty <= (stokItem.minimumLevel ?? 5)) {
-            await db.insert(bildirim).values({
-              userId: sub,
-              type: "sistem",
-              title: `Kritik Stok: ${stokItem.name}`,
-              body: `${stokItem.name} stoku kritik seviyede: ${newQty} ${stokItem.unit} kaldi.`,
-            });
-          }
-        }
-      }
-    }
-
-    // 5. Otomatik odeme kaydi olustur
-    let createdOdeme = null;
-    if (body.danisanId) {
-      // Stok maliyetlerini hesapla
-      let totalCost = 0;
-      if (body.usedItems && body.usedItems.length > 0) {
-        for (const item of body.usedItems) {
-          const [stokItem] = await db.select().from(stok).where(eq(stok.id, item.stokId)).limit(1);
-          if (stokItem && stokItem.unitPrice) {
-            totalCost += Number(stokItem.unitPrice) * item.quantity;
-          }
-        }
-      }
-
-      const [odemeSonuc] = await db
-        .insert(odeme)
-        .values({
-          danisanId: body.danisanId as string,
-          egitmenId: sub,
-          tedaviId: created.id,
-          amount: totalCost.toFixed(2),
-          status: "pending",
-          description: `${body.treatmentType || "Tedavi"} - Seans ${body.sessionNumber || 1}`,
-        })
-        .returning();
-      createdOdeme = odemeSonuc;
-    }
-
-    // 6. Danisana bildirim gonder
-    if (body.danisanId) {
-      await db.insert(bildirim).values({
-        userId: body.danisanId as string,
-        type: "tedavi_ozeti",
-        title: "Tedavi Kaydi Olusturuldu",
-        body: `${body.treatmentType || "Tedavi"} seansiniz kaydedildi. Seans ${body.sessionNumber || 1}.`,
-        actionUrl: "/danisan/tedavi",
-      });
-    }
+    const result = await createTreatment({
+      egitmenId: sub,
+      danisanId: body.danisanId,
+      treatmentType: body.treatmentType,
+      treatmentDate: body.treatmentDate ? new Date(body.treatmentDate) : undefined,
+      sessionNumber: body.sessionNumber,
+      complaints: body.complaints,
+      findings: body.findings,
+      vitalSigns: body.vitalSigns,
+      appliedTreatment: body.appliedTreatment,
+      recommendations: body.recommendations,
+      nextSessionDate: body.nextSessionDate ? new Date(body.nextSessionDate) : undefined,
+      bodyArea: body.bodyArea,
+      randevuId: body.randevuId,
+      protokolId: body.protokolId,
+      usedItems: body.usedItems,
+    });
 
     await createAuditLog({
       userId: sub,
       action: "create",
       tableName: "tedavi",
-      recordId: created.id,
-      description: `Tedavi: ${body.treatmentType} | Stok dusme: ${body.usedItems?.length || 0} kalem | Odeme: ${createdOdeme ? "olusturuldu" : "yok"}`,
+      recordId: result.tedavi.id,
+      description: `Tedavi: ${body.treatmentType} | Stok: ${body.usedItems?.length ?? 0} kalem | Uyarilar: ${result.warnings.length}`,
       request,
     });
 
     return reply.status(201).send({
       success: true,
-      data: created,
-      odeme: createdOdeme,
-      warnings: warnings.length > 0 ? warnings : undefined,
+      data: result.tedavi,
+      odeme: result.odeme,
+      warnings: result.warnings.length > 0 ? result.warnings : undefined,
     });
   });
 
