@@ -161,6 +161,7 @@ export default function EgitmenTedaviPage() {
   // Step 3: Bulgular
   const [bloodPressure, setBloodPressure] = useState("");
   const [pulse, setPulse] = useState("");
+  const [temperature, setTemperature] = useState("");
   const [findings, setFindings] = useState("");
   const [appliedTreatment, setAppliedTreatment] = useState("");
   const [recommendations, setRecommendations] = useState("");
@@ -232,6 +233,7 @@ export default function EgitmenTedaviPage() {
       vitalSigns: {
         bloodPressure: bloodPressure || undefined,
         pulse: pulse ? Number(pulse) : undefined,
+        temperature: temperature ? Number(temperature) : undefined,
       },
       appliedTreatment,
       recommendations,
@@ -255,6 +257,7 @@ export default function EgitmenTedaviPage() {
       setComplaint3("");
       setBloodPressure("");
       setPulse("");
+      setTemperature("");
       setFindings("");
       setAppliedTreatment("");
       setRecommendations("");
@@ -492,7 +495,7 @@ export default function EgitmenTedaviPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>Tansiyon</Label>
                 <Input
@@ -508,6 +511,16 @@ export default function EgitmenTedaviPage() {
                   value={pulse}
                   onChange={(e) => setPulse(e.target.value)}
                   placeholder="72"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Ates (°C)</Label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  value={temperature}
+                  onChange={(e) => setTemperature(e.target.value)}
+                  placeholder="36.5"
                 />
               </div>
             </div>
@@ -688,7 +701,7 @@ export default function EgitmenTedaviPage() {
             ) : (
               <span className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4" />
-                Kaydet
+                Kaydi Tamamla
               </span>
             )}
           </Button>

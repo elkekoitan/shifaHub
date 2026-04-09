@@ -9,11 +9,12 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/providers/auth-provider";
-import { Mail, Lock, LogIn, AlertCircle } from "lucide-react";
+import { Mail, Lock, LogIn, AlertCircle, Eye, EyeOff } from "lucide-react";
 
 export default function GirisPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
   const router = useRouter();
 
@@ -51,7 +52,7 @@ export default function GirisPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h2 className="text-2xl font-bold tracking-tight">Giris Yap</h2>
+        <h2 className="text-2xl font-bold tracking-tight font-headline">Giris Yap</h2>
         <p className="text-sm text-muted-foreground">Hesabiniza giris yaparak devam edin</p>
       </div>
 
@@ -91,13 +92,32 @@ export default function GirisPage() {
             <Input
               id="password"
               name="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="********"
-              className="pl-10"
+              className="pl-10 pr-10"
               required
               disabled={isLoading}
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              tabIndex={-1}
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
           </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="remember"
+            className="h-4 w-4 rounded border-border accent-primary"
+          />
+          <label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">
+            Beni hatirla
+          </label>
         </div>
 
         <Button type="submit" className="w-full h-11" disabled={isLoading}>
@@ -138,6 +158,16 @@ export default function GirisPage() {
           Ucretsiz kayit olun
         </Link>
       </p>
+
+      <div className="flex justify-center gap-4 text-xs text-muted-foreground mt-2">
+        <Link href="/kvkk" className="hover:underline">
+          KVKK Aydinlatma
+        </Link>
+        <span>·</span>
+        <Link href="/gizlilik" className="hover:underline">
+          Gizlilik Politikasi
+        </Link>
+      </div>
     </div>
   );
 }
