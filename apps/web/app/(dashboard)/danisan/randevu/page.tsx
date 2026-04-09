@@ -23,8 +23,16 @@ const TREATMENT_TYPES = [
 
 type Egitmen = {
   id: string;
+  userId: string;
   firstName: string;
   lastName: string;
+  defaultSessionDuration?: string;
+  clinicName?: string;
+};
+
+type BusySlot = {
+  start: string;
+  end: string;
 };
 
 type Randevu = {
@@ -59,8 +67,20 @@ export default function DanisanRandevuPage() {
   const [repeatInterval, setRepeatInterval] = useState("haftalik");
 
   const { data: egitmenList } = useApi<Egitmen[]>("/api/egitmen/search");
-  const { data: randevuList } = useApi<Randevu[]>("/api/randevu");
+  const { data: randevuList, refetch: refetchRandevu } = useApi<Randevu[]>("/api/randevu");
   const { mutate, loading, error } = useApiMutation();
+
+  // Egitmen secildiginde musaitlik bilgisi cek
+  const { data: musaitlikData, refetch: refetchMusaitlik } = useApi<{
+    slots: unknown[];
+    busySlots: BusySlot[];
+  }>(egitmenId ? `/api/randevu/musaitlik/${egitmenId}` : "", { skip: !egitmenId });
+
+  useEffect(() => {
+    if (egitmenId) refetchMusaitlik();
+  }, [egitmenId, refetchMusaitlik]);
+
+  const busySlots = musaitlikData?.busySlots ?? [];
 
   const egitmenler = egitmenList ?? [];
   const randevular = randevuList ?? [];
@@ -185,8 +205,8 @@ export default function DanisanRandevuPage() {
               >
                 <option value="">Egitmen seciniz</option>
                 {egitmenler.map((e) => (
-                  <option key={e.id} value={e.id}>
-                    {e.firstName} {e.lastName}
+                  <option key={e.userId || e.id} value={e.userId || e.id}>
+                    {e.firstName} {e.lastName} {e.clinicName ? `(${e.clinicName})` : ""}
                   </option>
                 ))}
               </select>
@@ -215,12 +235,30 @@ export default function DanisanRandevuPage() {
                   const hour = Math.floor(i / 2) + 9;
                   const min = i % 2 === 0 ? "00" : "30";
                   return `${hour.toString().padStart(2, "0")}:${min}`;
-                }).map((time) => (
-                  <option key={time} value={time}>
-                    {time}
-                  </option>
-                ))}
+                }).map((time) => {
+                  // Secili tarih varsa, o saat dolu mu kontrol et
+                  let isBusy = false;
+                  if (selectedDate && busySlots.length > 0) {
+                    const slotStart = new Date(`${selectedDate}T${time}:00`);
+                    const slotEnd = new Date(slotStart.getTime() + 60 * 60000);
+                    isBusy = busySlots.some((b) => {
+                      const bStart = new Date(b.start);
+                      const bEnd = new Date(b.end);
+                      return slotStart < bEnd && slotEnd > bStart;
+                    });
+                  }
+                  return (
+                    <option key={time} value={time} disabled={isBusy}>
+                      {time} {isBusy ? "(Dolu)" : ""}
+                    </option>
+                  );
+                })}
               </select>
+              {egitmenId && selectedDate && busySlots.length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  Dolu saatler devre disi birakilmistir.
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -333,11 +371,39 @@ export default function DanisanRandevuPage() {
                           ({r.duration} dk)
                         </p>
                       </div>
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full ${statusColor[r.status] ?? "bg-gray-100 text-gray-800"}`}
-                      >
-                        {statusLabel[r.status] ?? r.status}
-                      </span>
+                      <div className="flex flex-col items-end gap-1">
+                        <span
+                          className={`text-xs px-2 py-1 rounded-full ${statusColor[r.status] ?? "bg-gray-100 text-gray-800"}`}
+                        >
+                          {statusLabel[r.status] ?? r.status}
+                        </span>
+                        {["requested", "confirmed", "reminded"].includes(r.status) && (
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="h-6 text-xs"
+                            onClick={async () => {
+                              const hoursUntil =
+                                (new Date(r.scheduledAt).getTime() - Date.now()) / (1000 * 60 * 60);
+                              if (hoursUntil < 24 && hoursUntil > 0) {
+                                const ok = window.confirm(
+                                  "Randevuya 24 saatten az kalmis. Gec iptal olarak kaydedilecek. Devam etmek istiyor musunuz?",
+                                );
+                                if (!ok) return;
+                              }
+                              await mutate(
+                                `/api/randevu/${r.id}/status`,
+                                { status: "cancelled" },
+                                "PATCH",
+                              );
+                              refetchRandevu();
+                            }}
+                            disabled={loading}
+                          >
+                            Iptal Et
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   );
                 })}

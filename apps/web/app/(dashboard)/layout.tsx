@@ -38,6 +38,7 @@ const navItems: Record<string, { label: string; href: string; icon: string }[]> 
     { label: "Egitmenler", href: "/admin/egitmen", icon: "👨‍⚕️" },
     { label: "Danisanlar", href: "/admin/danisan", icon: "👥" },
     { label: "KVKK", href: "/admin/kvkk", icon: "🔒" },
+    { label: "Komplikasyonlar", href: "/admin/komplikasyon", icon: "🚨" },
     { label: "Raporlar", href: "/admin/raporlar", icon: "📈" },
     { label: "Bildirim Gonder", href: "/admin/bildirim-gonder", icon: "📢" },
     { label: "Sistem", href: "/admin/sistem", icon: "⚙️" },
@@ -75,7 +76,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <span className="text-sm text-muted-foreground truncate">
             Hos geldiniz, <strong>{user.firstName}</strong>
           </span>
-          <button onClick={logout} className="text-sm text-muted-foreground hover:text-destructive whitespace-nowrap ml-2">
+          <button
+            onClick={logout}
+            className="text-sm text-muted-foreground hover:text-destructive whitespace-nowrap ml-2"
+          >
             Cikis Yap
           </button>
         </header>
