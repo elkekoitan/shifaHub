@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useApiMutation } from "@/hooks/use-api";
+import { useApi, useApiMutation } from "@/hooks/use-api";
 
 const STEPS = [
   { title: "Kisisel Bilgiler", desc: "Temel iletisim bilgileriniz" },
@@ -15,6 +15,7 @@ const STEPS = [
 ];
 
 export function DanisanKayitWizard() {
+  const { data: existingProfile } = useApi<Record<string, unknown>>("/api/danisan/me");
   const [step, setStep] = useState(0);
   const [isSaved, setIsSaved] = useState(false);
   const { mutate, loading: isLoading, error } = useApiMutation();
@@ -45,6 +46,48 @@ export function DanisanKayitWizard() {
     mainComplaints: "",
     notes: "",
   });
+
+  // Mevcut profil verilerini form'a doldur
+  useEffect(() => {
+    if (existingProfile) {
+      const p = existingProfile as Record<string, unknown>;
+      setFormData({
+        birthDate: (p.birthDate as string)?.split("T")[0] || "",
+        gender: (p.gender as string) || "",
+        bloodType: (p.bloodType as string) || "",
+        occupation: (p.occupation as string) || "",
+        address: (p.address as string) || "",
+        city: (p.city as string) || "",
+        emergencyContact: (p.emergencyContact as string) || "",
+        emergencyPhone: (p.emergencyPhone as string) || "",
+        chronicDiseases: Array.isArray(p.chronicDiseases)
+          ? (p.chronicDiseases as string[]).join(", ")
+          : "",
+        previousSurgeries: Array.isArray(p.previousSurgeries)
+          ? (p.previousSurgeries as string[]).join(", ")
+          : "",
+        familyHistory: Array.isArray(p.familyHistory)
+          ? (p.familyHistory as string[]).join(", ")
+          : "",
+        height: p.height ? String(p.height) : "",
+        weight: p.weight ? String(p.weight) : "",
+        smokingStatus: !!p.smokingStatus,
+        alcoholStatus: !!p.alcoholStatus,
+        pregnancyStatus: !!p.pregnancyStatus,
+        allergies: Array.isArray(p.allergies) ? (p.allergies as string[]).join(", ") : "",
+        currentMedications: Array.isArray(p.currentMedications)
+          ? (p.currentMedications as string[]).join(", ")
+          : "",
+        previousTreatments: Array.isArray(p.previousTreatments)
+          ? (p.previousTreatments as string[]).join(", ")
+          : "",
+        mainComplaints: Array.isArray(p.mainComplaints)
+          ? (p.mainComplaints as string[]).join(", ")
+          : "",
+        notes: (p.notes as string) || "",
+      });
+    }
+  }, [existingProfile]);
 
   function updateField(field: string, value: string | boolean) {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -106,11 +149,19 @@ export function DanisanKayitWizard() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Dogum Tarihi</Label>
-                <Input type="date" value={formData.birthDate} onChange={(e) => updateField("birthDate", e.target.value)} />
+                <Input
+                  type="date"
+                  value={formData.birthDate}
+                  onChange={(e) => updateField("birthDate", e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Cinsiyet</Label>
-                <select className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm" value={formData.gender} onChange={(e) => updateField("gender", e.target.value)}>
+                <select
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                  value={formData.gender}
+                  onChange={(e) => updateField("gender", e.target.value)}
+                >
                   <option value="">Seciniz</option>
                   <option value="erkek">Erkek</option>
                   <option value="kadin">Kadin</option>
@@ -120,7 +171,11 @@ export function DanisanKayitWizard() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Kan Grubu</Label>
-                <select className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm" value={formData.bloodType} onChange={(e) => updateField("bloodType", e.target.value)}>
+                <select
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                  value={formData.bloodType}
+                  onChange={(e) => updateField("bloodType", e.target.value)}
+                >
                   <option value="">Seciniz</option>
                   <option value="A_pozitif">A Rh+</option>
                   <option value="A_negatif">A Rh-</option>
@@ -134,21 +189,37 @@ export function DanisanKayitWizard() {
               </div>
               <div className="space-y-2">
                 <Label>Meslek</Label>
-                <Input value={formData.occupation} onChange={(e) => updateField("occupation", e.target.value)} placeholder="Mesleginiz" />
+                <Input
+                  value={formData.occupation}
+                  onChange={(e) => updateField("occupation", e.target.value)}
+                  placeholder="Mesleginiz"
+                />
               </div>
             </div>
             <div className="space-y-2">
               <Label>Adres</Label>
-              <Input value={formData.address} onChange={(e) => updateField("address", e.target.value)} placeholder="Acik adresiniz" />
+              <Input
+                value={formData.address}
+                onChange={(e) => updateField("address", e.target.value)}
+                placeholder="Acik adresiniz"
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Sehir</Label>
-                <Input value={formData.city} onChange={(e) => updateField("city", e.target.value)} placeholder="Istanbul" />
+                <Input
+                  value={formData.city}
+                  onChange={(e) => updateField("city", e.target.value)}
+                  placeholder="Istanbul"
+                />
               </div>
               <div className="space-y-2">
                 <Label>Acil Durum Kisisi</Label>
-                <Input value={formData.emergencyContact} onChange={(e) => updateField("emergencyContact", e.target.value)} placeholder="Ad Soyad" />
+                <Input
+                  value={formData.emergencyContact}
+                  onChange={(e) => updateField("emergencyContact", e.target.value)}
+                  placeholder="Ad Soyad"
+                />
               </div>
             </div>
           </>
@@ -158,29 +229,57 @@ export function DanisanKayitWizard() {
           <>
             <div className="space-y-2">
               <Label>Kronik Hastaliklar</Label>
-              <textarea className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm min-h-[80px]" value={formData.chronicDiseases} onChange={(e) => updateField("chronicDiseases", e.target.value)} placeholder="Diyabet, hipertansiyon, astim... (virgul ile ayirin)" />
+              <textarea
+                className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm min-h-[80px]"
+                value={formData.chronicDiseases}
+                onChange={(e) => updateField("chronicDiseases", e.target.value)}
+                placeholder="Diyabet, hipertansiyon, astim... (virgul ile ayirin)"
+              />
             </div>
             <div className="space-y-2">
               <Label>Gecirilen Ameliyatlar</Label>
-              <textarea className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm min-h-[60px]" value={formData.previousSurgeries} onChange={(e) => updateField("previousSurgeries", e.target.value)} placeholder="Ameliyat adi, yili (virgul ile ayirin)" />
+              <textarea
+                className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm min-h-[60px]"
+                value={formData.previousSurgeries}
+                onChange={(e) => updateField("previousSurgeries", e.target.value)}
+                placeholder="Ameliyat adi, yili (virgul ile ayirin)"
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Boy (cm)</Label>
-                <Input type="number" value={formData.height} onChange={(e) => updateField("height", e.target.value)} placeholder="170" />
+                <Input
+                  type="number"
+                  value={formData.height}
+                  onChange={(e) => updateField("height", e.target.value)}
+                  placeholder="170"
+                />
               </div>
               <div className="space-y-2">
                 <Label>Kilo (kg)</Label>
-                <Input type="number" value={formData.weight} onChange={(e) => updateField("weight", e.target.value)} placeholder="70" />
+                <Input
+                  type="number"
+                  value={formData.weight}
+                  onChange={(e) => updateField("weight", e.target.value)}
+                  placeholder="70"
+                />
               </div>
             </div>
             <div className="flex gap-6">
               <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={formData.smokingStatus} onChange={(e) => updateField("smokingStatus", e.target.checked)} />
+                <input
+                  type="checkbox"
+                  checked={formData.smokingStatus}
+                  onChange={(e) => updateField("smokingStatus", e.target.checked)}
+                />
                 Sigara kullaniyorum
               </label>
               <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={formData.pregnancyStatus} onChange={(e) => updateField("pregnancyStatus", e.target.checked)} />
+                <input
+                  type="checkbox"
+                  checked={formData.pregnancyStatus}
+                  onChange={(e) => updateField("pregnancyStatus", e.target.checked)}
+                />
                 Hamilelik
               </label>
             </div>
@@ -191,15 +290,30 @@ export function DanisanKayitWizard() {
           <>
             <div className="space-y-2">
               <Label>Alerjiler</Label>
-              <textarea className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm min-h-[80px]" value={formData.allergies} onChange={(e) => updateField("allergies", e.target.value)} placeholder="Ilac, gida, madde alerjileri (virgul ile ayirin)" />
+              <textarea
+                className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm min-h-[80px]"
+                value={formData.allergies}
+                onChange={(e) => updateField("allergies", e.target.value)}
+                placeholder="Ilac, gida, madde alerjileri (virgul ile ayirin)"
+              />
             </div>
             <div className="space-y-2">
               <Label>Kullanilan Ilaclar</Label>
-              <textarea className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm min-h-[80px]" value={formData.currentMedications} onChange={(e) => updateField("currentMedications", e.target.value)} placeholder="Ilac adi, dozaj, kullanim sikliyi (virgul ile ayirin)" />
+              <textarea
+                className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm min-h-[80px]"
+                value={formData.currentMedications}
+                onChange={(e) => updateField("currentMedications", e.target.value)}
+                placeholder="Ilac adi, dozaj, kullanim sikliyi (virgul ile ayirin)"
+              />
             </div>
             <div className="space-y-2">
               <Label>Aile Gecmisi</Label>
-              <textarea className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm min-h-[60px]" value={formData.familyHistory} onChange={(e) => updateField("familyHistory", e.target.value)} placeholder="Ailede gorlen hastaliklar (kalp, diyabet, kanser vs.)" />
+              <textarea
+                className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm min-h-[60px]"
+                value={formData.familyHistory}
+                onChange={(e) => updateField("familyHistory", e.target.value)}
+                placeholder="Ailede gorlen hastaliklar (kalp, diyabet, kanser vs.)"
+              />
             </div>
           </>
         )}
@@ -208,28 +322,46 @@ export function DanisanKayitWizard() {
           <>
             <div className="space-y-2">
               <Label>Daha Once Alinan GETAT Tedavileri</Label>
-              <textarea className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm min-h-[80px]" value={formData.previousTreatments} onChange={(e) => updateField("previousTreatments", e.target.value)} placeholder="Hacamat, solucan tedavisi, akupunktur... (virgul ile ayirin)" />
+              <textarea
+                className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm min-h-[80px]"
+                value={formData.previousTreatments}
+                onChange={(e) => updateField("previousTreatments", e.target.value)}
+                placeholder="Hacamat, solucan tedavisi, akupunktur... (virgul ile ayirin)"
+              />
             </div>
             <div className="space-y-2">
               <Label>Ana Sikayetler</Label>
-              <textarea className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm min-h-[80px]" value={formData.mainComplaints} onChange={(e) => updateField("mainComplaints", e.target.value)} placeholder="Mevcut sikayetlerinizi detayli yazin" />
+              <textarea
+                className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm min-h-[80px]"
+                value={formData.mainComplaints}
+                onChange={(e) => updateField("mainComplaints", e.target.value)}
+                placeholder="Mevcut sikayetlerinizi detayli yazin"
+              />
             </div>
             <div className="space-y-2">
               <Label>Ek Notlar</Label>
-              <textarea className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm min-h-[60px]" value={formData.notes} onChange={(e) => updateField("notes", e.target.value)} placeholder="Egitmeninize iletmek istediginiz ek bilgiler" />
+              <textarea
+                className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm min-h-[60px]"
+                value={formData.notes}
+                onChange={(e) => updateField("notes", e.target.value)}
+                placeholder="Egitmeninize iletmek istediginiz ek bilgiler"
+              />
             </div>
           </>
         )}
 
-        {error && (
-          <p className="text-sm text-red-500 text-center">{error}</p>
-        )}
+        {error && <p className="text-sm text-red-500 text-center">{error}</p>}
         {isSaved && (
           <p className="text-sm text-green-600 text-center">Profiliniz basariyla kaydedildi!</p>
         )}
         <div className="flex gap-2 pt-4">
           {step > 0 && (
-            <Button type="button" variant="outline" onClick={() => setStep(step - 1)} className="flex-1">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setStep(step - 1)}
+              className="flex-1"
+            >
               Geri
             </Button>
           )}
@@ -238,7 +370,12 @@ export function DanisanKayitWizard() {
               Devam
             </Button>
           ) : (
-            <Button type="button" onClick={handleSubmit} className="flex-1" disabled={isLoading || isSaved}>
+            <Button
+              type="button"
+              onClick={handleSubmit}
+              className="flex-1"
+              disabled={isLoading || isSaved}
+            >
               {isLoading ? "Kaydediliyor..." : isSaved ? "Kaydedildi" : "Profili Tamamla"}
             </Button>
           )}

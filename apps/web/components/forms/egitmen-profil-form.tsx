@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useApiMutation } from "@/hooks/use-api";
+import { useApi, useApiMutation } from "@/hooks/use-api";
 
 const SPECIALTIES = [
   { value: "hacamat_kuru", label: "Kuru Hacamat" },
@@ -21,7 +21,8 @@ const SPECIALTIES = [
 ];
 
 export function EgitmenProfilForm() {
-  // isLoading replaced by saving from useApiMutation
+  const { data: existingProfile, loading: profileLoading } =
+    useApi<Record<string, unknown>>("/api/egitmen/me");
   const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     certificateNumber: "",
@@ -36,6 +37,29 @@ export function EgitmenProfilForm() {
     workingHoursStart: "09:00",
     workingHoursEnd: "18:00",
   });
+
+  // Mevcut profil verilerini form'a doldur
+  useEffect(() => {
+    if (existingProfile) {
+      const p = existingProfile as Record<string, unknown>;
+      setFormData({
+        certificateNumber: (p.certificateNumber as string) || "",
+        certificateIssuer: (p.certificateIssuer as string) || "",
+        clinicName: (p.clinicName as string) || "",
+        clinicAddress: (p.clinicAddress as string) || "",
+        clinicCity: (p.clinicCity as string) || "",
+        clinicPhone: (p.clinicPhone as string) || "",
+        supervisingPhysicianName: (p.supervisingPhysicianName as string) || "",
+        bio: (p.bio as string) || "",
+        defaultSessionDuration: (p.defaultSessionDuration as string) || "60",
+        workingHoursStart: (p.workingHoursStart as string) || "09:00",
+        workingHoursEnd: (p.workingHoursEnd as string) || "18:00",
+      });
+      if (Array.isArray(p.specialties)) {
+        setSelectedSpecialties(p.specialties as string[]);
+      }
+    }
+  }, [existingProfile]);
 
   function updateField(field: string, value: string) {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -53,12 +77,20 @@ export function EgitmenProfilForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaveSuccess(false);
-    const result = await mutate("/api/egitmen/me", {
-      ...formData,
-      specialties: selectedSpecialties,
-      workingDays: [1, 2, 3, 4, 5],
-    }, "PUT");
+    const result = await mutate(
+      "/api/egitmen/me",
+      {
+        ...formData,
+        specialties: selectedSpecialties,
+        workingDays: [1, 2, 3, 4, 5],
+      },
+      "PUT",
+    );
     if (result) setSaveSuccess(true);
+  }
+
+  if (profileLoading) {
+    return <p className="text-sm text-muted-foreground py-8 text-center">Profil yukleniyor...</p>;
   }
 
   return (
@@ -71,11 +103,19 @@ export function EgitmenProfilForm() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Sertifika Numarasi</Label>
-              <Input value={formData.certificateNumber} onChange={(e) => updateField("certificateNumber", e.target.value)} placeholder="GETAT-XXXX" />
+              <Input
+                value={formData.certificateNumber}
+                onChange={(e) => updateField("certificateNumber", e.target.value)}
+                placeholder="GETAT-XXXX"
+              />
             </div>
             <div className="space-y-2">
               <Label>Veren Kurum</Label>
-              <Input value={formData.certificateIssuer} onChange={(e) => updateField("certificateIssuer", e.target.value)} placeholder="Saglik Bakanligi / Universite" />
+              <Input
+                value={formData.certificateIssuer}
+                onChange={(e) => updateField("certificateIssuer", e.target.value)}
+                placeholder="Saglik Bakanligi / Universite"
+              />
             </div>
           </div>
           <div className="space-y-2">
@@ -93,7 +133,10 @@ export function EgitmenProfilForm() {
         <CardContent>
           <div className="grid grid-cols-2 gap-2">
             {SPECIALTIES.map((s) => (
-              <label key={s.value} className="flex items-center gap-2 p-2 rounded-lg hover:bg-accent cursor-pointer">
+              <label
+                key={s.value}
+                className="flex items-center gap-2 p-2 rounded-lg hover:bg-accent cursor-pointer"
+              >
                 <input
                   type="checkbox"
                   checked={selectedSpecialties.includes(s.value)}
@@ -113,25 +156,45 @@ export function EgitmenProfilForm() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label>Klinik Adi</Label>
-            <Input value={formData.clinicName} onChange={(e) => updateField("clinicName", e.target.value)} placeholder="Sifa Merkezi" />
+            <Input
+              value={formData.clinicName}
+              onChange={(e) => updateField("clinicName", e.target.value)}
+              placeholder="Sifa Merkezi"
+            />
           </div>
           <div className="space-y-2">
             <Label>Klinik Adresi</Label>
-            <Input value={formData.clinicAddress} onChange={(e) => updateField("clinicAddress", e.target.value)} placeholder="Tam adres" />
+            <Input
+              value={formData.clinicAddress}
+              onChange={(e) => updateField("clinicAddress", e.target.value)}
+              placeholder="Tam adres"
+            />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Sehir</Label>
-              <Input value={formData.clinicCity} onChange={(e) => updateField("clinicCity", e.target.value)} placeholder="Istanbul" />
+              <Input
+                value={formData.clinicCity}
+                onChange={(e) => updateField("clinicCity", e.target.value)}
+                placeholder="Istanbul"
+              />
             </div>
             <div className="space-y-2">
               <Label>Telefon</Label>
-              <Input value={formData.clinicPhone} onChange={(e) => updateField("clinicPhone", e.target.value)} placeholder="0212 XXX XX XX" />
+              <Input
+                value={formData.clinicPhone}
+                onChange={(e) => updateField("clinicPhone", e.target.value)}
+                placeholder="0212 XXX XX XX"
+              />
             </div>
           </div>
           <div className="space-y-2">
             <Label>Sorumlu Tabip Adi</Label>
-            <Input value={formData.supervisingPhysicianName} onChange={(e) => updateField("supervisingPhysicianName", e.target.value)} placeholder="Dr. Ad Soyad" />
+            <Input
+              value={formData.supervisingPhysicianName}
+              onChange={(e) => updateField("supervisingPhysicianName", e.target.value)}
+              placeholder="Dr. Ad Soyad"
+            />
           </div>
         </CardContent>
       </Card>
@@ -144,22 +207,40 @@ export function EgitmenProfilForm() {
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>Seans Suresi (dk)</Label>
-              <Input type="number" value={formData.defaultSessionDuration} onChange={(e) => updateField("defaultSessionDuration", e.target.value)} />
+              <Input
+                type="number"
+                value={formData.defaultSessionDuration}
+                onChange={(e) => updateField("defaultSessionDuration", e.target.value)}
+              />
             </div>
             <div className="space-y-2">
               <Label>Baslangic</Label>
-              <Input type="time" value={formData.workingHoursStart} onChange={(e) => updateField("workingHoursStart", e.target.value)} />
+              <Input
+                type="time"
+                value={formData.workingHoursStart}
+                onChange={(e) => updateField("workingHoursStart", e.target.value)}
+              />
             </div>
             <div className="space-y-2">
               <Label>Bitis</Label>
-              <Input type="time" value={formData.workingHoursEnd} onChange={(e) => updateField("workingHoursEnd", e.target.value)} />
+              <Input
+                type="time"
+                value={formData.workingHoursEnd}
+                onChange={(e) => updateField("workingHoursEnd", e.target.value)}
+              />
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {saveSuccess && <div className="p-3 text-sm text-green-700 bg-green-50 rounded-lg">Profil basariyla kaydedildi!</div>}
-      {saveError && <div className="p-3 text-sm text-red-700 bg-red-50 rounded-lg">{saveError}</div>}
+      {saveSuccess && (
+        <div className="p-3 text-sm text-green-700 bg-green-50 rounded-lg">
+          Profil basariyla kaydedildi!
+        </div>
+      )}
+      {saveError && (
+        <div className="p-3 text-sm text-red-700 bg-red-50 rounded-lg">{saveError}</div>
+      )}
       <Button type="submit" className="w-full" disabled={saving}>
         {saving ? "Kaydediliyor..." : "Profili Kaydet"}
       </Button>

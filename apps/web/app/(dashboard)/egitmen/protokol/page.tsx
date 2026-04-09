@@ -95,16 +95,15 @@ export default function EgitmenProtokolPage() {
   const [showForm, setShowForm] = useState(false);
 
   const { data: danisanList, loading: danisanLoading } = useApi<DanisanItem[]>("/api/danisan/list");
-  const { data: protocols, loading: protocolsLoading, refetch } = useApi<Protocol[]>(
-    `/api/protokol/danisan/${selectedDanisan}`,
-    { skip: !selectedDanisan },
-  );
+  const {
+    data: protocols,
+    loading: protocolsLoading,
+    refetch,
+  } = useApi<Protocol[]>(`/api/protokol/danisan/${selectedDanisan}`, { skip: !selectedDanisan });
   const { mutate, loading: saving, error: saveError } = useApiMutation();
 
   function updateComplaint(index: number, field: keyof Complaint, value: string | number) {
-    setComplaints((prev) =>
-      prev.map((c, i) => (i === index ? { ...c, [field]: value } : c)),
-    );
+    setComplaints((prev) => prev.map((c, i) => (i === index ? { ...c, [field]: value } : c)));
   }
 
   function removeComplaint(index: number) {
@@ -238,7 +237,9 @@ export default function EgitmenProtokolPage() {
                           onChange={(e) => updateComplaint(index, "priority", e.target.value)}
                         >
                           {PRIORITY_OPTIONS.map((p) => (
-                            <option key={p.value} value={p.value}>{p.label}</option>
+                            <option key={p.value} value={p.value}>
+                              {p.label}
+                            </option>
                           ))}
                         </select>
                       </div>
@@ -248,10 +249,14 @@ export default function EgitmenProtokolPage() {
                         <select
                           className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
                           value={complaint.treatmentMethod}
-                          onChange={(e) => updateComplaint(index, "treatmentMethod", e.target.value)}
+                          onChange={(e) =>
+                            updateComplaint(index, "treatmentMethod", e.target.value)
+                          }
                         >
                           {TREATMENT_METHODS.map((m) => (
-                            <option key={m.value} value={m.value}>{m.label}</option>
+                            <option key={m.value} value={m.value}>
+                              {m.label}
+                            </option>
                           ))}
                         </select>
                       </div>
@@ -263,7 +268,9 @@ export default function EgitmenProtokolPage() {
                           min={1}
                           max={50}
                           value={complaint.estimatedSessions}
-                          onChange={(e) => updateComplaint(index, "estimatedSessions", Number(e.target.value) || 1)}
+                          onChange={(e) =>
+                            updateComplaint(index, "estimatedSessions", Number(e.target.value) || 1)
+                          }
                         />
                       </div>
 
@@ -272,10 +279,14 @@ export default function EgitmenProtokolPage() {
                         <select
                           className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
                           value={complaint.sessionInterval}
-                          onChange={(e) => updateComplaint(index, "sessionInterval", e.target.value)}
+                          onChange={(e) =>
+                            updateComplaint(index, "sessionInterval", e.target.value)
+                          }
                         >
                           {SESSION_INTERVALS.map((s) => (
-                            <option key={s.value} value={s.value}>{s.label}</option>
+                            <option key={s.value} value={s.value}>
+                              {s.label}
+                            </option>
                           ))}
                         </select>
                       </div>
@@ -307,14 +318,14 @@ export default function EgitmenProtokolPage() {
               />
             </div>
 
-            {saveError && (
-              <p className="text-sm text-red-500 text-center">{saveError}</p>
-            )}
+            {saveError && <p className="text-sm text-red-500 text-center">{saveError}</p>}
 
             <Button
               className="w-full"
               onClick={handleSubmit}
-              disabled={saving || !title || !selectedDanisan || complaints.some((c) => !c.description)}
+              disabled={
+                saving || !title || !selectedDanisan || complaints.some((c) => !c.description)
+              }
             >
               {saving ? "Kaydediliyor..." : "Protokolu Kaydet"}
             </Button>
@@ -340,20 +351,31 @@ export default function EgitmenProtokolPage() {
                 <CardContent className="pt-4 space-y-3">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <h3 className="font-semibold text-base">{protocol.title}</h3>
-                    <span className={`px-2 py-0.5 text-xs rounded-full ${STATUS_COLORS[protocol.status] || "bg-gray-100"}`}>
-                      {STATUS_LABELS[protocol.status] || protocol.status}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`px-2 py-0.5 text-xs rounded-full ${STATUS_COLORS[protocol.status] || "bg-gray-100"}`}
+                      >
+                        {STATUS_LABELS[protocol.status] || protocol.status}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="space-y-2">
                     {(protocol.complaints ?? []).map((c, i) => (
-                      <div key={i} className="flex flex-col sm:flex-row sm:items-center gap-2 p-2 bg-muted/50 rounded-md">
-                        <span className={`px-2 py-0.5 text-xs rounded-full shrink-0 ${PRIORITY_COLORS[c.priority] || "bg-gray-100"}`}>
-                          {PRIORITY_OPTIONS.find((p) => p.value === c.priority)?.label || `Oncelik ${c.priority}`}
+                      <div
+                        key={i}
+                        className="flex flex-col sm:flex-row sm:items-center gap-2 p-2 bg-muted/50 rounded-md"
+                      >
+                        <span
+                          className={`px-2 py-0.5 text-xs rounded-full shrink-0 ${PRIORITY_COLORS[c.priority] || "bg-gray-100"}`}
+                        >
+                          {PRIORITY_OPTIONS.find((p) => p.value === c.priority)?.label ||
+                            `Oncelik ${c.priority}`}
                         </span>
                         <span className="text-sm flex-1">{c.description}</span>
                         <span className="text-xs text-muted-foreground shrink-0">
-                          {TREATMENT_METHODS.find((m) => m.value === c.treatmentMethod)?.label || c.treatmentMethod}
+                          {TREATMENT_METHODS.find((m) => m.value === c.treatmentMethod)?.label ||
+                            c.treatmentMethod}
                           {" | "}
                           {c.estimatedSessions} seans
                         </span>
@@ -375,9 +397,80 @@ export default function EgitmenProtokolPage() {
                     </div>
                   )}
 
-                  <p className="text-xs text-muted-foreground text-right">
-                    {new Date(protocol.createdAt).toLocaleDateString("tr-TR")}
-                  </p>
+                  <div className="flex items-center justify-between pt-2 border-t">
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(protocol.createdAt).toLocaleDateString("tr-TR")}
+                    </p>
+                    <div className="flex gap-2">
+                      {protocol.status === "active" && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-xs"
+                            onClick={async () => {
+                              await mutate(
+                                `/api/protokol/${protocol.id}`,
+                                { status: "paused" },
+                                "PUT",
+                              );
+                              refetch();
+                            }}
+                          >
+                            Duraklat
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-xs text-green-700 border-green-300"
+                            onClick={async () => {
+                              await mutate(
+                                `/api/protokol/${protocol.id}`,
+                                { status: "completed" },
+                                "PUT",
+                              );
+                              refetch();
+                            }}
+                          >
+                            Tamamlandi
+                          </Button>
+                        </>
+                      )}
+                      {protocol.status === "paused" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-xs"
+                          onClick={async () => {
+                            await mutate(
+                              `/api/protokol/${protocol.id}`,
+                              { status: "active" },
+                              "PUT",
+                            );
+                            refetch();
+                          }}
+                        >
+                          Devam Ettir
+                        </Button>
+                      )}
+                      {protocol.status === "draft" && (
+                        <Button
+                          size="sm"
+                          className="h-7 text-xs"
+                          onClick={async () => {
+                            await mutate(
+                              `/api/protokol/${protocol.id}`,
+                              { status: "active" },
+                              "PUT",
+                            );
+                            refetch();
+                          }}
+                        >
+                          Aktif Et
+                        </Button>
+                      )}
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             ))
