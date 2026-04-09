@@ -11,6 +11,7 @@ const navItems: Record<string, { label: string; href: string; icon: string }[]> 
     { label: "Randevularim", href: "/danisan/randevu", icon: "📅" },
     { label: "Egitmen Ara", href: "/danisan/egitmen", icon: "🔍" },
     { label: "Tedavilerim", href: "/danisan/tedavi", icon: "💊" },
+    { label: "Protokollerim", href: "/danisan/protokol", icon: "📋" },
     { label: "Tahlillerim", href: "/danisan/tahlil", icon: "🔬" },
     { label: "Mesajlar", href: "/danisan/mesaj", icon: "💬" },
     { label: "Geri Bildirim", href: "/danisan/geri-bildirim", icon: "⭐" },

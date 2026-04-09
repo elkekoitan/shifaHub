@@ -8,11 +8,28 @@ import Link from "next/link";
 
 export default function DanisanDashboard() {
   const { user } = useAuth();
-  const { data: randevular } = useApi<Array<{ id: string; status: string; scheduledAt: string; treatmentType: string }>>("/api/randevu");
-  const { data: bildirimler } = useApi<Array<{ id: string; title: string; isRead: boolean }>>("/api/bildirim");
+  const { data: randevular } =
+    useApi<
+      Array<{
+        id: string;
+        status: string;
+        scheduledAt: string;
+        treatmentType: string;
+        egitmenFirstName?: string;
+        egitmenLastName?: string;
+      }>
+    >("/api/randevu");
+  const { data: bildirimler } =
+    useApi<Array<{ id: string; title: string; isRead: boolean }>>("/api/bildirim");
+  const { data: tedaviler } = useApi<Array<{ id: string }>>(`/api/tedavi/danisan/${user?.id}`, {
+    skip: !user?.id,
+  });
 
-  const aktifRandevu = randevular?.filter((r) => !["completed", "cancelled", "no_show"].includes(r.status)) || [];
-  const sonraki = aktifRandevu.sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())[0];
+  const aktifRandevu =
+    randevular?.filter((r) => !["completed", "cancelled", "no_show"].includes(r.status)) || [];
+  const sonraki = aktifRandevu.sort(
+    (a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime(),
+  )[0];
   const okunmamis = bildirimler?.filter((b) => !b.isRead) || [];
 
   return (
@@ -22,33 +39,51 @@ export default function DanisanDashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="md:col-span-2">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Sonraki Randevu</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Sonraki Randevu
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {sonraki ? (
               <div>
                 <p className="text-lg font-bold">
-                  {new Date(sonraki.scheduledAt).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" })}
+                  {new Date(sonraki.scheduledAt).toLocaleDateString("tr-TR", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {new Date(sonraki.scheduledAt).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}
-                  {" - "}{sonraki.treatmentType}
+                  {new Date(sonraki.scheduledAt).toLocaleTimeString("tr-TR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                  {" - "}
+                  {sonraki.treatmentType}
                 </p>
+                {sonraki.egitmenFirstName && (
+                  <p className="text-xs text-primary mt-1">
+                    Egitmen: {sonraki.egitmenFirstName} {sonraki.egitmenLastName}
+                  </p>
+                )}
               </div>
             ) : (
               <div>
                 <p className="text-muted-foreground">Aktif randevunuz yok</p>
-                <Button asChild size="sm" className="mt-2"><Link href="/danisan/randevu">Randevu Al</Link></Button>
+                <Button asChild size="sm" className="mt-2">
+                  <Link href="/danisan/randevu">Randevu Al</Link>
+                </Button>
               </div>
             )}
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Toplam Randevu</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Tedavilerim</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{randevular?.length || 0}</p>
+            <p className="text-2xl font-bold">{tedaviler?.length || 0}</p>
+            <p className="text-xs text-muted-foreground">tamamlanan seans</p>
           </CardContent>
         </Card>
         <Card>
@@ -67,13 +102,30 @@ export default function DanisanDashboard() {
           <CardTitle className="text-lg">Hizli Islemler</CardTitle>
         </CardHeader>
         <CardContent className="flex gap-2 flex-wrap">
-          <Button asChild><Link href="/danisan/randevu">Randevu Al</Link></Button>
-          <Button asChild variant="outline"><Link href="/danisan/egitmen">Egitmen Ara</Link></Button>
-          <Button asChild variant="outline"><Link href="/danisan/tedavi">Tedavilerim</Link></Button>
-          <Button asChild variant="outline"><Link href="/danisan/tahlil">Tahlillerim</Link></Button>
-          <Button asChild variant="outline"><Link href="/danisan/mesaj">Mesajlar</Link></Button>
-          <Button asChild variant="outline"><Link href="/danisan/geri-bildirim">Geri Bildirim</Link></Button>
-          <Button asChild variant="outline"><Link href="/danisan/profil">Profilim</Link></Button>
+          <Button asChild>
+            <Link href="/danisan/randevu">Randevu Al</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/danisan/egitmen">Egitmen Ara</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/danisan/tedavi">Tedavilerim</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/danisan/protokol">Protokollerim</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/danisan/tahlil">Tahlillerim</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/danisan/mesaj">Mesajlar</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/danisan/geri-bildirim">Geri Bildirim</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/danisan/profil">Profilim</Link>
+          </Button>
         </CardContent>
       </Card>
     </div>
