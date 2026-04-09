@@ -18,10 +18,14 @@ import { odemeRoutes } from "./routes/odeme.js";
 import { acilRoutes } from "./routes/acil.js";
 import { protokolRoutes } from "./routes/protokol.js";
 import { uploadRoutes } from "./routes/upload.js";
+import { registerErrorHandler } from "./lib/error-handler.js";
 
 const app = Fastify({
   logger: loggerConfig,
 });
+
+// Global error handler
+registerErrorHandler(app);
 
 // Plugins
 await app.register(cors, {
@@ -69,63 +73,81 @@ try {
   app.log.info(`ShifaHub API running at http://${HOST}:${PORT}`);
 
   // T-028: Randevu hatirlati cron (5 dakikada bir)
-  setInterval(async () => {
-    try {
-      const { db: cronDb } = await import("./db/index.js");
-      const { randevu: randevuTable } = await import("./db/schema/randevu.js");
-      const { bildirim: bildirimTable } = await import("./db/schema/bildirim.js");
-      const { eq, and, gte, lte } = await import("drizzle-orm");
+  setInterval(
+    async () => {
+      try {
+        const { db: cronDb } = await import("./db/index.js");
+        const { randevu: randevuTable } = await import("./db/schema/randevu.js");
+        const { bildirim: bildirimTable } = await import("./db/schema/bildirim.js");
+        const { eq, and, gte, lte } = await import("drizzle-orm");
 
-      const now = new Date();
-      const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-      const in1h = new Date(now.getTime() + 60 * 60 * 1000);
+        const now = new Date();
+        const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+        const in1h = new Date(now.getTime() + 60 * 60 * 1000);
 
-      // 24h hatirlati
-      const upcoming24h = await cronDb.select().from(randevuTable)
-        .where(and(
-          gte(randevuTable.scheduledAt, now),
-          lte(randevuTable.scheduledAt, in24h),
-          eq(randevuTable.reminder24hSent, "false"),
-        ));
+        // 24h hatirlati
+        const upcoming24h = await cronDb
+          .select()
+          .from(randevuTable)
+          .where(
+            and(
+              gte(randevuTable.scheduledAt, now),
+              lte(randevuTable.scheduledAt, in24h),
+              eq(randevuTable.reminder24hSent, "false"),
+            ),
+          );
 
-      for (const r of upcoming24h) {
-        await cronDb.insert(bildirimTable).values({
-          userId: r.danisanId,
-          type: "randevu_hatirlatma",
-          title: "Randevu Hatirlatma (24 saat)",
-          body: `Yarinki randevunuzu unutmayin: ${new Date(r.scheduledAt).toLocaleString("tr-TR")}`,
-          actionUrl: "/danisan/randevu",
-        });
-        await cronDb.update(randevuTable).set({ reminder24hSent: "true" }).where(eq(randevuTable.id, r.id));
+        for (const r of upcoming24h) {
+          await cronDb.insert(bildirimTable).values({
+            userId: r.danisanId,
+            type: "randevu_hatirlatma",
+            title: "Randevu Hatirlatma (24 saat)",
+            body: `Yarinki randevunuzu unutmayin: ${new Date(r.scheduledAt).toLocaleString("tr-TR")}`,
+            actionUrl: "/danisan/randevu",
+          });
+          await cronDb
+            .update(randevuTable)
+            .set({ reminder24hSent: "true" })
+            .where(eq(randevuTable.id, r.id));
+        }
+
+        // 1h hatirlati
+        const upcoming1h = await cronDb
+          .select()
+          .from(randevuTable)
+          .where(
+            and(
+              gte(randevuTable.scheduledAt, now),
+              lte(randevuTable.scheduledAt, in1h),
+              eq(randevuTable.reminder1hSent, "false"),
+            ),
+          );
+
+        for (const r of upcoming1h) {
+          await cronDb.insert(bildirimTable).values({
+            userId: r.danisanId,
+            type: "randevu_hatirlatma",
+            title: "Randevu Hatirlatma (1 saat)",
+            body: `Randevunuz 1 saat icinde: ${new Date(r.scheduledAt).toLocaleString("tr-TR")}`,
+            actionUrl: "/danisan/randevu",
+          });
+          await cronDb
+            .update(randevuTable)
+            .set({ reminder1hSent: "true" })
+            .where(eq(randevuTable.id, r.id));
+        }
+
+        if (upcoming24h.length > 0 || upcoming1h.length > 0) {
+          app.log.info(
+            `Hatirlatma: ${upcoming24h.length} (24h) + ${upcoming1h.length} (1h) gonderildi`,
+          );
+        }
+      } catch (err) {
+        app.log.error(err, "Hatirlatma cron hatasi");
       }
-
-      // 1h hatirlati
-      const upcoming1h = await cronDb.select().from(randevuTable)
-        .where(and(
-          gte(randevuTable.scheduledAt, now),
-          lte(randevuTable.scheduledAt, in1h),
-          eq(randevuTable.reminder1hSent, "false"),
-        ));
-
-      for (const r of upcoming1h) {
-        await cronDb.insert(bildirimTable).values({
-          userId: r.danisanId,
-          type: "randevu_hatirlatma",
-          title: "Randevu Hatirlatma (1 saat)",
-          body: `Randevunuz 1 saat icinde: ${new Date(r.scheduledAt).toLocaleString("tr-TR")}`,
-          actionUrl: "/danisan/randevu",
-        });
-        await cronDb.update(randevuTable).set({ reminder1hSent: "true" }).where(eq(randevuTable.id, r.id));
-      }
-
-      if (upcoming24h.length > 0 || upcoming1h.length > 0) {
-        app.log.info(`Hatirlatma: ${upcoming24h.length} (24h) + ${upcoming1h.length} (1h) gonderildi`);
-      }
-    } catch (err) {
-      app.log.error(err, "Hatirlatma cron hatasi");
-    }
-  }, 5 * 60 * 1000); // 5 dakikada bir
-
+    },
+    5 * 60 * 1000,
+  ); // 5 dakikada bir
 } catch (err) {
   app.log.error(err);
   process.exit(1);
