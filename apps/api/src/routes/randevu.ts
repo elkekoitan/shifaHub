@@ -105,6 +105,12 @@ export async function randevuRoutes(app: FastifyInstance) {
     const { sub, role } = getUser(request);
     const { id } = request.params as { id: string };
 
+    // UUID format validasyonu
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(id)) {
+      return reply.status(400).send({ success: false, error: "Gecersiz randevu ID formati" });
+    }
+
     const [item] = await db.select().from(randevu).where(eq(randevu.id, id)).limit(1);
 
     if (!item) {

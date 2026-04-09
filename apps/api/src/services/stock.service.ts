@@ -77,6 +77,9 @@ export async function updateStock(stokId: string, data: Partial<CreateStockInput
 export async function deleteStock(stokId: string) {
   const [existing] = await db.select().from(stok).where(eq(stok.id, stokId)).limit(1);
   if (!existing) throw new NotFoundError("Stok kalemi bulunamadi");
+
+  // Once iliskili hareket kayitlarini sil (FK constraint)
+  await db.delete(stokHareket).where(eq(stokHareket.stokId, stokId));
   await db.delete(stok).where(eq(stok.id, stokId));
 }
 
