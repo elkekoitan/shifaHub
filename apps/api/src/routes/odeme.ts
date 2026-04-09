@@ -1,19 +1,30 @@
 import type { FastifyInstance } from "fastify";
 import { eq, desc, and, gte } from "drizzle-orm";
+import { z } from "zod";
 import { db } from "../db/index.js";
 import { odeme } from "../db/schema/odeme.js";
 import { requireRole, requireAuth, getUser } from "../middleware/auth.js";
 import { createAuditLog } from "../middleware/audit.js";
 
+const createOdemeSchema = z.object({
+  danisanId: z.string().uuid("Gecersiz danisan ID"),
+  amount: z.union([z.string(), z.number()]).transform(Number),
+  paidAmount: z.union([z.string(), z.number()]).transform(Number).optional().default(0),
+  method: z.enum(["nakit", "kart", "havale", "eft"]).optional().default("nakit"),
+  status: z.enum(["paid", "pending", "partial", "free"]).optional(),
+  description: z.string().optional(),
+  tedaviId: z.string().uuid().optional(),
+});
+
 export async function odemeRoutes(app: FastifyInstance) {
-  // POST /api/odeme - Odeme kaydi olustur
+  // POST /api/odeme — Odeme kaydi olustur (Zod validasyonlu)
   app.post("/api/odeme", { preHandler: requireRole("egitmen") }, async (request, reply) => {
     const { sub } = getUser(request);
-    const body = request.body as typeof odeme.$inferInsert;
+    const body = createOdemeSchema.parse(request.body);
 
     // Validasyon: paidAmount <= amount
-    const amount = Number(body.amount) || 0;
-    const paidAmount = Number(body.paidAmount) || 0;
+    const amount = body.amount;
+    const paidAmount = body.paidAmount ?? 0;
     if (paidAmount > amount) {
       return reply
         .status(400)
@@ -28,9 +39,14 @@ export async function odemeRoutes(app: FastifyInstance) {
     const [created] = await db
       .insert(odeme)
       .values({
-        ...body,
+        danisanId: body.danisanId,
         egitmenId: sub,
-        status: status as any,
+        tedaviId: body.tedaviId,
+        amount: amount.toFixed(2),
+        paidAmount: paidAmount.toFixed(2),
+        method: body.method,
+        status: status as "paid" | "pending" | "partial" | "free",
+        description: body.description,
         paidAt: status === "paid" ? new Date() : undefined,
       })
       .returning();

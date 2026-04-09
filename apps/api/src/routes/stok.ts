@@ -1,158 +1,158 @@
 import type { FastifyInstance } from "fastify";
-import { eq } from "drizzle-orm";
-import { db } from "../db/index.js";
-import { stok, stokHareket } from "../db/schema/stok.js";
-import { bildirim } from "../db/schema/bildirim.js";
+import { z } from "zod";
 import { requireRole, getUser } from "../middleware/auth.js";
 import { createAuditLog } from "../middleware/audit.js";
+import {
+  createStock,
+  updateStock,
+  deleteStock,
+  recordStockMovement,
+  listAllStock,
+  getCriticalStock,
+  listStockMovements,
+} from "../services/stock.service.js";
+
+// ─── Zod Schemas ──────────────────────────────────────────────────────────────
+
+const createStockSchema = z.object({
+  name: z.string().min(1, "Urun adi zorunlu"),
+  category: z.enum(["kupa", "suluk", "sarf", "bitkisel", "igne", "diger"]),
+  quantity: z.number().min(0, "Miktar negatif olamaz"),
+  unit: z.string().default("adet"),
+  minimumLevel: z.number().min(0).optional(),
+  unitPrice: z.number().min(0).optional(),
+  expiryDate: z.string().optional(),
+});
+
+const stockMovementSchema = z.object({
+  type: z.enum(["giris", "cikis"]),
+  quantity: z.number().min(1, "Miktar en az 1 olmali"),
+  reason: z.string().optional(),
+  tedaviId: z.string().uuid().optional(),
+});
 
 export async function stokRoutes(app: FastifyInstance) {
-  // GET /api/stok - Stok listesi (son kullanma tarihi gecmisleri isaretle)
+  // ─── GET /api/stok — Stok listesi ────────────────────────────────────────
   app.get("/api/stok", { preHandler: requireRole("egitmen", "admin") }, async (_request, reply) => {
-    const items = await db.select().from(stok).where(eq(stok.isActive, true));
-    const now = new Date();
-
-    // Son kullanma tarihi kontrolu
-    const enriched = items.map((item) => ({
-      ...item,
-      isExpired: item.expiryDate ? new Date(item.expiryDate) < now : false,
-      isExpiringSoon: item.expiryDate
-        ? new Date(item.expiryDate) < new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000) &&
-          new Date(item.expiryDate) >= now
-        : false,
-      isCritical: item.quantity <= (item.minimumLevel ?? 5),
-    }));
-
-    return reply.send({ success: true, data: enriched });
+    const items = await listAllStock();
+    return reply.send({ success: true, data: items });
   });
 
-  // POST /api/stok - Yeni stok kalemi ekle
+  // ─── POST /api/stok — Yeni stok kalemi ───────────────────────────────────
   app.post("/api/stok", { preHandler: requireRole("egitmen", "admin") }, async (request, reply) => {
     const { sub } = getUser(request);
-    const body = request.body as typeof stok.$inferInsert;
+    const body = createStockSchema.parse(request.body);
 
-    const [created] = await db.insert(stok).values(body).returning();
-    if (!created) {
-      return reply.status(500).send({ success: false, error: "Stok olusturulamadi" });
-    }
+    const created = await createStock(body);
 
     await createAuditLog({
       userId: sub,
       action: "create",
       tableName: "stok",
       recordId: created.id,
-      description: `Stok eklendi: ${body.name}`,
+      description: `Stok eklendi: ${body.name} (${body.quantity} ${body.unit})`,
       request,
     });
 
     return reply.status(201).send({ success: true, data: created });
   });
 
-  // PUT /api/stok/:id - Stok kalemi guncelle
+  // ─── PUT /api/stok/:id — Stok guncelle ───────────────────────────────────
   app.put(
     "/api/stok/:id",
     { preHandler: requireRole("egitmen", "admin") },
     async (request, reply) => {
       const { sub } = getUser(request);
       const { id } = request.params as { id: string };
-      const body = request.body as Partial<typeof stok.$inferInsert>;
+      const body = createStockSchema.partial().parse(request.body);
 
-      const [existing] = await db.select().from(stok).where(eq(stok.id, id)).limit(1);
-      if (!existing)
-        return reply.status(404).send({ success: false, error: "Stok kalemi bulunamadi" });
+      const updated = await updateStock(id, body);
 
-      const [updated] = await db
-        .update(stok)
-        .set({ ...body, updatedAt: new Date() })
-        .where(eq(stok.id, id))
-        .returning();
       await createAuditLog({
         userId: sub,
         action: "update",
         tableName: "stok",
         recordId: id,
-        description: `Stok guncellendi: ${existing.name}`,
+        description: `Stok guncellendi`,
         request,
       });
+
       return reply.send({ success: true, data: updated });
     },
   );
 
-  // POST /api/stok/:id/hareket - Stok giris/cikis
+  // ─── POST /api/stok/:id/hareket — Stok giris/cikis ──────────────────────
   app.post(
     "/api/stok/:id/hareket",
     { preHandler: requireRole("egitmen", "admin") },
     async (request, reply) => {
       const { sub } = getUser(request);
       const { id } = request.params as { id: string };
-      const { type, quantity, reason, tedaviId } = request.body as {
-        type: "giris" | "cikis";
-        quantity: number;
-        reason?: string;
-        tedaviId?: string;
-      };
+      const body = stockMovementSchema.parse(request.body);
 
-      const [item] = await db.select().from(stok).where(eq(stok.id, id)).limit(1);
-      if (!item) {
-        return reply.status(404).send({ success: false, error: "Stok kalemi bulunamadi" });
-      }
+      const result = await recordStockMovement({
+        stokId: id,
+        userId: sub,
+        type: body.type,
+        quantity: body.quantity,
+        reason: body.reason,
+        tedaviId: body.tedaviId,
+      });
 
-      // Son kullanma tarihi gecmis urunlerden cikis yapilmasini engelle
-      if (type === "cikis" && item.expiryDate && new Date(item.expiryDate) < new Date()) {
-        return reply
-          .status(400)
-          .send({ success: false, error: `Son kullanma tarihi gecmis: ${item.name}` });
-      }
+      await createAuditLog({
+        userId: sub,
+        action: body.type === "giris" ? "create" : "update",
+        tableName: "stok_hareket",
+        recordId: result.hareket?.id ?? id,
+        description: `Stok ${body.type}: ${body.quantity} adet`,
+        request,
+      });
 
-      const newQty = type === "giris" ? item.quantity + quantity : item.quantity - quantity;
-      if (newQty < 0) {
-        return reply.status(400).send({ success: false, error: "Yetersiz stok" });
-      }
-
-      await db.update(stok).set({ quantity: newQty, updatedAt: new Date() }).where(eq(stok.id, id));
-
-      const [hareket] = await db
-        .insert(stokHareket)
-        .values({ stokId: id, userId: sub, type, quantity, reason, tedaviId })
-        .returning();
-
-      // Minimum seviye kontrolu - proaktif bildirim olustur
-      if (newQty <= (item.minimumLevel ?? 5)) {
-        await db.insert(bildirim).values({
-          userId: sub,
-          type: "sistem",
-          title: `Kritik Stok: ${item.name}`,
-          body: `${item.name} stoku kritik seviyede: ${newQty} ${item.unit || "adet"} kaldi.`,
-        });
-      }
-
-      return reply.send({ success: true, data: { stok: { ...item, quantity: newQty }, hareket } });
+      return reply.send({ success: true, data: result });
     },
   );
 
-  // GET /api/stok/kritik - Kritik seviyedeki stoklar
+  // ─── GET /api/stok/kritik — Kritik stoklar ───────────────────────────────
   app.get(
     "/api/stok/kritik",
     { preHandler: requireRole("egitmen", "admin") },
     async (_request, reply) => {
-      const items = await db.select().from(stok).where(eq(stok.isActive, true));
-      const now = new Date();
-      const critical = items.filter(
-        (i) =>
-          i.quantity <= (i.minimumLevel ?? 5) || (i.expiryDate && new Date(i.expiryDate) < now),
-      );
+      const critical = await getCriticalStock();
       return reply.send({ success: true, data: critical });
     },
   );
 
-  // GET /api/stok/:id/hareketler - Stok hareket gecmisi
+  // ─── GET /api/stok/:id/hareketler — Hareket gecmisi ──────────────────────
   app.get(
     "/api/stok/:id/hareketler",
     { preHandler: requireRole("egitmen", "admin") },
     async (request, reply) => {
       const { id } = request.params as { id: string };
-      const hareketler = await db.select().from(stokHareket).where(eq(stokHareket.stokId, id));
+      const hareketler = await listStockMovements(id);
       return reply.send({ success: true, data: hareketler });
+    },
+  );
+
+  // ─── DELETE /api/stok/:id — Stok sil ─────────────────────────────────────
+  app.delete(
+    "/api/stok/:id",
+    { preHandler: requireRole("egitmen", "admin") },
+    async (request, reply) => {
+      const { sub } = getUser(request);
+      const { id } = request.params as { id: string };
+
+      await deleteStock(id);
+
+      await createAuditLog({
+        userId: sub,
+        action: "delete",
+        tableName: "stok",
+        recordId: id,
+        description: "Stok kalemi silindi",
+        request,
+      });
+
+      return reply.send({ success: true, message: "Stok kalemi silindi" });
     },
   );
 }
