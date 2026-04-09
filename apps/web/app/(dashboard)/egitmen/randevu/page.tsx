@@ -2,11 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { StatCard } from "@/components/layout/stat-card";
 import { EmptyState } from "@/components/layout/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,10 +15,10 @@ import {
   Clock,
   Users,
   CheckCircle,
-  Filter,
   Download,
   ChevronRight,
   AlertCircle,
+  Plus,
 } from "lucide-react";
 
 type RandevuItem = {
@@ -93,6 +92,57 @@ function getStatusActions(status: string): StatusAction[] {
   }
 }
 
+const STATUS_CHIPS = [
+  { value: "", label: "Hepsi" },
+  { value: "requested", label: "Bekleyen" },
+  { value: "confirmed,reminded", label: "Gelecek" },
+  { value: "completed,treated", label: "Tamamlanan" },
+  { value: "cancelled,no_show", label: "Iptal" },
+];
+
+function WeekStrip({
+  selectedDate,
+  onSelect,
+}: {
+  selectedDate: Date;
+  onSelect: (d: Date) => void;
+}) {
+  const today = new Date();
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() - today.getDay() + 1);
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(startOfWeek);
+    d.setDate(startOfWeek.getDate() + i);
+    return d;
+  });
+  const gunIsimleri = ["Pzt", "Sal", "Car", "Per", "Cum", "Cmt", "Paz"];
+
+  return (
+    <div className="flex gap-2 overflow-x-auto pb-1">
+      {days.map((d, i) => {
+        const isSelected = d.toDateString() === selectedDate.toDateString();
+        const isToday = d.toDateString() === today.toDateString();
+        return (
+          <button
+            key={i}
+            onClick={() => onSelect(d)}
+            className={`flex-shrink-0 flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl border min-w-[56px] transition-all ${
+              isSelected
+                ? "bg-primary text-primary-foreground border-primary"
+                : isToday
+                  ? "border-primary/50 bg-primary/5"
+                  : "border-border hover:bg-muted/50"
+            }`}
+          >
+            <span className="text-xs">{gunIsimleri[i]}</span>
+            <span className="text-base font-bold">{d.getDate()}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function AppointmentSkeleton() {
   return (
     <div className="space-y-3">
@@ -120,27 +170,16 @@ export default function EgitmenRandevuPage() {
   const { mutate, loading: mutating } = useApiMutation();
   const router = useRouter();
 
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   const allItems = randevuList ?? [];
 
   const items = allItems.filter((r) => {
-    if (dateFrom) {
-      const rDate = new Date(r.scheduledAt);
-      const fromDate = new Date(dateFrom);
-      fromDate.setHours(0, 0, 0, 0);
-      if (rDate < fromDate) return false;
+    if (statusFilter) {
+      const statuses = statusFilter.split(",");
+      if (!statuses.includes(r.status)) return false;
     }
-    if (dateTo) {
-      const rDate = new Date(r.scheduledAt);
-      const toDate = new Date(dateTo);
-      toDate.setHours(23, 59, 59, 999);
-      if (rDate > toDate) return false;
-    }
-    if (statusFilter && r.status !== statusFilter) return false;
     return true;
   });
 
@@ -208,8 +247,6 @@ export default function EgitmenRandevuPage() {
     }
   };
 
-  const activeFilterCount = [dateFrom, dateTo, statusFilter].filter(Boolean).length;
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -261,68 +298,25 @@ export default function EgitmenRandevuPage() {
         />
       </div>
 
-      {/* Filter toggle */}
-      <div className="flex items-center gap-2">
-        <Button
-          variant={showFilters || activeFilterCount > 0 ? "default" : "outline"}
-          size="sm"
-          onClick={() => setShowFilters(!showFilters)}
-        >
-          <Filter className="h-4 w-4 mr-1.5" />
-          Filtrele
-          {activeFilterCount > 0 && (
-            <Badge variant="secondary" className="ml-1.5 h-5 px-1.5">
-              {activeFilterCount}
-            </Badge>
-          )}
-        </Button>
-        {activeFilterCount > 0 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setDateFrom("");
-              setDateTo("");
-              setStatusFilter("");
-            }}
-          >
-            Temizle
-          </Button>
-        )}
-      </div>
+      {/* Week Strip */}
+      <WeekStrip selectedDate={selectedDate} onSelect={setSelectedDate} />
 
-      {/* Filters */}
-      {showFilters && (
-        <Card>
-          <CardContent className="pt-4">
-            <div className="flex flex-col sm:flex-row gap-4 items-end">
-              <div className="space-y-1 flex-1">
-                <Label className="text-xs">Baslangic Tarihi</Label>
-                <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
-              </div>
-              <div className="space-y-1 flex-1">
-                <Label className="text-xs">Bitis Tarihi</Label>
-                <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
-              </div>
-              <div className="space-y-1 flex-1">
-                <Label className="text-xs">Durum</Label>
-                <select
-                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                >
-                  <option value="">Tum Durumlar</option>
-                  {Object.entries(STATUS_CONFIG).map(([val, cfg]) => (
-                    <option key={val} value={val}>
-                      {cfg.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Status Chips */}
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {STATUS_CHIPS.map((chip) => (
+          <button
+            key={chip.value}
+            onClick={() => setStatusFilter(chip.value)}
+            className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${
+              statusFilter === chip.value
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-card text-muted-foreground border-border hover:bg-muted/50"
+            }`}
+          >
+            {chip.label}
+          </button>
+        ))}
+      </div>
 
       {/* Appointment list */}
       <Card>
@@ -345,7 +339,7 @@ export default function EgitmenRandevuPage() {
               icon={Calendar}
               title="Randevu bulunamadi"
               description={
-                activeFilterCount > 0
+                statusFilter
                   ? "Filtreye uyan randevu yok. Filtreleri temizleyin."
                   : "Danisanlar randevu talebi olusturduğunda burada gorunecektir."
               }
@@ -408,7 +402,7 @@ export default function EgitmenRandevuPage() {
                             variant={action.variant}
                             onClick={() => handleAction(r, action)}
                             disabled={mutating}
-                            className="h-8 text-xs"
+                            className={`h-8 text-xs ${action.navigateToTedavi ? "animate-pulse" : ""}`}
                           >
                             {action.label}
                             {action.navigateToTedavi && <ChevronRight className="h-3 w-3 ml-1" />}
@@ -423,6 +417,14 @@ export default function EgitmenRandevuPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Floating Action Button */}
+      <Link
+        href="/egitmen/randevu"
+        className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:bg-primary/90 transition-all z-50 lg:hidden"
+      >
+        <Plus className="h-6 w-6" />
+      </Link>
     </div>
   );
 }
