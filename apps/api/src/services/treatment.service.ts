@@ -3,7 +3,7 @@
  * Tedavi business logic: kontrendikasyon, stok, odeme, bildirim
  */
 
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, inArray } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { tedavi } from "../db/schema/tedavi.js";
 import { stok, stokHareket } from "../db/schema/stok.js";
@@ -297,7 +297,7 @@ export async function getTreatmentsByDanisan(
       .select({ id: users.id, firstName: users.firstName, lastName: users.lastName })
       .from(users)
       .where(
-        egitmenIds.length === 1 ? eq(users.id, egitmenIds[0]!) : eq(users.id, egitmenIds[0]!), // Simplification — real implementation uses inArray
+        egitmenIds.length === 1 ? eq(users.id, egitmenIds[0]!) : inArray(users.id, egitmenIds),
       );
 
     for (const e of egitmenRecords) {

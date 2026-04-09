@@ -1,9 +1,11 @@
 import type { FastifyInstance } from "fastify";
 import { eq, desc, and } from "drizzle-orm";
+import { z } from "zod";
 import { db } from "../db/index.js";
 import { tedavi } from "../db/schema/tedavi.js";
 import { tahlil } from "../db/schema/tahlil.js";
 import { stok, stokHareket } from "../db/schema/stok.js";
+import { bildirim } from "../db/schema/bildirim.js";
 import { users } from "../db/schema/users.js";
 import { randevu } from "../db/schema/randevu.js";
 import { odeme } from "../db/schema/odeme.js";
@@ -11,26 +13,41 @@ import { requireAuth, requireRole, getUser } from "../middleware/auth.js";
 import { createAuditLog } from "../middleware/audit.js";
 import { createTreatment } from "../services/treatment.service.js";
 
+const createTreatmentSchema = z.object({
+  danisanId: z.string().uuid("Gecersiz danisan ID"),
+  treatmentType: z.string().min(1, "Tedavi tipi zorunlu"),
+  treatmentDate: z.string().optional(),
+  sessionNumber: z.number().min(1).optional(),
+  complaints: z.array(z.string()).optional(),
+  findings: z.string().optional(),
+  vitalSigns: z
+    .object({
+      bloodPressure: z.string().optional(),
+      pulse: z.number().optional(),
+      temperature: z.number().optional(),
+    })
+    .optional(),
+  appliedTreatment: z.string().optional(),
+  recommendations: z.string().optional(),
+  nextSessionDate: z.string().optional(),
+  bodyArea: z.string().optional(),
+  randevuId: z.string().uuid().optional(),
+  protokolId: z.string().uuid().optional(),
+  usedItems: z
+    .array(
+      z.object({
+        stokId: z.string().uuid(),
+        quantity: z.number().min(1, "Miktar en az 1 olmali"),
+      }),
+    )
+    .optional(),
+});
+
 export async function tedaviRoutes(app: FastifyInstance) {
-  // POST /api/tedavi — Yeni tedavi kaydi (treatment.service.ts ile)
+  // POST /api/tedavi — Yeni tedavi kaydi (Zod validasyonlu)
   app.post("/api/tedavi", { preHandler: requireRole("egitmen") }, async (request, reply) => {
     const { sub } = getUser(request);
-    const body = request.body as {
-      danisanId: string;
-      treatmentType: string;
-      treatmentDate?: string;
-      sessionNumber?: number;
-      complaints?: string[];
-      findings?: string;
-      vitalSigns?: { bloodPressure?: string; pulse?: number };
-      appliedTreatment?: string;
-      recommendations?: string;
-      nextSessionDate?: string;
-      bodyArea?: string;
-      randevuId?: string;
-      protokolId?: string;
-      usedItems?: Array<{ stokId: string; quantity: number }>;
-    };
+    const body = createTreatmentSchema.parse(request.body);
 
     const result = await createTreatment({
       egitmenId: sub,

@@ -20,7 +20,6 @@ export interface CreatePaymentInput {
   method?: "nakit" | "kart" | "havale" | "eft";
   status?: "paid" | "pending" | "partial" | "free";
   description?: string;
-  dueDate?: Date;
 }
 
 export interface UpdatePaymentInput {
@@ -31,7 +30,6 @@ export interface UpdatePaymentInput {
   method?: string;
   status?: string;
   description?: string;
-  dueDate?: Date;
 }
 
 // ─── Gunluk Kasa ─────────────────────────────────────────────────────────────
@@ -101,17 +99,7 @@ export async function getDailyKasa(egitmenId: string, date?: Date) {
 // ─── Odeme CRUD ───────────────────────────────────────────────────────────────
 
 export async function createPayment(input: CreatePaymentInput) {
-  const {
-    danisanId,
-    egitmenId,
-    amount,
-    paidAmount,
-    method,
-    status,
-    description,
-    tedaviId,
-    dueDate,
-  } = input;
+  const { danisanId, egitmenId, amount, paidAmount, method, status, description, tedaviId } = input;
 
   if (amount < 0) throw new ValidationError("Tutar negatif olamaz");
 
@@ -126,7 +114,6 @@ export async function createPayment(input: CreatePaymentInput) {
       method: method ?? "nakit",
       status: status ?? "pending",
       description,
-      dueDate,
     })
     .returning();
 
