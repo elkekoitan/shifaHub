@@ -4,8 +4,23 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { StatCard } from "@/components/layout/stat-card";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useApi, useApiMutation } from "@/hooks/use-api";
 import Link from "next/link";
+import {
+  Activity,
+  Calendar,
+  FlaskConical,
+  User,
+  ClipboardList,
+  Image,
+  MessageSquare,
+  FileText,
+  ArrowLeft,
+} from "lucide-react";
 
 interface FullDanisan {
   user: { id: string; email: string; firstName: string; lastName: string; phone: string };
@@ -55,16 +70,17 @@ interface FullDanisan {
   }>;
 }
 
-const TABS = [
-  "Genel",
-  "Anamnez",
-  "Tedaviler",
-  "Tahliller",
-  "Randevular",
-  "Protokol",
-  "Medya",
-  "Tavsiyeler",
+const TAB_CONFIG = [
+  { label: "Genel", icon: User },
+  { label: "Anamnez", icon: ClipboardList },
+  { label: "Tedaviler", icon: Activity },
+  { label: "Tahliller", icon: FlaskConical },
+  { label: "Randevular", icon: Calendar },
+  { label: "Protokol", icon: FileText },
+  { label: "Medya", icon: Image },
+  { label: "Tavsiyeler", icon: MessageSquare },
 ];
+
 interface ProtokolComplaint {
   description: string;
   priority: string;
@@ -89,12 +105,7 @@ const PRIORITY_LABELS: Record<string, string> = {
   "3": "Normal",
   "4": "Takip",
 };
-const PRIORITY_COLORS: Record<string, string> = {
-  "1": "bg-red-100 text-red-800",
-  "2": "bg-orange-100 text-orange-800",
-  "3": "bg-blue-100 text-blue-800",
-  "4": "bg-gray-100 text-gray-800",
-};
+
 const TREATMENT_LABELS: Record<string, string> = {
   hacamat_kuru: "Hacamat (Kuru)",
   hacamat_yas: "Hacamat (Yas)",
@@ -104,17 +115,12 @@ const TREATMENT_LABELS: Record<string, string> = {
   akupunktur: "Akupunktur",
   fitoterapi: "Fitoterapi",
 };
+
 const PROTOKOL_STATUS_LABELS: Record<string, string> = {
   active: "Aktif",
   completed: "Tamamlandi",
   cancelled: "Iptal",
   draft: "Taslak",
-};
-const PROTOKOL_STATUS_COLORS: Record<string, string> = {
-  active: "bg-green-100 text-green-800",
-  completed: "bg-blue-100 text-blue-800",
-  cancelled: "bg-red-100 text-red-800",
-  draft: "bg-gray-100 text-gray-800",
 };
 
 const statusLabel: Record<string, string> = {
@@ -128,17 +134,27 @@ const statusLabel: Record<string, string> = {
   no_show: "Gelmedi",
   ertelendi: "Ertelendi",
 };
-const statusColor: Record<string, string> = {
-  requested: "bg-amber-100 text-amber-800",
-  confirmed: "bg-green-100 text-green-800",
-  reminded: "bg-sky-100 text-sky-800",
-  arrived: "bg-indigo-100 text-indigo-800",
-  treated: "bg-purple-100 text-purple-800",
-  completed: "bg-blue-100 text-blue-800",
-  cancelled: "bg-red-100 text-red-800",
-  no_show: "bg-gray-100 text-gray-800",
-  ertelendi: "bg-orange-100 text-orange-800",
-};
+
+function getPriorityBadgeVariant(priority: string): "destructive" | "outline" {
+  return priority === "1" || priority === "2" ? "destructive" : "outline";
+}
+
+function getProtokolStatusBadgeVariant(
+  status: string,
+): "default" | "outline" | "destructive" | "secondary" {
+  if (status === "active") return "default";
+  if (status === "cancelled") return "destructive";
+  return "outline";
+}
+
+function getAppointmentStatusBadgeVariant(
+  status: string,
+): "default" | "outline" | "destructive" | "secondary" {
+  if (status === "cancelled" || status === "no_show") return "destructive";
+  if (status === "completed" || status === "treated") return "default";
+  if (status === "confirmed" || status === "arrived" || status === "reminded") return "secondary";
+  return "outline";
+}
 
 export default function DanisanDetayPage() {
   const params = useParams();
@@ -160,8 +176,9 @@ export default function DanisanDetayPage() {
 
   if (loading)
     return (
-      <div className="flex items-center justify-center py-20 text-muted-foreground">
-        Yukleniyor...
+      <div className="space-y-4 p-4">
+        <Skeleton className="h-24 w-full rounded-xl" />
+        <Skeleton className="h-40 w-full rounded-xl" />
       </div>
     );
   if (error || !data)
@@ -172,41 +189,53 @@ export default function DanisanDetayPage() {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold">
-            {user.firstName} {user.lastName}
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {user.email} | {user.phone || "-"}
-          </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex items-center gap-4">
+          <Avatar className="h-12 w-12">
+            <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+              {user.firstName[0]}
+              {user.lastName[0]}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold font-headline">
+              {user.firstName} {user.lastName}
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              {user.email} · {user.phone || "-"}
+            </p>
+          </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button asChild size="sm">
             <Link href="/egitmen/tedavi">Tedavi Kaydi</Link>
           </Button>
           <Button asChild size="sm" variant="secondary">
             <Link href={`/egitmen/danisan/${userId}/rapor`}>Rapor</Link>
           </Button>
-          <Button asChild size="sm" variant="outline">
-            <Link href="/egitmen/danisan">Geri</Link>
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/egitmen/danisan">
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Geri
+            </Link>
           </Button>
         </div>
       </div>
 
       {/* Tab bar */}
       <div className="flex gap-1 overflow-x-auto border-b pb-1">
-        {TABS.map((t, i) => (
+        {TAB_CONFIG.map(({ label, icon: Icon }, i) => (
           <button
-            key={t}
+            key={label}
             onClick={() => setTab(i)}
-            className={`px-3 py-2 text-sm font-medium rounded-t-lg whitespace-nowrap transition-colors ${
+            className={`flex items-center px-3 py-2 text-sm font-medium rounded-t-lg whitespace-nowrap transition-colors ${
               tab === i
                 ? "bg-primary text-primary-foreground"
                 : "text-muted-foreground hover:bg-muted"
             }`}
           >
-            {t}
+            <Icon className="h-3.5 w-3.5 mr-1" />
+            {label}
           </button>
         ))}
       </div>
@@ -246,11 +275,15 @@ export default function DanisanDetayPage() {
             <CardContent className="pt-4">
               <p className="text-xs text-muted-foreground mb-1">Ana Sikayetler</p>
               <div className="flex flex-wrap gap-1">
-                {profil?.mainComplaints?.map((c, i) => (
-                  <span key={i} className="px-2 py-0.5 text-xs bg-amber-50 text-amber-700 rounded">
-                    {c}
-                  </span>
-                )) || <span className="text-sm text-muted-foreground">-</span>}
+                {profil?.mainComplaints && profil.mainComplaints.length > 0 ? (
+                  profil.mainComplaints.map((c, i) => (
+                    <Badge key={i} variant="secondary">
+                      {c}
+                    </Badge>
+                  ))
+                ) : (
+                  <span className="text-sm text-muted-foreground">-</span>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -258,36 +291,35 @@ export default function DanisanDetayPage() {
             <CardContent className="pt-4">
               <p className="text-xs text-muted-foreground mb-1">Kronik Hastaliklar</p>
               <div className="flex flex-wrap gap-1">
-                {profil?.chronicDiseases?.map((c, i) => (
-                  <span key={i} className="px-2 py-0.5 text-xs bg-red-50 text-red-700 rounded">
-                    {c}
-                  </span>
-                )) || <span className="text-sm text-muted-foreground">-</span>}
+                {profil?.chronicDiseases && profil.chronicDiseases.length > 0 ? (
+                  profil.chronicDiseases.map((c, i) => (
+                    <Badge key={i} variant="destructive">
+                      {c}
+                    </Badge>
+                  ))
+                ) : (
+                  <span className="text-sm text-muted-foreground">-</span>
+                )}
               </div>
             </CardContent>
           </Card>
+          <StatCard title="Toplam Tedavi" value={tedaviler.length} icon={Activity} />
+          <StatCard title="Toplam Randevu" value={randevular.length} icon={Calendar} />
+          <StatCard title="Toplam Tahlil" value={tahliller.length} icon={FlaskConical} />
           <Card>
             <CardContent className="pt-4">
-              <p className="text-xs text-muted-foreground">Toplam Tedavi</p>
-              <p className="text-2xl font-bold">{tedaviler.length}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs text-muted-foreground">Toplam Randevu</p>
-              <p className="text-2xl font-bold">{randevular.length}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs text-muted-foreground">Toplam Tahlil</p>
-              <p className="text-2xl font-bold">{tahliller.length}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs text-muted-foreground">Alerjiler</p>
-              <p className="text-sm">{profil?.allergies?.join(", ") || "Yok"}</p>
+              <p className="text-xs text-muted-foreground mb-1">Alerjiler</p>
+              <div className="flex flex-wrap gap-1">
+                {profil?.allergies && profil.allergies.length > 0 ? (
+                  profil.allergies.map((a, i) => (
+                    <Badge key={i} variant="destructive">
+                      {a}
+                    </Badge>
+                  ))
+                ) : (
+                  <span className="text-sm">Yok</span>
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -330,7 +362,17 @@ export default function DanisanDetayPage() {
             </div>
             <div>
               <p className="text-xs text-muted-foreground mb-1">Kullanilan Ilaclar</p>
-              <p className="text-sm">{profil?.currentMedications?.join(", ") || "Yok"}</p>
+              <div className="flex flex-wrap gap-1">
+                {profil?.currentMedications && profil.currentMedications.length > 0 ? (
+                  profil.currentMedications.map((m, i) => (
+                    <Badge key={i} variant="outline">
+                      {m}
+                    </Badge>
+                  ))
+                ) : (
+                  <span className="text-sm">Yok</span>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -629,11 +671,9 @@ export default function DanisanDetayPage() {
                         - {r.treatmentType || "Belirtilmemis"} ({r.duration}dk)
                       </p>
                     </div>
-                    <span
-                      className={`px-2 py-0.5 text-xs rounded-full ${statusColor[r.status] || "bg-gray-100"}`}
-                    >
+                    <Badge variant={getAppointmentStatusBadgeVariant(r.status)}>
                       {statusLabel[r.status] || r.status}
-                    </span>
+                    </Badge>
                   </div>
                   {/* Randevu durum butonlari */}
                   {r.status === "requested" && (
@@ -778,7 +818,10 @@ export default function DanisanDetayPage() {
       {tab === 5 && (
         <div className="space-y-3">
           {protokolLoading ? (
-            <p className="text-sm text-muted-foreground text-center py-8">Yukleniyor...</p>
+            <div className="space-y-4">
+              <Skeleton className="h-24 w-full rounded-xl" />
+              <Skeleton className="h-40 w-full rounded-xl" />
+            </div>
           ) : !protokoller || protokoller.length === 0 ? (
             <Card>
               <CardContent className="py-8 text-center text-muted-foreground">
@@ -791,11 +834,9 @@ export default function DanisanDetayPage() {
                 <CardContent className="pt-4 space-y-3">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <h3 className="font-semibold text-base">{p.title}</h3>
-                    <span
-                      className={`px-2 py-0.5 text-xs rounded-full ${PROTOKOL_STATUS_COLORS[p.status] || "bg-gray-100"}`}
-                    >
+                    <Badge variant={getProtokolStatusBadgeVariant(p.status)}>
                       {PROTOKOL_STATUS_LABELS[p.status] || p.status}
-                    </span>
+                    </Badge>
                   </div>
 
                   <div className="space-y-2">
@@ -804,11 +845,9 @@ export default function DanisanDetayPage() {
                         key={i}
                         className="flex flex-col sm:flex-row sm:items-center gap-2 p-2 bg-muted/50 rounded-md"
                       >
-                        <span
-                          className={`px-2 py-0.5 text-xs rounded-full shrink-0 ${PRIORITY_COLORS[c.priority] || "bg-gray-100"}`}
-                        >
+                        <Badge variant={getPriorityBadgeVariant(c.priority)} className="shrink-0">
                           {PRIORITY_LABELS[c.priority] || `Oncelik ${c.priority}`}
-                        </span>
+                        </Badge>
                         <span className="text-sm flex-1">{c.description}</span>
                         <span className="text-xs text-muted-foreground shrink-0">
                           {TREATMENT_LABELS[c.treatmentMethod] || c.treatmentMethod}
@@ -895,11 +934,9 @@ export default function DanisanDetayPage() {
                         className="w-full rounded-md border object-cover max-h-56"
                       />
                       <div className="flex items-center justify-between text-xs">
-                        <span
-                          className={`px-2 py-0.5 rounded-full ${img.type === "oncesi" ? "bg-amber-100 text-amber-800" : "bg-green-100 text-green-800"}`}
-                        >
+                        <Badge variant={img.type === "oncesi" ? "secondary" : "default"}>
                           {img.type === "oncesi" ? "Oncesi" : "Sonrasi"}
-                        </span>
+                        </Badge>
                         <span className="text-muted-foreground">
                           Seans {img.sessionNumber} -{" "}
                           {new Date(img.treatmentDate).toLocaleDateString("tr-TR")}
