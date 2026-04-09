@@ -42,15 +42,11 @@ export async function emailVerifyRoutes(app: FastifyInstance) {
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 saat
       });
 
-      // TODO: Resend API ile email gonder
-      // await resend.emails.send({
-      //   from: "ShifaHub <noreply@shifahub.app>",
-      //   to: user.email,
-      //   subject: "Email Adresinizi Dogrulayin - ShifaHub",
-      //   html: `<p>Dogrulama kodunuz: <strong>${otp}</strong></p>`
-      // });
+      // Email gonder (Resend API veya simule)
+      const { sendVerificationEmail } = await import("../services/email.js");
+      await sendVerificationEmail(user.email, otp);
 
-      app.log.info({ email: user.email, otp }, "Email verification OTP generated");
+      app.log.info({ email: user.email }, "Email verification OTP sent");
 
       await createAuditLog({
         userId: sub,
@@ -117,8 +113,10 @@ export async function emailVerifyRoutes(app: FastifyInstance) {
         expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1 saat
       });
 
-      // TODO: Resend API ile sifre sifirlama emaili gonder
-      app.log.info({ email, token }, "Password reset token generated");
+      // Sifre sifirlama emaili gonder
+      const { sendPasswordResetEmail } = await import("../services/email.js");
+      await sendPasswordResetEmail(email, token);
+      app.log.info({ email }, "Password reset email sent");
 
       await createAuditLog({
         userId: user.id,

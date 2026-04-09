@@ -15,9 +15,15 @@ interface Bildirim {
 }
 
 const typeIcon: Record<string, string> = {
-  randevu_hatirlatma: "📅", randevu_onay: "✅", randevu_iptal: "❌",
-  tedavi_ozeti: "💊", tahlil_sonucu: "🔬", mesaj: "💬",
-  egitmen_onay: "👨‍⚕️", sistem: "⚙️", kvkk: "🔒",
+  randevu_hatirlatma: "📅",
+  randevu_onay: "✅",
+  randevu_iptal: "❌",
+  tedavi_ozeti: "💊",
+  tahlil_sonucu: "🔬",
+  mesaj: "💬",
+  egitmen_onay: "👨‍⚕️",
+  sistem: "⚙️",
+  kvkk: "🔒",
 };
 
 export default function BildirimPage() {
@@ -36,14 +42,33 @@ export default function BildirimPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl sm:text-2xl font-bold">
-          Bildirimler {okunmamis.length > 0 && <span className="text-sm text-amber-600">({okunmamis.length} yeni)</span>}
+          Bildirimler{" "}
+          {okunmamis.length > 0 && (
+            <span className="text-sm text-amber-600">({okunmamis.length} yeni)</span>
+          )}
         </h1>
+        {okunmamis.length > 0 && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={async () => {
+              await mutate("/api/bildirim/read-all", {}, "PATCH");
+              refetch();
+            }}
+          >
+            Tumunu Okundu Isaretle
+          </Button>
+        )}
       </div>
 
       {loading ? (
         <p className="text-center text-muted-foreground py-8">Yukleniyor...</p>
       ) : items.length === 0 ? (
-        <Card><CardContent className="py-12 text-center text-muted-foreground">Bildiriminiz bulunmuyor.</CardContent></Card>
+        <Card>
+          <CardContent className="py-12 text-center text-muted-foreground">
+            Bildiriminiz bulunmuyor.
+          </CardContent>
+        </Card>
       ) : (
         <div className="space-y-2">
           {items.map((b) => (
@@ -54,16 +79,30 @@ export default function BildirimPage() {
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <p className={`text-sm ${b.isRead ? "" : "font-medium"}`}>{b.title}</p>
-                      {b.body && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{b.body}</p>}
+                      {b.body && (
+                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+                          {b.body}
+                        </p>
+                      )}
                     </div>
                     {!b.isRead && (
-                      <Button size="sm" variant="ghost" className="h-6 text-xs shrink-0" onClick={() => markRead(b.id)}>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 text-xs shrink-0"
+                        onClick={() => markRead(b.id)}
+                      >
                         Okundu
                       </Button>
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {new Date(b.createdAt).toLocaleDateString("tr-TR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                    {new Date(b.createdAt).toLocaleDateString("tr-TR", {
+                      day: "numeric",
+                      month: "short",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </p>
                 </div>
               </CardContent>

@@ -57,7 +57,7 @@ export async function mesajRoutes(app: FastifyInstance) {
       .from(bildirim)
       .where(eq(bildirim.userId, sub))
       .orderBy(desc(bildirim.createdAt))
-      .limit(20);
+      .limit(50);
 
     return reply.send({ success: true, data: notifications });
   });
@@ -66,11 +66,20 @@ export async function mesajRoutes(app: FastifyInstance) {
   app.patch("/api/bildirim/:id/read", { preHandler: requireAuth() }, async (request, reply) => {
     const { id } = request.params as { id: string };
 
+    await db.update(bildirim).set({ isRead: true, readAt: new Date() }).where(eq(bildirim.id, id));
+
+    return reply.send({ success: true });
+  });
+
+  // PATCH /api/bildirim/read-all - Tum bildirimleri okundu isaretle
+  app.patch("/api/bildirim/read-all", { preHandler: requireAuth() }, async (request, reply) => {
+    const { sub } = getUser(request);
+
     await db
       .update(bildirim)
       .set({ isRead: true, readAt: new Date() })
-      .where(eq(bildirim.id, id));
+      .where(and(eq(bildirim.userId, sub), eq(bildirim.isRead, false)));
 
-    return reply.send({ success: true });
+    return reply.send({ success: true, message: "Tum bildirimler okundu" });
   });
 }

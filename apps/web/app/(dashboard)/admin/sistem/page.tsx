@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useApi } from "@/hooks/use-api";
 
@@ -29,7 +29,7 @@ export default function AdminSistemPage() {
   const [backendStatus, setBackendStatus] = useState<"checking" | "online" | "offline">("checking");
 
   // Backend health check
-  useState(() => {
+  useEffect(() => {
     const apiBase =
       typeof window !== "undefined" && window.location.protocol === "https:"
         ? "/api/proxy"
@@ -37,7 +37,7 @@ export default function AdminSistemPage() {
     fetch(`${apiBase}/health`)
       .then((r) => (r.ok ? setBackendStatus("online") : setBackendStatus("offline")))
       .catch(() => setBackendStatus("offline"));
-  });
+  }, []);
 
   const services = [
     {

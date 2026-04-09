@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,14 +35,14 @@ export default function EgitmenMusaitlikPage() {
   const [selectedDays, setSelectedDays] = useState<number[]>([1, 2, 3, 4, 5]);
 
   // Profil yuklendikten sonra state'leri doldur
-  useState(() => {
+  useEffect(() => {
     if (profil) {
       setSessionDuration(profil.defaultSessionDuration || "60");
       setStartTime(profil.workingHoursStart || "09:00");
       setEndTime(profil.workingHoursEnd || "18:00");
       setSelectedDays(profil.workingDays || [1, 2, 3, 4, 5]);
     }
-  });
+  }, [profil]);
 
   function toggleDay(day: number) {
     setSelectedDays((prev) =>
@@ -52,22 +52,33 @@ export default function EgitmenMusaitlikPage() {
 
   async function handleSave() {
     setSuccess(false);
-    const result = await mutate("/api/egitmen/me", {
-      defaultSessionDuration: sessionDuration,
-      workingHoursStart: startTime,
-      workingHoursEnd: endTime,
-      workingDays: selectedDays,
-    }, "PUT");
+    const result = await mutate(
+      "/api/egitmen/me",
+      {
+        defaultSessionDuration: sessionDuration,
+        workingHoursStart: startTime,
+        workingHoursEnd: endTime,
+        workingDays: selectedDays,
+      },
+      "PUT",
+    );
     if (result) setSuccess(true);
   }
 
-  if (loading) return <div className="flex items-center justify-center py-20 text-muted-foreground">Yukleniyor...</div>;
+  if (loading)
+    return (
+      <div className="flex items-center justify-center py-20 text-muted-foreground">
+        Yukleniyor...
+      </div>
+    );
 
   return (
     <div className="space-y-6">
       <h1 className="text-xl sm:text-2xl font-bold">Musaitlik Ayarlari</h1>
 
-      {success && <div className="p-3 text-sm text-green-700 bg-green-50 rounded-lg">Ayarlar kaydedildi!</div>}
+      {success && (
+        <div className="p-3 text-sm text-green-700 bg-green-50 rounded-lg">Ayarlar kaydedildi!</div>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
@@ -76,7 +87,10 @@ export default function EgitmenMusaitlikPage() {
           </CardHeader>
           <CardContent className="space-y-2">
             {DAYS.map((day) => (
-              <label key={day.value} className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent cursor-pointer">
+              <label
+                key={day.value}
+                className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent cursor-pointer"
+              >
                 <input
                   type="checkbox"
                   checked={selectedDays.includes(day.value)}
@@ -97,7 +111,11 @@ export default function EgitmenMusaitlikPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Baslangic</Label>
-                <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+                <Input
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Bitis</Label>
@@ -125,10 +143,13 @@ export default function EgitmenMusaitlikPage() {
                 {selectedDays.length} gun, {startTime} - {endTime}, {sessionDuration} dk seans
               </p>
               <p className="text-xs text-muted-foreground">
-                Gunluk max seans: {Math.floor(
-                  ((parseInt(endTime.split(":")[0]!) * 60 + parseInt(endTime.split(":")[1]!)) -
-                   (parseInt(startTime.split(":")[0]!) * 60 + parseInt(startTime.split(":")[1]!))) /
-                  parseInt(sessionDuration)
+                Gunluk max seans:{" "}
+                {Math.floor(
+                  (parseInt(endTime.split(":")[0]!) * 60 +
+                    parseInt(endTime.split(":")[1]!) -
+                    (parseInt(startTime.split(":")[0]!) * 60 +
+                      parseInt(startTime.split(":")[1]!))) /
+                    parseInt(sessionDuration),
                 )}
               </p>
             </div>
