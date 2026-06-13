@@ -1,0 +1,261 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * ╔══════════════════════════════════════════════════════════════════════════╗
+ * ║  Shifa Ether — ShifaHub Tasarım Dili (v2)                                  ║
+ * ║  Konumlandırma: "Sakin güven." Doğal şifa (Forest Emerald) + klinik       ║
+ * ║  temizlik (Sage) + geleneğin ağırbaşlılığı (Noto Serif). KVKK/sağlık       ║
+ * ║  bağlamı için sıcak ama steril; Linear/Stripe cilası, hastane güveni.      ║
+ * ╚══════════════════════════════════════════════════════════════════════════╝
+ */
+
+@theme {
+  /* ── Primary ramp — Forest Emerald (#306a4f ≈ 600) ────────────────────── */
+  --color-primary-50: hsl(150 44% 96%);
+  --color-primary-100: hsl(150 40% 90%);
+  --color-primary-200: hsl(151 36% 80%);
+  --color-primary-300: hsl(152 34% 66%);
+  --color-primary-400: hsl(152 36% 48%);
+  --color-primary-500: hsl(152 38% 38%);
+  --color-primary-600: hsl(152 40% 30%);
+  --color-primary-700: hsl(153 42% 24%);
+  --color-primary-800: hsl(153 40% 18%);
+  --color-primary-900: hsl(153 38% 13%);
+  --color-primary-950: hsl(154 42% 8%);
+
+  /* ── Accent — Bal / Honey (PREMIUM-ONLY: sünnet günü, öne çıkan CTA) ───── */
+  --color-accent-honey: hsl(40 68% 52%);
+  --color-accent-honey-foreground: hsl(40 80% 12%);
+
+  /* ── Light theme — semantic surface tokens ───────────────────────────── */
+  --color-background: hsl(120 22% 98%);
+  --color-foreground: hsl(150 12% 16%);
+  --color-card: hsl(0 0% 100%);
+  --color-card-foreground: hsl(150 12% 16%);
+  --color-popover: hsl(0 0% 100%);
+  --color-popover-foreground: hsl(150 12% 16%);
+
+  --color-primary: hsl(152 40% 30%);
+  --color-primary-foreground: hsl(150 60% 97%);
+  --color-secondary: hsl(146 22% 94%);
+  --color-secondary-foreground: hsl(153 30% 22%);
+  --color-muted: hsl(140 16% 95%);
+  --color-muted-foreground: hsl(150 7% 42%);
+  --color-accent: hsl(150 30% 92%);
+  --color-accent-foreground: hsl(153 38% 20%);
+
+  --color-border: hsl(145 14% 88%);
+  --color-input: hsl(145 14% 85%);
+  --color-ring: hsl(152 40% 34%);
+
+  /* Üç metin seviyesi (text-1/2/3) — saf siyah YOK */
+  --color-text-1: hsl(150 12% 16%);
+  --color-text-2: hsl(150 7% 38%);
+  --color-text-3: hsl(150 6% 52%);
+
+  /* ── Semantic durum renkleri (-bg / -fg / -border) ───────────────────── */
+  --color-success: hsl(150 46% 36%);
+  --color-success-foreground: hsl(150 60% 97%);
+  --color-success-bg: hsl(150 44% 95%);
+  --color-success-border: hsl(150 36% 80%);
+
+  --color-warning: hsl(38 90% 44%);
+  --color-warning-foreground: hsl(38 90% 10%);
+  --color-warning-bg: hsl(42 90% 94%);
+  --color-warning-border: hsl(40 84% 78%);
+
+  --color-destructive: hsl(2 64% 48%);
+  --color-destructive-foreground: hsl(0 70% 98%);
+  --color-destructive-bg: hsl(4 78% 96%);
+  --color-destructive-border: hsl(4 70% 86%);
+
+  --color-info: hsl(190 52% 36%);
+  --color-info-foreground: hsl(190 60% 97%);
+  --color-info-bg: hsl(190 50% 95%);
+  --color-info-border: hsl(190 44% 80%);
+
+  /* ── Chart (marka tonlu) ─────────────────────────────────────────────── */
+  --color-chart-1: hsl(152 40% 34%);
+  --color-chart-2: hsl(190 52% 40%);
+  --color-chart-3: hsl(40 68% 52%);
+  --color-chart-4: hsl(152 30% 64%);
+  --color-chart-5: hsl(2 60% 56%);
+
+  /* ── Sidebar ─────────────────────────────────────────────────────────── */
+  --color-sidebar: hsl(146 24% 97%);
+  --color-sidebar-foreground: hsl(150 10% 24%);
+  --color-sidebar-primary: hsl(152 40% 30%);
+  --color-sidebar-primary-foreground: hsl(150 60% 97%);
+  --color-sidebar-accent: hsl(148 28% 92%);
+  --color-sidebar-accent-foreground: hsl(153 38% 20%);
+  --color-sidebar-border: hsl(145 16% 89%);
+  --color-sidebar-ring: hsl(152 40% 34%);
+
+  /* ── Radius dili (8 / 12 / 16 / 24 / full) ───────────────────────────── */
+  --radius-sm: 0.5rem;
+  --radius: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+
+  /* ── Tipografi aileleri ──────────────────────────────────────────────── */
+  --font-sans: var(--font-manrope), "Manrope", system-ui, sans-serif;
+  --font-serif: var(--font-noto-serif), "Noto Serif", Georgia, serif;
+}
+
+/* ── Marka-tonlu gölgeler (2 katman, asla #000) + motion + ring ─────────── */
+:root {
+  --shadow-color: 152 40% 12%;
+  --shadow-sm: 0 1px 2px hsl(var(--shadow-color) / 0.06), 0 1px 1px hsl(var(--shadow-color) / 0.04);
+  --shadow: 0 2px 4px hsl(var(--shadow-color) / 0.05), 0 6px 16px hsl(var(--shadow-color) / 0.08);
+  --shadow-md:
+    0 4px 8px hsl(var(--shadow-color) / 0.07), 0 12px 28px hsl(var(--shadow-color) / 0.1);
+  --shadow-lg:
+    0 8px 16px hsl(var(--shadow-color) / 0.09), 0 24px 48px hsl(var(--shadow-color) / 0.12);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-press: 120ms;
+  --dur-base: 250ms;
+}
+
+/* ── Dark theme — Shifa Ether Dark (deep forest) ────────────────────────── */
+.dark {
+  --color-background: hsl(154 24% 7%);
+  --color-foreground: hsl(150 18% 92%);
+  --color-card: hsl(153 20% 10%);
+  --color-card-foreground: hsl(150 18% 92%);
+  --color-popover: hsl(153 22% 9%);
+  --color-popover-foreground: hsl(150 18% 92%);
+
+  --color-primary: hsl(150 52% 56%);
+  --color-primary-foreground: hsl(154 40% 8%);
+  --color-secondary: hsl(153 16% 16%);
+  --color-secondary-foreground: hsl(150 18% 90%);
+  --color-muted: hsl(153 14% 15%);
+  --color-muted-foreground: hsl(150 8% 60%);
+  --color-accent: hsl(153 20% 18%);
+  --color-accent-foreground: hsl(150 30% 86%);
+
+  --color-border: hsl(153 14% 20%);
+  --color-input: hsl(153 14% 22%);
+  --color-ring: hsl(150 52% 50%);
+
+  --color-text-1: hsl(150 18% 92%);
+  --color-text-2: hsl(150 8% 66%);
+  --color-text-3: hsl(150 7% 52%);
+
+  --color-success: hsl(150 48% 50%);
+  --color-success-foreground: hsl(154 40% 8%);
+  --color-success-bg: hsl(152 30% 14%);
+  --color-success-border: hsl(152 26% 26%);
+
+  --color-warning: hsl(40 88% 56%);
+  --color-warning-foreground: hsl(40 80% 8%);
+  --color-warning-bg: hsl(40 40% 16%);
+  --color-warning-border: hsl(40 40% 30%);
+
+  --color-destructive: hsl(2 62% 56%);
+  --color-destructive-foreground: hsl(0 70% 98%);
+  --color-destructive-bg: hsl(4 40% 18%);
+  --color-destructive-border: hsl(4 38% 32%);
+
+  --color-info: hsl(190 54% 50%);
+  --color-info-foreground: hsl(190 60% 8%);
+  --color-info-bg: hsl(190 40% 15%);
+  --color-info-border: hsl(190 36% 28%);
+
+  --color-accent-honey: hsl(40 70% 58%);
+
+  --color-sidebar: hsl(154 22% 8%);
+  --color-sidebar-foreground: hsl(150 12% 78%);
+  --color-sidebar-primary: hsl(150 52% 56%);
+  --color-sidebar-primary-foreground: hsl(154 40% 8%);
+  --color-sidebar-accent: hsl(153 18% 14%);
+  --color-sidebar-accent-foreground: hsl(150 26% 82%);
+  --color-sidebar-border: hsl(153 14% 16%);
+  --color-sidebar-ring: hsl(150 52% 50%);
+
+  --shadow-color: 154 50% 3%;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  .font-headline {
+    font-family: var(--font-serif);
+    letter-spacing: -0.01em;
+  }
+
+  /* focus-visible halkası: 3px outline + halo, offset 2px (WCAG ≥3:1) */
+  :focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--color-ring) 55%, transparent);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Mobil input zoom önleme (≥16px), masaüstünde 14px */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+  @media (min-width: 1024px) {
+    input,
+    select,
+    textarea {
+      font-size: 14px;
+    }
+  }
+
+  /* Safe-area (notch) yardımcıları */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Erişilebilirlik: hareket/şeffaflık azaltma global blok */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass {
+    backdrop-filter: none !important;
+    background-color: var(--color-card) !important;
+  }
+}
+
+/* Cam yalnızca chrome'da (üst nav / tab bar / sheet header) */
+.glass {
+  background-color: color-mix(in srgb, var(--color-card) 72%, transparent);
+  backdrop-filter: blur(12px) saturate(1.4);
+}

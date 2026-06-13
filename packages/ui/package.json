@@ -1,10 +1,15 @@
 {
   "name": "@shifahub/ui",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./styles.css": "./src/styles/globals.css",
+    "./utils": "./src/utils.ts"
+  },
   "scripts": {
     "typecheck": "tsc --noEmit",
     "lint": "eslint src/"

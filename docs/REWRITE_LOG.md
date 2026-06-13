@@ -38,7 +38,13 @@ Bu günlük her fazda güncellenir (Obsidian uyumlu, `[[wikilink]]`).
       (Redis/MinIO gerektirir — P5 altyapısıyla birlikte)
 - Toplam P1-P3: **7 commit, 16 geçen entegrasyon testi**, typecheck temiz
 
-## P4 — Frontend + Shifa Ether (design-guru skill) ⏳
+## P4 — Frontend + Shifa Ether (design-guru skill) 🔄
+
+- [x] **design-guru** ile Shifa Ether v2 tasarım dili sentezlendi (token/tipografi/bileşen/dark mode)
+- [x] `packages/ui/src/styles/globals.css` — tek kaynak token sistemi (emerald ramp, sage nötr,
+      bal aksan, semantic -bg/-fg/-border, marka-tonlu gölge, focus-ring, motion, **theme-color #306a4f fix**)
+- [x] tasarım dili hafızaya yazıldı (`design_language.md`) + mockup ile doğrulandı (giriş + danışan dashboard)
+- [ ] web app foundation (tRPC client + react-query + zustand + layout + middleware), 39 sayfa, PWA
 
 ## P5 — Ajanlar + entegrasyonlar (14 ajan, Külliyat AI) ⏳
 
