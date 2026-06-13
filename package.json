@@ -1,0 +1,50 @@
+{
+  "name": "shifahub",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "ShifaHub - Butunsel Tedavi Yonetim Platformu (GETAT)",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "test": "turbo test",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
+    "clean": "turbo clean",
+    "db:generate": "npm run db:generate --workspace=@shifahub/db",
+    "db:migrate": "npm run db:migrate --workspace=@shifahub/db",
+    "db:studio": "npm run db:studio --workspace=@shifahub/db",
+    "db:seed": "npm run db:seed --workspace=@shifahub/api",
+    "e2e": "npm run e2e --workspace=@shifahub/web",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.2.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.5.0",
+    "turbo": "^2.5.0",
+    "typescript": "^5.8.0",
+    "typescript-eslint": "^8.58.1"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "packageManager": "npm@10.9.0",
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{js,jsx,json,md,yml,yaml,css}": [
+      "prettier --write"
+    ]
+  }
+}
