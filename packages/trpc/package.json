@@ -16,7 +16,7 @@
   "dependencies": {
     "@shifahub/db": "*",
     "@shifahub/shared": "*",
-    "@trpc/server": "^11.1.0",
+    "@trpc/server": "11.16.0",
     "argon2": "^0.43.0",
     "drizzle-orm": "^0.40.0",
     "jose": "^6.0.0",
