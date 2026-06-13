@@ -181,3 +181,45 @@ describe("audit_log append-only", () => {
     expect(updated.length).toBe(0);
   });
 });
+
+describe("KVKK consent-gate (user_has_active_consent)", () => {
+  it("returns false when the danışan has no active health-data consent", async () => {
+    const [r] =
+      await sql`select user_has_active_consent(${danisanB}::uuid, 'saglik_verisi_isleme') as ok`;
+    expect(r!.ok).toBe(false);
+  });
+
+  it("returns true after consent, even when queried by the eğitmen (RLS-bypassing SECURITY DEFINER)", async () => {
+    // Danışan grants their own consent (RLS WITH CHECK: user_id = self).
+    await sql.begin(async (tx) => {
+      await actAs(tx, danisanA, "danisan");
+      await tx`insert into kvkk_consent (user_id, purpose, description, status)
+               values (${danisanA}, 'saglik_verisi_isleme', 'test riza', 'active')`;
+    });
+
+    // The eğitmen cannot SELECT the consent row directly (RLS hides it)...
+    const direct = await sql.begin(async (tx) => {
+      await actAs(tx, egitmenC, "egitmen");
+      return tx`select id from kvkk_consent where user_id = ${danisanA}`;
+    });
+    expect(direct.length).toBe(0);
+
+    // ...but the SECURITY DEFINER gate function still confirms it (boolean only).
+    const gated = await sql.begin(async (tx) => {
+      await actAs(tx, egitmenC, "egitmen");
+      return tx`select user_has_active_consent(${danisanA}::uuid, 'saglik_verisi_isleme') as ok`;
+    });
+    expect(gated[0]!.ok).toBe(true);
+  });
+
+  it("returns false after the consent is revoked", async () => {
+    await sql.begin(async (tx) => {
+      await actAs(tx, danisanA, "danisan");
+      await tx`update kvkk_consent set status = 'revoked', revoked_at = now()
+               where user_id = ${danisanA} and purpose = 'saglik_verisi_isleme'`;
+    });
+    const [r] =
+      await sql`select user_has_active_consent(${danisanA}::uuid, 'saglik_verisi_isleme') as ok`;
+    expect(r!.ok).toBe(false);
+  });
+});

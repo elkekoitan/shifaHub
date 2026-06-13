@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { tahlil, bildirim } from "@shifahub/db";
 import { router, protectedProcedure, egitmenProcedure } from "../trpc";
@@ -57,6 +57,19 @@ export const tahlilRouter = router({
    * yazmasina izin verir; iliski yoksa INSERT politika tarafindan reddedilir.
    */
   create: egitmenProcedure.input(createInput).mutation(async ({ ctx, input }) => {
+    // KVKK consent-gate: tahlil = saglik verisi. Danisanin aktif
+    // 'saglik_verisi_isleme' acik rizasi sart (SECURITY DEFINER ile dogrulanir).
+    const tahlilConsent = (await ctx.db.execute(
+      sql`select user_has_active_consent(${input.danisanId}::uuid, 'saglik_verisi_isleme') as ok`,
+    )) as unknown as Array<{ ok: boolean }>;
+    if (!tahlilConsent[0]?.ok) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message:
+          "Danışanın 'sağlık verisi işleme' açık rızası bulunmuyor. Tahlil kaydı oluşturmadan önce danışandan KVKK rızası alınmalıdır.",
+      });
+    }
+
     const computedValues = markOutOfRange(input.values);
 
     const [created] = await ctx.db

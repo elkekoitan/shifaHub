@@ -1,7 +1,7 @@
 import "dotenv/config";
 import argon2 from "argon2";
-import { eq } from "drizzle-orm";
-import { db, sql, users, danisan, egitmen } from "@shifahub/db";
+import { and, eq } from "drizzle-orm";
+import { db, sql, users, danisan, egitmen, kvkkConsent } from "@shifahub/db";
 import type { UserRole } from "@shifahub/shared";
 
 /**
@@ -75,6 +75,36 @@ async function main() {
     }
     console.log("[seed] olusturuldu:", u.email, `(${u.role})`);
   }
+
+  // Demo danisan icin 'saglik_verisi_isleme' rizasi (idempotent + mevcut
+  // kullaniciya backfill) — consent-gate demo tedavi/tahlil akisini kirmasin.
+  const [demoDan] = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.email, "demo.danisan@shifahub.app"));
+  if (demoDan) {
+    const existingConsent = await db
+      .select({ id: kvkkConsent.id })
+      .from(kvkkConsent)
+      .where(
+        and(
+          eq(kvkkConsent.userId, demoDan.id),
+          eq(kvkkConsent.purpose, "saglik_verisi_isleme"),
+          eq(kvkkConsent.status, "active"),
+        ),
+      );
+    if (existingConsent.length === 0) {
+      await db.insert(kvkkConsent).values({
+        userId: demoDan.id,
+        purpose: "saglik_verisi_isleme",
+        description:
+          "Saglik verilerinizin (ozel nitelikli kisisel veri) tedavi sureci kapsaminda islenmesine acik riza. (Demo)",
+        status: "active",
+      });
+      console.log("[seed] demo danisan saglik verisi rizasi eklendi");
+    }
+  }
+
   await sql.end();
 }
 

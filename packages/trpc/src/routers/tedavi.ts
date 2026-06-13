@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { desc, eq, inArray } from "drizzle-orm";
+import { desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { bildirim, danisan, odeme, stok, stokHareket, tedavi, users } from "@shifahub/db";
 import { router, protectedProcedure, egitmenProcedure } from "../trpc";
@@ -158,6 +158,20 @@ export const tedaviRouter = router({
       protokolId,
       usedItems = [],
     } = input;
+
+    // 0. KVKK consent-gate: tedavi = saglik verisi islemesi. Danisanin aktif
+    // 'saglik_verisi_isleme' acik rizasi sart. RLS, egitmenin danisan riza
+    // satirini gizledigi icin kontrol SECURITY DEFINER fonksiyon ile yapilir.
+    const tedaviConsent = (await ctx.db.execute(
+      sql`select user_has_active_consent(${danisanId}::uuid, 'saglik_verisi_isleme') as ok`,
+    )) as unknown as Array<{ ok: boolean }>;
+    if (!tedaviConsent[0]?.ok) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message:
+          "Danışanın 'sağlık verisi işleme' açık rızası bulunmuyor. Tedavi kaydı oluşturmadan önce danışandan KVKK rızası alınmalıdır.",
+      });
+    }
 
     // 1. Stok on-kontrol (miktarlar yeterli mi?)
     if (usedItems.length > 0) {
