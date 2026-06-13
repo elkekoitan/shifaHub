@@ -44,7 +44,10 @@ Bu günlük her fazda güncellenir (Obsidian uyumlu, `[[wikilink]]`).
 - [x] `packages/ui/src/styles/globals.css` — tek kaynak token sistemi (emerald ramp, sage nötr,
       bal aksan, semantic -bg/-fg/-border, marka-tonlu gölge, focus-ring, motion, **theme-color #306a4f fix**)
 - [x] tasarım dili hafızaya yazıldı (`design_language.md`) + mockup ile doğrulandı (giriş + danışan dashboard)
-- [ ] web app foundation (tRPC client + react-query + zustand + layout + middleware), 39 sayfa, PWA
+- [x] web app foundation (Next 16, tRPC client + react-query + zustand + rhf/zod) — `2a29b17`
+- [x] **39 route build YEŞİL** (`700d571`): auth(5) + danışan(9) + eğitmen(14) + admin(10) + shared(1); çok-ajanlı fan-out
+- [x] PWA manifest theme-color emerald fix
+- [ ] kalan polish: service worker güncelleme, ikon üretimi (design-guru), a11y/Lighthouse denetimi
 
 ## P5 — Ajanlar + entegrasyonlar (14 ajan, Külliyat AI) ⏳
 
