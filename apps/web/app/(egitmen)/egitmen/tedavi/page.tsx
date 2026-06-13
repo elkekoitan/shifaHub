@@ -12,6 +12,7 @@ import {
   ChevronLeft,
   AlertTriangle,
   Info,
+  Sparkles,
 } from "lucide-react";
 import { TREATMENT_LABELS } from "@shifahub/shared";
 import { trpc } from "@/lib/trpc";
@@ -90,6 +91,7 @@ export default function TedaviWizardPage() {
   const [danisanId, setDanisanId] = useState<string>("");
   const [treatmentType, setTreatmentType] = useState<string>("");
   const [findings, setFindings] = useState("");
+  const [complaintText, setComplaintText] = useState("");
   const [vital, setVital] = useState({ bloodPressure: "", pulse: "", temperature: "", weight: "" });
   const [done, setDone] = useState(false);
 
@@ -100,6 +102,7 @@ export default function TedaviWizardPage() {
   );
   const utils = trpc.useUtils();
   const create = trpc.tedavi.create.useMutation();
+  const analyze = trpc.kulliyat.analyzeComplaints.useMutation();
 
   const previewWarnings = useMemo(() => {
     if (!treatmentType || !profil.data) return [];
@@ -166,6 +169,8 @@ export default function TedaviWizardPage() {
               setDanisanId("");
               setTreatmentType("");
               setFindings("");
+              setComplaintText("");
+              analyze.reset();
               setVital({ bloodPressure: "", pulse: "", temperature: "", weight: "" });
             }}
           >
@@ -291,6 +296,84 @@ export default function TedaviWizardPage() {
                 placeholder="Muayene bulguları, gözlemler…"
                 className="flex w-full rounded-[var(--radius)] border border-input bg-card px-3 py-2 text-sm text-foreground placeholder:text-text-3 focus-visible:border-ring focus-visible:outline-none"
               />
+            </div>
+
+            {/* AI anamnez — Kulliyat analyzeComplaints */}
+            <div className="space-y-2 rounded-[var(--radius)] border border-border bg-secondary/40 p-3">
+              <div className="flex items-center gap-1.5">
+                <Sparkles className="size-4 text-primary" aria-hidden />
+                <span className="text-sm font-medium text-foreground">AI ile anamnez çıkar</span>
+              </div>
+              <p className="text-[11px] text-text-3">
+                Danışanın şikayetini serbest yazın; yapay zekâ şikayet, kronik hastalık, alerji,
+                ilaç ve önerilen yöntemlere ayırır. (Bilgilendirme amaçlıdır.)
+              </p>
+              <textarea
+                value={complaintText}
+                onChange={(e) => setComplaintText(e.target.value)}
+                rows={3}
+                placeholder="Örn: 3 gündür baş ağrım var, tansiyon hastasıyım, aspirin kullanıyorum…"
+                className="flex w-full rounded-[var(--radius)] border border-input bg-card px-3 py-2 text-sm text-foreground placeholder:text-text-3 focus-visible:border-ring focus-visible:outline-none"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                loading={analyze.isPending}
+                disabled={complaintText.trim().length < 3}
+                onClick={async () => {
+                  try {
+                    await analyze.mutateAsync({ text: complaintText.trim() });
+                  } catch (e) {
+                    toast.error(e instanceof Error ? e.message : "Analiz yapılamadı");
+                  }
+                }}
+              >
+                <Sparkles className="size-4" aria-hidden /> AI ile çıkar
+              </Button>
+              {analyze.data ? (
+                <div className="space-y-2 pt-1">
+                  {(
+                    [
+                      ["Şikayetler", analyze.data.sikayetler],
+                      ["Kronik hastalıklar", analyze.data.kronikHastaliklar],
+                      ["Alerjiler", analyze.data.alerjiler],
+                      ["İlaçlar", analyze.data.ilaclar],
+                      ["Önerilen yöntemler", analyze.data.onerilenYontemler],
+                    ] as const
+                  ).map(([label, items]) =>
+                    items && items.length > 0 ? (
+                      <div key={label}>
+                        <p className="text-[11px] font-medium text-text-3">{label}</p>
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {items.map((it, i) => (
+                            <span
+                              key={i}
+                              className="rounded-full border border-border bg-card px-2 py-0.5 text-[11px] text-text-2"
+                            >
+                              {it}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null,
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const extra = analyze.data?.sikayetler?.join(", ") ?? "";
+                      if (extra)
+                        setFindings((f) =>
+                          f ? `${f}\nŞikayetler: ${extra}` : `Şikayetler: ${extra}`,
+                        );
+                      toast.success("Şikayetler bulgulara eklendi");
+                    }}
+                    className="text-[11px] font-medium text-primary underline-offset-2 hover:underline"
+                  >
+                    Şikayetleri bulgulara ekle
+                  </button>
+                </div>
+              ) : null}
             </div>
           </div>
         ) : null}
