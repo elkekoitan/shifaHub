@@ -72,7 +72,11 @@ Bu günlük her fazda güncellenir (Obsidian uyumlu, `[[wikilink]]`).
       10 dk'da bir tarar, 24h/1h içindeki randevulara `bildirim` üretir, reminder_24h/1h_sent işaretler
 - [x] server.ts boot'ta fire-and-forget başlatma (REDIS_URL varsa); Redis hatası API'yi düşürmez
 - [x] api Coolify env: REDIS_URL (Redis v2 internal) set
-- [ ] kalan: MinIO dosya yükleme, consent-gate (tedavi/tahlil create) enforcement
+- [x] **KVKK consent-gate** — `tedavi.create` + `tahlil.create` artık danışanın aktif
+      `saglik_verisi_isleme` açık rızası yoksa FORBIDDEN döner. `user_has_active_consent`
+      SECURITY DEFINER fonksiyonu (0002 migration; RLS eğitmenden rıza satırını gizler, fn
+      yalnızca boolean döner). seed: demo danışana idempotent rıza backfill. Test: 11/11 geçti.
+- [ ] kalan: MinIO dosya yükleme (yeni Coolify kaynağı + storage lib + presigned URL)
 
 ## P6 — Test sertleştirme ⏳
 
