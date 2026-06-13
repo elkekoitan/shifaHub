@@ -4,7 +4,12 @@ FROM node:22-slim AS base
 WORKDIR /app
 
 FROM base AS deps
-COPY package.json package-lock.json ./
+# NOTE: the lockfile is intentionally NOT copied. npm (ci OR install) respects the
+# Windows-generated lockfile's optional-dep platform markers and skips the Linux
+# native binaries (lightningcss / @tailwindcss-oxide / @next-swc). Resolving fresh
+# on the build platform installs the correct Linux binaries. Exact @trpc pins keep
+# the critical versions stable.
+COPY package.json ./
 COPY apps/web/package.json ./apps/web/package.json
 COPY apps/api/package.json ./apps/api/package.json
 COPY packages/shared/package.json ./packages/shared/package.json
