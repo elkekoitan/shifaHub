@@ -3,7 +3,8 @@
  * and the clinical NER. Key + model come from env (OPENROUTER_API_KEY / _MODEL).
  */
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-const DEFAULT_MODEL = "nvidia/nemotron-3-ultra-550b-a55b:free";
+// Ücretsiz + hızlı (~2 sn) + Türkçe iyi (son 2 ay, 262k ctx). 550B ultra çok yavaştı (>120 sn).
+const DEFAULT_MODEL = "nex-agi/nex-n2-pro:free";
 
 export interface ChatMessage {
   role: "system" | "user" | "assistant";
