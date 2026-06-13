@@ -12,7 +12,10 @@ COPY packages/db/package.json ./packages/db/package.json
 COPY packages/trpc/package.json ./packages/trpc/package.json
 COPY packages/config/package.json ./packages/config/package.json
 COPY packages/ui/package.json ./packages/ui/package.json
-RUN npm ci
+# `npm ci` skips cross-platform optional native deps (lightningcss / @tailwindcss
+# oxide Linux binaries) when the lockfile was generated on another OS; `npm install`
+# re-resolves them for the build platform.
+RUN npm install --no-audit --no-fund
 
 FROM base AS builder
 ARG NEXT_PUBLIC_API_URL
