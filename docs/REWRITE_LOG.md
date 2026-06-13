@@ -26,7 +26,17 @@ Bu günlük her fazda güncellenir (Obsidian uyumlu, `[[wikilink]]`).
 - [x] **Entegrasyon testi PostgreSQL 18.4 (embedded, yerel) — 8/8 GEÇTİ:** şifreli round-trip + ciphertext-at-rest + yanlış-anahtar reddi; RLS cross-tenant red; care-relationship gating; audit_log append-only
 - Not: canlı DB'ye DOKUNULMADI; test izole embedded Postgres ile (no Docker)
 
-## P3 — Backend (tRPC routerlar, context, servisler) ⏳
+## P3 — Backend (tRPC routerlar, context, servisler) 🔄 `6f0b4d2` `d0cab8e`
+
+- [x] withRls tx middleware (SET LOCAL ROLE shifahub_app + GUC) — her resolver RLS-enforced
+- [x] auth router (register/login/me/refresh, argon2id + jose) — **5/5 test**
+- [x] 17 router merge (auth, health + 15 domain çok-ajanlı port): danışan, eğitmen, randevu,
+      tedavi, tahlil, stok, ödeme, bildirim, mesaj, protokol, müsaitlik, komplikasyon, acil, admin, kvkk
+- [x] randevu state machine + Hicri/sünnet + çift-rezervasyon (SECURITY DEFINER fix) — **3/3 test**
+- [x] kvkk: consent grant/revoke/check + veri sahibi hakları (export/erasure) + audit log okuma (admin)
+- [ ] KALAN: consent-gate enforcement (health write'larda), MinIO upload/media router, BullMQ reminder worker
+      (Redis/MinIO gerektirir — P5 altyapısıyla birlikte)
+- Toplam P1-P3: **7 commit, 16 geçen entegrasyon testi**, typecheck temiz
 
 ## P4 — Frontend + Shifa Ether (design-guru skill) ⏳
 
