@@ -173,3 +173,39 @@ CREATE POLICY audit_insert ON audit_log FOR INSERT WITH CHECK (true);
 --> statement-breakpoint
 -- UPDATE/DELETE policy YOK -> FORCE RLS ile audit_log salt-ekleme (append-only).
 GRANT EXECUTE ON FUNCTION app_current_user_id(), app_is_admin(), app_has_care(uuid) TO shifahub_app;
+--> statement-breakpoint
+
+-- ========================= Randevu cakisma kontrolu =========================
+-- Cift-rezervasyon kontrolu RLS altinda calismaz: bir danisan, ayni egitmenin
+-- BASKA danisanlarla olan randevularini goremez (RLS gizler), bu yuzden cakismayi
+-- tespit edemez. Cozum: yalnizca BOOLEAN donduren, satir sizdirmayan bir
+-- SECURITY DEFINER fonksiyon (BYPASSRLS rol sahipli).
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'shifahub_definer') THEN
+    CREATE ROLE shifahub_definer NOLOGIN NOSUPERUSER BYPASSRLS NOINHERIT;
+  END IF;
+END $$;
+--> statement-breakpoint
+GRANT shifahub_definer TO CURRENT_USER;
+--> statement-breakpoint
+GRANT SELECT ON randevu TO shifahub_definer;
+--> statement-breakpoint
+CREATE OR REPLACE FUNCTION egitmen_has_conflict(
+  p_egitmen uuid,
+  p_start timestamp,
+  p_end timestamp,
+  p_exclude uuid DEFAULT NULL
+) RETURNS boolean LANGUAGE sql SECURITY DEFINER STABLE AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM randevu r
+    WHERE r.egitmen_id = p_egitmen
+      AND r.status NOT IN ('cancelled', 'no_show')
+      AND r.scheduled_at < p_end
+      AND r.end_at > p_start
+      AND (p_exclude IS NULL OR r.id <> p_exclude)
+  )
+$$;
+--> statement-breakpoint
+ALTER FUNCTION egitmen_has_conflict(uuid, timestamp, timestamp, uuid) OWNER TO shifahub_definer;
+--> statement-breakpoint
+GRANT EXECUTE ON FUNCTION egitmen_has_conflict(uuid, timestamp, timestamp, uuid) TO shifahub_app;

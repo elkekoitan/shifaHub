@@ -47,6 +47,8 @@ test-results/
 # Docker data (local dev)
 docker-data/
 pg_data/
+pg_data*/
+**/pg_data*/
 redis_data/
 minio_data/
 qdrant_data/
