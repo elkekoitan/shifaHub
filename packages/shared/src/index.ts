@@ -1,5 +1,5 @@
 // ShifaHub Shared Types, Constants, and Utilities
 
-export * from "./types/index.js";
-export * from "./constants/index.js";
-export * from "./schemas/index.js";
+export * from "./types";
+export * from "./constants";
+export * from "./schemas";

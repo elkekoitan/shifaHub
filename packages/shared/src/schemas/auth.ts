@@ -10,7 +10,7 @@ export const registerSchema = z.object({
     .string()
     .regex(/^[0-9+\s()-]{7,20}$/, "Geçerli bir telefon girin")
     .optional(),
-  role: z.enum(["danisan", "egitmen"]).default("danisan"),
+  role: z.enum(["danisan", "egitmen"]),
 });
 export type RegisterInput = z.infer<typeof registerSchema>;
 
