@@ -3,13 +3,14 @@
 import { useEffect, type ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { Home, Calendar, MessageCircle, User } from "lucide-react";
+import { Home, Calendar, Sparkles, MessageCircle, User } from "lucide-react";
 import { useAuthStore } from "@/stores/auth";
 import { cn } from "@/lib/utils";
 
 const NAV = [
   { href: "/danisan", label: "Ana sayfa", icon: Home },
   { href: "/danisan/randevu", label: "Randevu", icon: Calendar },
+  { href: "/danisan/kulliyat", label: "Külliyat", icon: Sparkles },
   { href: "/danisan/mesaj", label: "Mesaj", icon: MessageCircle },
   { href: "/danisan/profil", label: "Profil", icon: User },
 ];
