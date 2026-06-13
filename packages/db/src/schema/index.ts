@@ -1,6 +1,20 @@
 /**
- * Drizzle schema barrel. Populated in P2 (16 tables ported from the audited
- * reference). Kept as an empty namespace for now so the db client type-checks
- * during the P1 interop slice.
+ * Drizzle schema barrel — the single source of truth for the data model.
+ * 16 domain tables + the RLS care-relationship gate.
  */
-export {};
+export * from "./users";
+export * from "./danisan";
+export * from "./egitmen";
+export * from "./randevu";
+export * from "./tedavi";
+export * from "./tahlil";
+export * from "./mesaj";
+export * from "./bildirim";
+export * from "./stok";
+export * from "./odeme";
+export * from "./audit_log";
+export * from "./kvkk_consent";
+export * from "./komplikasyon";
+export * from "./protokol";
+export * from "./musaitlik";
+export * from "./care_relationship";

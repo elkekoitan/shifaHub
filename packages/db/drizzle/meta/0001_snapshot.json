@@ -1,0 +1,2790 @@
+{
+  "id": "ad92604f-7bd1-47ad-9b39-48f3076b98f6",
+  "prevId": "ff646022-0e1a-4738-a2f4-8fce01149057",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.users": {
+      "name": "users",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "email": {
+          "name": "email",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "password_hash": {
+          "name": "password_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "user_role",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'danisan'"
+        },
+        "first_name": {
+          "name": "first_name",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "last_name": {
+          "name": "last_name",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "phone_last4": {
+          "name": "phone_last4",
+          "type": "varchar(4)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "phone_encrypted": {
+          "name": "phone_encrypted",
+          "type": "bytea",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tc_kimlik_encrypted": {
+          "name": "tc_kimlik_encrypted",
+          "type": "bytea",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_email_verified": {
+          "name": "is_email_verified",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "is_phone_verified": {
+          "name": "is_phone_verified",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "is_mfa_enabled": {
+          "name": "is_mfa_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "mfa_secret": {
+          "name": "mfa_secret",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "last_login_at": {
+          "name": "last_login_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "users_role_idx": {
+          "name": "users_role_idx",
+          "columns": [
+            {
+              "expression": "role",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "users_email_unique": {
+          "name": "users_email_unique",
+          "columns": ["email"],
+          "nullsNotDistinct": false
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.danisan": {
+      "name": "danisan",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tc_kimlik_encrypted": {
+          "name": "tc_kimlik_encrypted",
+          "type": "bytea",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "birth_date": {
+          "name": "birth_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "gender": {
+          "name": "gender",
+          "type": "gender",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "blood_type": {
+          "name": "blood_type",
+          "type": "blood_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "occupation": {
+          "name": "occupation",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "address": {
+          "name": "address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "city": {
+          "name": "city",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "emergency_contact": {
+          "name": "emergency_contact",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "emergency_phone": {
+          "name": "emergency_phone",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "chronic_diseases": {
+          "name": "chronic_diseases",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[]'::jsonb"
+        },
+        "allergies": {
+          "name": "allergies",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[]'::jsonb"
+        },
+        "current_medications": {
+          "name": "current_medications",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[]'::jsonb"
+        },
+        "previous_surgeries": {
+          "name": "previous_surgeries",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[]'::jsonb"
+        },
+        "family_history": {
+          "name": "family_history",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[]'::jsonb"
+        },
+        "previous_treatments": {
+          "name": "previous_treatments",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[]'::jsonb"
+        },
+        "main_complaints": {
+          "name": "main_complaints",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[]'::jsonb"
+        },
+        "height": {
+          "name": "height",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "weight": {
+          "name": "weight",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "smoking_status": {
+          "name": "smoking_status",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "alcohol_status": {
+          "name": "alcohol_status",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "pregnancy_status": {
+          "name": "pregnancy_status",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "profile_image_url": {
+          "name": "profile_image_url",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "danisan_user_id_idx": {
+          "name": "danisan_user_id_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {
+        "danisan_user_id_users_id_fk": {
+          "name": "danisan_user_id_users_id_fk",
+          "tableFrom": "danisan",
+          "columnsFrom": ["user_id"],
+          "tableTo": "users",
+          "columnsTo": ["id"],
+          "onUpdate": "no action",
+          "onDelete": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.egitmen": {
+      "name": "egitmen",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "certificate_number": {
+          "name": "certificate_number",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "certificate_issuer": {
+          "name": "certificate_issuer",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "certificate_date": {
+          "name": "certificate_date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "certificate_file_url": {
+          "name": "certificate_file_url",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "specialties": {
+          "name": "specialties",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[]'::jsonb"
+        },
+        "clinic_name": {
+          "name": "clinic_name",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "clinic_address": {
+          "name": "clinic_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "clinic_city": {
+          "name": "clinic_city",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "clinic_phone": {
+          "name": "clinic_phone",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "supervising_physician_id": {
+          "name": "supervising_physician_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "supervising_physician_name": {
+          "name": "supervising_physician_name",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "approval_status": {
+          "name": "approval_status",
+          "type": "approval_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'pending'"
+        },
+        "approved_by": {
+          "name": "approved_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "approved_at": {
+          "name": "approved_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rejection_reason": {
+          "name": "rejection_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "default_session_duration": {
+          "name": "default_session_duration",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'60'"
+        },
+        "working_days": {
+          "name": "working_days",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[1,2,3,4,5]'::jsonb"
+        },
+        "working_hours_start": {
+          "name": "working_hours_start",
+          "type": "varchar(5)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'09:00'"
+        },
+        "working_hours_end": {
+          "name": "working_hours_end",
+          "type": "varchar(5)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'18:00'"
+        },
+        "bio": {
+          "name": "bio",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "profile_image_url": {
+          "name": "profile_image_url",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "egitmen_user_id_idx": {
+          "name": "egitmen_user_id_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {
+        "egitmen_user_id_users_id_fk": {
+          "name": "egitmen_user_id_users_id_fk",
+          "tableFrom": "egitmen",
+          "columnsFrom": ["user_id"],
+          "tableTo": "users",
+          "columnsTo": ["id"],
+          "onUpdate": "no action",
+          "onDelete": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.randevu": {
+      "name": "randevu",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "danisan_id": {
+          "name": "danisan_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "egitmen_id": {
+          "name": "egitmen_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "scheduled_at": {
+          "name": "scheduled_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "duration": {
+          "name": "duration",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 60
+        },
+        "end_at": {
+          "name": "end_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "appointment_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'requested'"
+        },
+        "status_changed_at": {
+          "name": "status_changed_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hijri_date": {
+          "name": "hijri_date",
+          "type": "varchar(30)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_sunnah_day": {
+          "name": "is_sunnah_day",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "treatment_type": {
+          "name": "treatment_type",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "complaints": {
+          "name": "complaints",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cancelled_by": {
+          "name": "cancelled_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cancel_reason": {
+          "name": "cancel_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reminder_24h_sent": {
+          "name": "reminder_24h_sent",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "reminder_1h_sent": {
+          "name": "reminder_1h_sent",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "randevu_danisan_id_idx": {
+          "name": "randevu_danisan_id_idx",
+          "columns": [
+            {
+              "expression": "danisan_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
+        "randevu_egitmen_id_idx": {
+          "name": "randevu_egitmen_id_idx",
+          "columns": [
+            {
+              "expression": "egitmen_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {
+        "randevu_danisan_id_users_id_fk": {
+          "name": "randevu_danisan_id_users_id_fk",
+          "tableFrom": "randevu",
+          "columnsFrom": ["danisan_id"],
+          "tableTo": "users",
+          "columnsTo": ["id"],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        },
+        "randevu_egitmen_id_users_id_fk": {
+          "name": "randevu_egitmen_id_users_id_fk",
+          "tableFrom": "randevu",
+          "columnsFrom": ["egitmen_id"],
+          "tableTo": "users",
+          "columnsTo": ["id"],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.tedavi": {
+      "name": "tedavi",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "danisan_id": {
+          "name": "danisan_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "egitmen_id": {
+          "name": "egitmen_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "randevu_id": {
+          "name": "randevu_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "protokol_id": {
+          "name": "protokol_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "treatment_type": {
+          "name": "treatment_type",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "session_number": {
+          "name": "session_number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 1
+        },
+        "treatment_date": {
+          "name": "treatment_date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "complaints": {
+          "name": "complaints",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[]'::jsonb"
+        },
+        "findings": {
+          "name": "findings",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "vital_signs": {
+          "name": "vital_signs",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "applied_treatment": {
+          "name": "applied_treatment",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "treatment_details": {
+          "name": "treatment_details",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "before_notes": {
+          "name": "before_notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "after_notes": {
+          "name": "after_notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "before_image_urls": {
+          "name": "before_image_urls",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[]'::jsonb"
+        },
+        "after_image_urls": {
+          "name": "after_image_urls",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[]'::jsonb"
+        },
+        "recommendations": {
+          "name": "recommendations",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "next_session_date": {
+          "name": "next_session_date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "next_session_notes": {
+          "name": "next_session_notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "contraindications": {
+          "name": "contraindications",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[]'::jsonb"
+        },
+        "side_effects": {
+          "name": "side_effects",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "patient_feedback": {
+          "name": "patient_feedback",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "body_area": {
+          "name": "body_area",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "tedavi_danisan_idx": {
+          "name": "tedavi_danisan_idx",
+          "columns": [
+            {
+              "expression": "danisan_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
+        "tedavi_egitmen_idx": {
+          "name": "tedavi_egitmen_idx",
+          "columns": [
+            {
+              "expression": "egitmen_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
+        "tedavi_randevu_idx": {
+          "name": "tedavi_randevu_idx",
+          "columns": [
+            {
+              "expression": "randevu_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {
+        "tedavi_danisan_id_users_id_fk": {
+          "name": "tedavi_danisan_id_users_id_fk",
+          "tableFrom": "tedavi",
+          "columnsFrom": ["danisan_id"],
+          "tableTo": "users",
+          "columnsTo": ["id"],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        },
+        "tedavi_egitmen_id_users_id_fk": {
+          "name": "tedavi_egitmen_id_users_id_fk",
+          "tableFrom": "tedavi",
+          "columnsFrom": ["egitmen_id"],
+          "tableTo": "users",
+          "columnsTo": ["id"],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.tahlil": {
+      "name": "tahlil",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "danisan_id": {
+          "name": "danisan_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "egitmen_id": {
+          "name": "egitmen_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "test_date": {
+          "name": "test_date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "test_type": {
+          "name": "test_type",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lab_name": {
+          "name": "lab_name",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "values": {
+          "name": "values",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[]'::jsonb"
+        },
+        "file_url": {
+          "name": "file_url",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "tahlil_danisan_id_idx": {
+          "name": "tahlil_danisan_id_idx",
+          "columns": [
+            {
+              "expression": "danisan_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
+        "tahlil_egitmen_id_idx": {
+          "name": "tahlil_egitmen_id_idx",
+          "columns": [
+            {
+              "expression": "egitmen_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {
+        "tahlil_danisan_id_users_id_fk": {
+          "name": "tahlil_danisan_id_users_id_fk",
+          "tableFrom": "tahlil",
+          "columnsFrom": ["danisan_id"],
+          "tableTo": "users",
+          "columnsTo": ["id"],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.mesaj": {
+      "name": "mesaj",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "sender_id": {
+          "name": "sender_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "receiver_id": {
+          "name": "receiver_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content": {
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_read": {
+          "name": "is_read",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "read_at": {
+          "name": "read_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "mesaj_sender_id_idx": {
+          "name": "mesaj_sender_id_idx",
+          "columns": [
+            {
+              "expression": "sender_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
+        "mesaj_receiver_id_idx": {
+          "name": "mesaj_receiver_id_idx",
+          "columns": [
+            {
+              "expression": "receiver_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {
+        "mesaj_sender_id_users_id_fk": {
+          "name": "mesaj_sender_id_users_id_fk",
+          "tableFrom": "mesaj",
+          "columnsFrom": ["sender_id"],
+          "tableTo": "users",
+          "columnsTo": ["id"],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        },
+        "mesaj_receiver_id_users_id_fk": {
+          "name": "mesaj_receiver_id_users_id_fk",
+          "tableFrom": "mesaj",
+          "columnsFrom": ["receiver_id"],
+          "tableTo": "users",
+          "columnsTo": ["id"],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.bildirim": {
+      "name": "bildirim",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "notification_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "body": {
+          "name": "body",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_read": {
+          "name": "is_read",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "read_at": {
+          "name": "read_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "action_url": {
+          "name": "action_url",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "bildirim_user_id_idx": {
+          "name": "bildirim_user_id_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {
+        "bildirim_user_id_users_id_fk": {
+          "name": "bildirim_user_id_users_id_fk",
+          "tableFrom": "bildirim",
+          "columnsFrom": ["user_id"],
+          "tableTo": "users",
+          "columnsTo": ["id"],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.stok": {
+      "name": "stok",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "category": {
+          "name": "category",
+          "type": "stock_category",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "quantity": {
+          "name": "quantity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "unit": {
+          "name": "unit",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'adet'"
+        },
+        "minimum_level": {
+          "name": "minimum_level",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 5
+        },
+        "unit_price": {
+          "name": "unit_price",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "batch_number": {
+          "name": "batch_number",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "expiry_date": {
+          "name": "expiry_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "supplier": {
+          "name": "supplier",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "location": {
+          "name": "location",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.stok_hareket": {
+      "name": "stok_hareket",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "stok_id": {
+          "name": "stok_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "quantity": {
+          "name": "quantity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reason": {
+          "name": "reason",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tedavi_id": {
+          "name": "tedavi_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "stok_hareket_stok_idx": {
+          "name": "stok_hareket_stok_idx",
+          "columns": [
+            {
+              "expression": "stok_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
+        "stok_hareket_user_idx": {
+          "name": "stok_hareket_user_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
+        "stok_hareket_tedavi_idx": {
+          "name": "stok_hareket_tedavi_idx",
+          "columns": [
+            {
+              "expression": "tedavi_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {
+        "stok_hareket_stok_id_stok_id_fk": {
+          "name": "stok_hareket_stok_id_stok_id_fk",
+          "tableFrom": "stok_hareket",
+          "columnsFrom": ["stok_id"],
+          "tableTo": "stok",
+          "columnsTo": ["id"],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        },
+        "stok_hareket_user_id_users_id_fk": {
+          "name": "stok_hareket_user_id_users_id_fk",
+          "tableFrom": "stok_hareket",
+          "columnsFrom": ["user_id"],
+          "tableTo": "users",
+          "columnsTo": ["id"],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.odeme": {
+      "name": "odeme",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "danisan_id": {
+          "name": "danisan_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "egitmen_id": {
+          "name": "egitmen_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tedavi_id": {
+          "name": "tedavi_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "amount": {
+          "name": "amount",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "paid_amount": {
+          "name": "paid_amount",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "method": {
+          "name": "method",
+          "type": "payment_method",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "payment_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "receipt_number": {
+          "name": "receipt_number",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "paid_at": {
+          "name": "paid_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "odeme_danisan_id_idx": {
+          "name": "odeme_danisan_id_idx",
+          "columns": [
+            {
+              "expression": "danisan_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
+        "odeme_egitmen_id_idx": {
+          "name": "odeme_egitmen_id_idx",
+          "columns": [
+            {
+              "expression": "egitmen_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
+        "odeme_tedavi_id_idx": {
+          "name": "odeme_tedavi_id_idx",
+          "columns": [
+            {
+              "expression": "tedavi_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {
+        "odeme_danisan_id_users_id_fk": {
+          "name": "odeme_danisan_id_users_id_fk",
+          "tableFrom": "odeme",
+          "columnsFrom": ["danisan_id"],
+          "tableTo": "users",
+          "columnsTo": ["id"],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        },
+        "odeme_egitmen_id_users_id_fk": {
+          "name": "odeme_egitmen_id_users_id_fk",
+          "tableFrom": "odeme",
+          "columnsFrom": ["egitmen_id"],
+          "tableTo": "users",
+          "columnsTo": ["id"],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.audit_log": {
+      "name": "audit_log",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "action": {
+          "name": "action",
+          "type": "audit_action",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "table_name": {
+          "name": "table_name",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "record_id": {
+          "name": "record_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "old_values": {
+          "name": "old_values",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "new_values": {
+          "name": "new_values",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ip_address": {
+          "name": "ip_address",
+          "type": "inet",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "user_agent": {
+          "name": "user_agent",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "audit_log_user_id_idx": {
+          "name": "audit_log_user_id_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
+        "audit_log_table_name_idx": {
+          "name": "audit_log_table_name_idx",
+          "columns": [
+            {
+              "expression": "table_name",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
+        "audit_log_created_at_idx": {
+          "name": "audit_log_created_at_idx",
+          "columns": [
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {
+        "audit_log_user_id_users_id_fk": {
+          "name": "audit_log_user_id_users_id_fk",
+          "tableFrom": "audit_log",
+          "columnsFrom": ["user_id"],
+          "tableTo": "users",
+          "columnsTo": ["id"],
+          "onUpdate": "no action",
+          "onDelete": "set null"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.kvkk_consent": {
+      "name": "kvkk_consent",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "purpose": {
+          "name": "purpose",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "status": {
+          "name": "status",
+          "type": "consent_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "granted_at": {
+          "name": "granted_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "revoked_at": {
+          "name": "revoked_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ip_address": {
+          "name": "ip_address",
+          "type": "varchar(45)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "user_agent": {
+          "name": "user_agent",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_digitally_signed": {
+          "name": "is_digitally_signed",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "signature_data": {
+          "name": "signature_data",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "kvkk_consent_user_id_idx": {
+          "name": "kvkk_consent_user_id_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
+        "kvkk_consent_user_id_purpose_idx": {
+          "name": "kvkk_consent_user_id_purpose_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "purpose",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {
+        "kvkk_consent_user_id_users_id_fk": {
+          "name": "kvkk_consent_user_id_users_id_fk",
+          "tableFrom": "kvkk_consent",
+          "columnsFrom": ["user_id"],
+          "tableTo": "users",
+          "columnsTo": ["id"],
+          "onUpdate": "no action",
+          "onDelete": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.komplikasyon": {
+      "name": "komplikasyon",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "danisan_id": {
+          "name": "danisan_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "egitmen_id": {
+          "name": "egitmen_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tedavi_id": {
+          "name": "tedavi_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "severity": {
+          "name": "severity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "image_urls": {
+          "name": "image_urls",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[]'::jsonb"
+        },
+        "status": {
+          "name": "status",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'open'"
+        },
+        "follow_up_24h": {
+          "name": "follow_up_24h",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "follow_up_48h": {
+          "name": "follow_up_48h",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "follow_up_1w": {
+          "name": "follow_up_1w",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "resolved_at": {
+          "name": "resolved_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "resolution": {
+          "name": "resolution",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "komplikasyon_danisan_idx": {
+          "name": "komplikasyon_danisan_idx",
+          "columns": [
+            {
+              "expression": "danisan_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
+        "komplikasyon_egitmen_idx": {
+          "name": "komplikasyon_egitmen_idx",
+          "columns": [
+            {
+              "expression": "egitmen_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
+        "komplikasyon_tedavi_idx": {
+          "name": "komplikasyon_tedavi_idx",
+          "columns": [
+            {
+              "expression": "tedavi_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {
+        "komplikasyon_danisan_id_users_id_fk": {
+          "name": "komplikasyon_danisan_id_users_id_fk",
+          "tableFrom": "komplikasyon",
+          "columnsFrom": ["danisan_id"],
+          "tableTo": "users",
+          "columnsTo": ["id"],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        },
+        "komplikasyon_egitmen_id_users_id_fk": {
+          "name": "komplikasyon_egitmen_id_users_id_fk",
+          "tableFrom": "komplikasyon",
+          "columnsFrom": ["egitmen_id"],
+          "tableTo": "users",
+          "columnsTo": ["id"],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        },
+        "komplikasyon_tedavi_id_tedavi_id_fk": {
+          "name": "komplikasyon_tedavi_id_tedavi_id_fk",
+          "tableFrom": "komplikasyon",
+          "columnsFrom": ["tedavi_id"],
+          "tableTo": "tedavi",
+          "columnsTo": ["id"],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.protokol": {
+      "name": "protokol",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "danisan_id": {
+          "name": "danisan_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "egitmen_id": {
+          "name": "egitmen_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'active'"
+        },
+        "complaints": {
+          "name": "complaints",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[]'::jsonb"
+        },
+        "supporting_treatments": {
+          "name": "supporting_treatments",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[]'::jsonb"
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "protokol_danisan_id_idx": {
+          "name": "protokol_danisan_id_idx",
+          "columns": [
+            {
+              "expression": "danisan_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
+        "protokol_egitmen_id_idx": {
+          "name": "protokol_egitmen_id_idx",
+          "columns": [
+            {
+              "expression": "egitmen_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {
+        "protokol_danisan_id_users_id_fk": {
+          "name": "protokol_danisan_id_users_id_fk",
+          "tableFrom": "protokol",
+          "columnsFrom": ["danisan_id"],
+          "tableTo": "users",
+          "columnsTo": ["id"],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        },
+        "protokol_egitmen_id_users_id_fk": {
+          "name": "protokol_egitmen_id_users_id_fk",
+          "tableFrom": "protokol",
+          "columnsFrom": ["egitmen_id"],
+          "tableTo": "users",
+          "columnsTo": ["id"],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.blocked_slot": {
+      "name": "blocked_slot",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "egitmen_id": {
+          "name": "egitmen_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "start_at": {
+          "name": "start_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "end_at": {
+          "name": "end_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reason": {
+          "name": "reason",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "blocked_slot_egitmen_id_idx": {
+          "name": "blocked_slot_egitmen_id_idx",
+          "columns": [
+            {
+              "expression": "egitmen_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {
+        "blocked_slot_egitmen_id_users_id_fk": {
+          "name": "blocked_slot_egitmen_id_users_id_fk",
+          "tableFrom": "blocked_slot",
+          "columnsFrom": ["egitmen_id"],
+          "tableTo": "users",
+          "columnsTo": ["id"],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.musaitlik": {
+      "name": "musaitlik",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "egitmen_id": {
+          "name": "egitmen_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "day_of_week": {
+          "name": "day_of_week",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "start_time": {
+          "name": "start_time",
+          "type": "varchar(5)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "end_time": {
+          "name": "end_time",
+          "type": "varchar(5)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "slot_duration": {
+          "name": "slot_duration",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 60
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "musaitlik_egitmen_id_idx": {
+          "name": "musaitlik_egitmen_id_idx",
+          "columns": [
+            {
+              "expression": "egitmen_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {
+        "musaitlik_egitmen_id_users_id_fk": {
+          "name": "musaitlik_egitmen_id_users_id_fk",
+          "tableFrom": "musaitlik",
+          "columnsFrom": ["egitmen_id"],
+          "tableTo": "users",
+          "columnsTo": ["id"],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.care_relationship": {
+      "name": "care_relationship",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "danisan_id": {
+          "name": "danisan_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "egitmen_id": {
+          "name": "egitmen_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "care_relationship_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "care_rel_danisan_idx": {
+          "name": "care_rel_danisan_idx",
+          "columns": [
+            {
+              "expression": "danisan_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
+        "care_rel_egitmen_idx": {
+          "name": "care_rel_egitmen_idx",
+          "columns": [
+            {
+              "expression": "egitmen_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {
+        "care_relationship_danisan_id_users_id_fk": {
+          "name": "care_relationship_danisan_id_users_id_fk",
+          "tableFrom": "care_relationship",
+          "columnsFrom": ["danisan_id"],
+          "tableTo": "users",
+          "columnsTo": ["id"],
+          "onUpdate": "no action",
+          "onDelete": "cascade"
+        },
+        "care_relationship_egitmen_id_users_id_fk": {
+          "name": "care_relationship_egitmen_id_users_id_fk",
+          "tableFrom": "care_relationship",
+          "columnsFrom": ["egitmen_id"],
+          "tableTo": "users",
+          "columnsTo": ["id"],
+          "onUpdate": "no action",
+          "onDelete": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "care_rel_unique": {
+          "name": "care_rel_unique",
+          "columns": ["danisan_id", "egitmen_id"],
+          "nullsNotDistinct": false
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.user_role": {
+      "name": "user_role",
+      "schema": "public",
+      "values": ["danisan", "egitmen", "admin", "tabip"]
+    },
+    "public.blood_type": {
+      "name": "blood_type",
+      "schema": "public",
+      "values": [
+        "A_pozitif",
+        "A_negatif",
+        "B_pozitif",
+        "B_negatif",
+        "AB_pozitif",
+        "AB_negatif",
+        "O_pozitif",
+        "O_negatif"
+      ]
+    },
+    "public.gender": {
+      "name": "gender",
+      "schema": "public",
+      "values": ["erkek", "kadin"]
+    },
+    "public.approval_status": {
+      "name": "approval_status",
+      "schema": "public",
+      "values": ["pending", "approved", "rejected"]
+    },
+    "public.appointment_status": {
+      "name": "appointment_status",
+      "schema": "public",
+      "values": [
+        "requested",
+        "confirmed",
+        "reminded",
+        "arrived",
+        "treated",
+        "completed",
+        "cancelled",
+        "no_show",
+        "ertelendi"
+      ]
+    },
+    "public.notification_type": {
+      "name": "notification_type",
+      "schema": "public",
+      "values": [
+        "randevu_hatirlatma",
+        "randevu_onay",
+        "randevu_iptal",
+        "tedavi_ozeti",
+        "tahlil_sonucu",
+        "mesaj",
+        "egitmen_onay",
+        "sistem",
+        "kvkk"
+      ]
+    },
+    "public.stock_category": {
+      "name": "stock_category",
+      "schema": "public",
+      "values": ["kupa", "suluk", "sarf", "bitkisel", "igne", "diger"]
+    },
+    "public.payment_method": {
+      "name": "payment_method",
+      "schema": "public",
+      "values": ["nakit", "kart", "havale", "eft"]
+    },
+    "public.payment_status": {
+      "name": "payment_status",
+      "schema": "public",
+      "values": ["paid", "pending", "partial", "free"]
+    },
+    "public.audit_action": {
+      "name": "audit_action",
+      "schema": "public",
+      "values": [
+        "create",
+        "read",
+        "update",
+        "delete",
+        "login",
+        "logout",
+        "export",
+        "consent_granted",
+        "consent_revoked"
+      ]
+    },
+    "public.consent_status": {
+      "name": "consent_status",
+      "schema": "public",
+      "values": ["active", "revoked", "expired"]
+    },
+    "public.complaint_priority": {
+      "name": "complaint_priority",
+      "schema": "public",
+      "values": ["1", "2", "3", "4"]
+    },
+    "public.care_relationship_status": {
+      "name": "care_relationship_status",
+      "schema": "public",
+      "values": ["active", "ended"]
+    }
+  },
+  "schemas": {},
+  "views": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

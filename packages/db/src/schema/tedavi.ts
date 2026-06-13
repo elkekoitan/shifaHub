@@ -1,0 +1,94 @@
+import {
+  pgTable,
+  uuid,
+  varchar,
+  text,
+  timestamp,
+  integer,
+  jsonb,
+  index,
+} from "drizzle-orm/pg-core";
+import { users } from "./users";
+import { timestamps } from "./_shared";
+
+export const tedavi = pgTable(
+  "tedavi",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+
+    // Iliskiler
+    danisanId: uuid("danisan_id")
+      .notNull()
+      .references(() => users.id),
+    egitmenId: uuid("egitmen_id")
+      .notNull()
+      .references(() => users.id),
+    randevuId: uuid("randevu_id"), // opsiyonel randevu baglantisi
+    protokolId: uuid("protokol_id"), // opsiyonel protokol baglantisi
+
+    // Tedavi bilgileri
+    treatmentType: varchar("treatment_type", { length: 50 }).notNull(),
+    sessionNumber: integer("session_number").default(1),
+    treatmentDate: timestamp("treatment_date").notNull(),
+
+    // Sikayetler (oncelik bazli, max 5)
+    complaints: jsonb("complaints")
+      .$type<
+        {
+          priority: number;
+          description: string;
+          bodyArea?: string;
+        }[]
+      >()
+      .default([]),
+
+    // Bulgular
+    findings: text("findings"),
+    vitalSigns: jsonb("vital_signs").$type<{
+      bloodPressure?: string;
+      pulse?: number;
+      temperature?: number;
+      weight?: number;
+    }>(),
+
+    // Uygulanan tedavi
+    appliedTreatment: text("applied_treatment"),
+    treatmentDetails: jsonb("treatment_details").$type<{
+      cupsUsed?: number;
+      cupsLocations?: string[];
+      leechCount?: number;
+      needlePoints?: string[];
+      herbsUsed?: string[];
+      duration?: number;
+    }>(),
+
+    // Oncesi/Sonrasi
+    beforeNotes: text("before_notes"),
+    afterNotes: text("after_notes"),
+    beforeImageUrls: jsonb("before_image_urls").$type<string[]>().default([]),
+    afterImageUrls: jsonb("after_image_urls").$type<string[]>().default([]),
+
+    // Oneriler
+    recommendations: text("recommendations"),
+    nextSessionDate: timestamp("next_session_date"),
+    nextSessionNotes: text("next_session_notes"),
+
+    // Kontraendikasyonlar
+    contraindications: jsonb("contraindications").$type<string[]>().default([]),
+
+    // PRD 9.2: Yan etki ve geri bildirim
+    sideEffects: text("side_effects"), // Yan etki/gozlem
+    patientFeedback: text("patient_feedback"), // Danisan geri bildirimi
+    bodyArea: varchar("body_area", { length: 100 }), // Uygulama bolgesi
+
+    ...timestamps,
+  },
+  (t) => [
+    index("tedavi_danisan_idx").on(t.danisanId),
+    index("tedavi_egitmen_idx").on(t.egitmenId),
+    index("tedavi_randevu_idx").on(t.randevuId),
+  ],
+);
+
+export type Tedavi = typeof tedavi.$inferSelect;
+export type NewTedavi = typeof tedavi.$inferInsert;

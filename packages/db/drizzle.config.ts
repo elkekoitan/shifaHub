@@ -5,7 +5,7 @@ import { defineConfig } from "drizzle-kit";
  * RLS policies + pgcrypto live in hand-written SQL migrations under ./drizzle.
  */
 export default defineConfig({
-  schema: "./src/schema/*.ts",
+  schema: "./src/schema/index.ts",
   out: "./drizzle",
   dialect: "postgresql",
   dbCredentials: {
