@@ -7,6 +7,7 @@ import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import { appRouter, type AppRouter } from "@shifahub/trpc";
 import { createContext } from "./context";
 import { startReminderWorker } from "./workers/reminders.worker";
+import { uploadRoutes } from "./routes/upload";
 
 const PORT = Number(process.env.PORT ?? 4000);
 const HOST = process.env.HOST ?? "0.0.0.0";
@@ -30,6 +31,8 @@ export async function buildServer() {
   });
 
   app.get("/health", async () => ({ status: "ok", ts: new Date().toISOString() }));
+
+  await app.register(uploadRoutes);
 
   await app.register(fastifyTRPCPlugin, {
     prefix: "/trpc",
