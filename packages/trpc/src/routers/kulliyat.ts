@@ -35,6 +35,9 @@ export const kulliyatRouter = router({
   analyzeComplaints: egitmenProcedure
     .input(z.object({ text: z.string().trim().min(3).max(2000) }))
     .mutation(async ({ input }) => {
+      // JSON modu: chat() yalnız geçerli JSON döndürür ya da fırlatır — sessiz boş
+      // sonuç YOK (eğitmen yanlışlıkla "hiçbir şey bulunmadı" anamnezi okumaz).
+      // nano-omni JSON üretemediğinden zincir JSON-güvenilir modellerle sınırlanır.
       const raw = await chat(
         [
           {
@@ -45,26 +48,19 @@ export const kulliyatRouter = router({
           },
           { role: "user", content: input.text },
         ],
-        { maxTokens: 600, temperature: 0.2 },
+        {
+          maxTokens: 600,
+          temperature: 0.2,
+          json: true,
+          models: ["nex-agi/nex-n2-pro:free", "openrouter/owl-alpha"],
+        },
       );
-      const json = raw.replace(/```json\n?|```/g, "").trim();
-      try {
-        return JSON.parse(json) as {
-          sikayetler: string[];
-          kronikHastaliklar: string[];
-          alerjiler: string[];
-          ilaclar: string[];
-          onerilenYontemler: string[];
-        };
-      } catch {
-        return {
-          sikayetler: [],
-          kronikHastaliklar: [],
-          alerjiler: [],
-          ilaclar: [],
-          onerilenYontemler: [],
-          _raw: raw,
-        };
-      }
+      return JSON.parse(raw) as {
+        sikayetler: string[];
+        kronikHastaliklar: string[];
+        alerjiler: string[];
+        ilaclar: string[];
+        onerilenYontemler: string[];
+      };
     }),
 });
