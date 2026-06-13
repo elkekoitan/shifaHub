@@ -64,7 +64,9 @@ Bu günlük her fazda güncellenir (Obsidian uyumlu, `[[wikilink]]`).
       → root/giris HTTP 200, CORS doğrulandı (web→api preflight 204), 39 route
 - [x] 6 build sorunu çözüldü: workspace manifest, tRPC sürüm hizalama (11.16.0), Yarn/Corepack,
       lightningcss/oxide/swc linux binary → web build'de lockfile kopyalanmıyor (taze çözüm)
-- [ ] redesign: tüm ekranlar design-guru ile elden geçiriliyor (giriş ✅)
+- [x] **REDESIGN TAMAM + CANLI:** 39 ekran elevated Shifa Ether desenine getirildi (BrandMark, StatusBadge,
+      initials avatar, ikonlu alanlar + şifre toggle, katmanlı header, semantik alert, skeleton/empty) —
+      giriş/kayıt/danışan dashboard elle, kalan ~35 ekran 4 paralel ajanla; tüm rotalar HTTP 200
 - [ ] cutover (gerçek domain) + eski sistem tampon → sonra P8 teardown
 - Demo: turhanhamza@gmail.com/admin123, demo.egitmen@shifahub.app/egitmen123, demo.danisan@shifahub.app/danisan123
 - **Eski sistem (shifahub-backend/frontend/postgres/redis) EL DEĞMEDEN çalışıyor** (blue/green)
