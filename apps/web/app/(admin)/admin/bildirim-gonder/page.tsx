@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Send, Info, Search, User as UserIcon } from "lucide-react";
+import { Send, Info, Search, User as UserIcon, Type, Link2 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+
+const iconCls = "pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-3";
+
+function initials(first?: string | null, last?: string | null, email?: string) {
+  const fromName = `${first?.[0] ?? ""}${last?.[0] ?? ""}`.toUpperCase();
+  return fromName || email?.[0]?.toUpperCase() || "?";
+}
 
 const NOTIFICATION_TYPES = [
   { value: "sistem", label: "Sistem" },
@@ -89,7 +96,7 @@ export default function BildirimGonderPage() {
     <div>
       <header className="mb-5">
         <h1 className="font-headline text-2xl font-semibold text-foreground">Bildirim gönder</h1>
-        <p className="mt-1 text-sm text-text-2">
+        <p className="mt-1.5 text-sm text-text-2">
           Seçilen kullanıcıya uygulama içi bildirim gönderin.
         </p>
       </header>
@@ -114,14 +121,16 @@ export default function BildirimGonderPage() {
           ) : (
             <>
               {selectedUserId ? (
-                <div className="flex items-center justify-between rounded-[var(--radius)] border border-primary bg-accent px-3 py-2.5">
-                  <span className="flex items-center gap-2 text-sm text-primary">
-                    <UserIcon className="size-4" aria-hidden />
-                    {recipientName || "Seçili alıcı"}
+                <div className="flex items-center justify-between gap-3 rounded-[var(--radius)] border border-primary bg-accent px-3 py-2.5">
+                  <span className="flex min-w-0 items-center gap-2 text-sm text-primary">
+                    <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[11px] font-semibold text-primary">
+                      <UserIcon className="size-3.5" aria-hidden />
+                    </span>
+                    <span className="truncate">{recipientName || "Seçili alıcı"}</span>
                   </span>
                   <button
                     type="button"
-                    className="text-xs font-medium text-text-2 hover:text-destructive"
+                    className="shrink-0 text-xs font-medium text-text-2 hover:text-destructive"
                     onClick={() => {
                       setValue("userId", "");
                       setRecipientName("");
@@ -153,12 +162,15 @@ export default function BildirimGonderPage() {
                                 setValue("userId", u.id, { shouldValidate: true });
                                 setRecipientName(`${name} · ${u.email}`);
                               }}
-                              className={cn(
-                                "flex w-full items-center justify-between px-3 py-2 text-left text-sm transition-colors hover:bg-secondary",
-                              )}
+                              className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors hover:bg-secondary"
                             >
-                              <span className="truncate text-foreground">{name}</span>
-                              <span className="ml-2 shrink-0 text-xs text-text-3">{u.email}</span>
+                              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-semibold text-primary">
+                                {initials(u.firstName, u.lastName, u.email)}
+                              </span>
+                              <span className="min-w-0 flex-1 truncate text-foreground">
+                                {name}
+                              </span>
+                              <span className="shrink-0 text-xs text-text-3">{u.email}</span>
                             </button>
                           </li>
                         );
@@ -201,12 +213,16 @@ export default function BildirimGonderPage() {
         {/* Başlık */}
         <div className="space-y-1.5">
           <Label htmlFor="title">Başlık</Label>
-          <Input
-            id="title"
-            placeholder="Örn. Planlı bakım bildirimi"
-            aria-invalid={Boolean(errors.title)}
-            {...register("title")}
-          />
+          <div className="relative">
+            <Type className={iconCls} aria-hidden />
+            <Input
+              id="title"
+              className="pl-9"
+              placeholder="Örn. Planlı bakım bildirimi"
+              aria-invalid={Boolean(errors.title)}
+              {...register("title")}
+            />
+          </div>
           {errors.title ? <p className="text-xs text-destructive">{errors.title.message}</p> : null}
         </div>
 
@@ -225,7 +241,15 @@ export default function BildirimGonderPage() {
         {/* Aksiyon URL */}
         <div className="space-y-1.5">
           <Label htmlFor="actionUrl">Yönlendirme bağlantısı (opsiyonel)</Label>
-          <Input id="actionUrl" placeholder="/danisan/randevu" {...register("actionUrl")} />
+          <div className="relative">
+            <Link2 className={iconCls} aria-hidden />
+            <Input
+              id="actionUrl"
+              className="pl-9"
+              placeholder="/danisan/randevu"
+              {...register("actionUrl")}
+            />
+          </div>
         </div>
 
         <Button type="submit" loading={isSubmitting || create.isPending}>

@@ -3,6 +3,7 @@
 import { Wallet, TrendingUp, Clock, Inbox, Banknote, CreditCard } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { StatCard } from "@/components/layout/stat-card";
+import { StatusBadge, type BadgeTone } from "@/components/ui/status-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const tl = new Intl.NumberFormat("tr-TR", {
@@ -24,11 +25,11 @@ const STATUS_LABELS: Record<string, string> = {
   partial: "Kısmi",
   free: "Ücretsiz",
 };
-const statusTone: Record<string, string> = {
-  paid: "bg-success/10 text-success",
-  pending: "bg-warning/10 text-warning",
-  partial: "bg-accent text-primary",
-  free: "bg-muted text-text-2",
+const statusTone: Record<string, BadgeTone> = {
+  paid: "success",
+  pending: "warning",
+  partial: "primary",
+  free: "neutral",
 };
 const METHOD_LABELS: Record<string, string> = {
   nakit: "Nakit",
@@ -46,6 +47,7 @@ export default function EgitmenOdemePage() {
       <header className="mb-5">
         <p className="text-xs text-text-3">Eğitmen paneli</p>
         <h1 className="font-headline text-xl font-semibold text-foreground">Ödemeler & Kasa</h1>
+        <p className="mt-1 text-sm text-text-2">Günlük kasa özeti ve son tahsilatlar.</p>
       </header>
 
       {/* Gunluk kasa ozeti */}
@@ -129,6 +131,9 @@ export default function EgitmenOdemePage() {
                 key={p.id}
                 className="flex items-center gap-3 rounded-[var(--radius)] border border-border bg-card p-3"
               >
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-[var(--radius)] bg-accent text-primary">
+                  <Wallet className="size-4" aria-hidden />
+                </span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-foreground">
                     {p.description ?? "Ödeme"}
@@ -138,18 +143,13 @@ export default function EgitmenOdemePage() {
                     {p.createdAt ? dtf.format(new Date(p.createdAt)) : ""}
                   </p>
                 </div>
-                <div className="shrink-0 text-right">
+                <div className="flex shrink-0 flex-col items-end gap-1.5 text-right">
                   <p className="text-sm font-semibold text-foreground">
                     {tl.format(Number(p.amount))}
                   </p>
-                  <span
-                    className={
-                      "mt-0.5 inline-block rounded-full px-2 py-0.5 text-[10px] font-medium " +
-                      (statusTone[p.status ?? ""] ?? "bg-muted text-text-2")
-                    }
-                  >
-                    {p.status ? (STATUS_LABELS[p.status] ?? p.status) : ""}
-                  </span>
+                  <StatusBadge tone={statusTone[p.status ?? ""] ?? "neutral"}>
+                    {p.status ? (STATUS_LABELS[p.status] ?? p.status) : "—"}
+                  </StatusBadge>
                 </div>
               </li>
             ))}

@@ -138,6 +138,7 @@ export default function EgitmenMesajPage() {
       <header className="mb-4">
         <p className="text-xs text-text-3">Eğitmen paneli</p>
         <h1 className="font-headline text-xl font-semibold text-foreground">Mesajlar</h1>
+        <p className="mt-1 text-sm text-text-2">Danışanlarınızla güvenli yazışmalar.</p>
       </header>
 
       {conversations.isLoading ? (

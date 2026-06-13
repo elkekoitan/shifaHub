@@ -1,11 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { Users, UserX, ShieldCheck, ChevronLeft, ChevronRight, Mail, Phone } from "lucide-react";
+import {
+  Users,
+  UserX,
+  UserCheck,
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+  Mail,
+  Phone,
+  CheckCircle2,
+  Ban,
+} from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatusBadge, type BadgeTone } from "@/components/ui/status-badge";
 import { cn } from "@/lib/utils";
 
 type RoleFilter = "all" | "danisan" | "egitmen" | "admin" | "tabip";
@@ -25,7 +37,19 @@ const ROLE_LABEL: Record<string, string> = {
   tabip: "Tabip",
 };
 
+const ROLE_TONE: Record<string, BadgeTone> = {
+  danisan: "info",
+  egitmen: "primary",
+  admin: "warning",
+  tabip: "neutral",
+};
+
 const dtf = new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "short", year: "numeric" });
+
+function initials(first?: string | null, last?: string | null, email?: string) {
+  const fromName = `${first?.[0] ?? ""}${last?.[0] ?? ""}`.toUpperCase();
+  return fromName || email?.[0]?.toUpperCase() || "?";
+}
 
 export default function KullanicilarPage() {
   const [role, setRole] = useState<RoleFilter>("all");
@@ -58,7 +82,7 @@ export default function KullanicilarPage() {
     <div>
       <header className="mb-5">
         <h1 className="font-headline text-2xl font-semibold text-foreground">Kullanıcılar</h1>
-        <p className="mt-1 text-sm text-text-2">
+        <p className="mt-1.5 text-sm text-text-2">
           Platform kullanıcılarını görüntüleyin, aktif/pasif durumunu yönetin.
         </p>
       </header>
@@ -90,21 +114,26 @@ export default function KullanicilarPage() {
           ))}
         </div>
       ) : list.isError ? (
-        <div className="flex flex-col items-center gap-2 rounded-[var(--radius-lg)] border border-dashed border-destructive/40 bg-card p-8 text-center">
-          <ShieldCheck className="size-6 text-destructive" aria-hidden />
+        <div className="flex flex-col items-center gap-2 rounded-[var(--radius-lg)] border border-dashed border-destructive-border bg-card p-8 text-center">
+          <span className="flex size-11 items-center justify-center rounded-full bg-destructive-bg">
+            <AlertCircle className="size-5 text-destructive" aria-hidden />
+          </span>
           <p className="text-sm text-text-2">Kullanıcılar yüklenemedi.</p>
           <button
             type="button"
             onClick={() => list.refetch()}
-            className="text-sm font-medium text-primary"
+            className="text-sm font-medium text-primary hover:underline"
           >
             Tekrar dene
           </button>
         </div>
       ) : users.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-[var(--radius-lg)] border border-dashed border-border bg-card p-10 text-center">
-          <Users className="size-7 text-text-3" aria-hidden />
-          <p className="text-sm text-text-2">Bu filtreye uyan kullanıcı yok.</p>
+          <span className="flex size-12 items-center justify-center rounded-full bg-muted">
+            <Users className="size-6 text-text-3" aria-hidden />
+          </span>
+          <p className="text-sm font-medium text-foreground">Kullanıcı bulunamadı</p>
+          <p className="text-xs text-text-3">Bu filtreye uyan kayıt yok.</p>
         </div>
       ) : (
         <>
@@ -114,38 +143,43 @@ export default function KullanicilarPage() {
                 key={u.id}
                 className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius)] border border-border bg-card p-4"
               >
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="truncate text-sm font-medium text-foreground">
-                      {u.firstName || u.lastName
-                        ? `${u.firstName ?? ""} ${u.lastName ?? ""}`.trim()
-                        : "İsimsiz kullanıcı"}
-                    </p>
-                    <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-text-2">
-                      {ROLE_LABEL[u.role] ?? u.role}
-                    </span>
-                    {u.isActive ? (
-                      <span className="rounded-full bg-success/10 px-2 py-0.5 text-[10px] font-medium text-success">
-                        Aktif
-                      </span>
-                    ) : (
-                      <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-medium text-destructive">
-                        Pasif
-                      </span>
-                    )}
-                  </div>
-                  <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-3">
-                    <span className="flex items-center gap-1">
-                      <Mail className="size-3" aria-hidden />
-                      {u.email}
-                    </span>
-                    {u.phoneLast4 ? (
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                    {initials(u.firstName, u.lastName, u.email)}
+                  </span>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="truncate text-sm font-medium text-foreground">
+                        {u.firstName || u.lastName
+                          ? `${u.firstName ?? ""} ${u.lastName ?? ""}`.trim()
+                          : "İsimsiz kullanıcı"}
+                      </p>
+                      <StatusBadge tone={ROLE_TONE[u.role] ?? "neutral"}>
+                        {ROLE_LABEL[u.role] ?? u.role}
+                      </StatusBadge>
+                      {u.isActive ? (
+                        <StatusBadge tone="success" icon={CheckCircle2}>
+                          Aktif
+                        </StatusBadge>
+                      ) : (
+                        <StatusBadge tone="danger" icon={Ban}>
+                          Pasif
+                        </StatusBadge>
+                      )}
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-3">
                       <span className="flex items-center gap-1">
-                        <Phone className="size-3" aria-hidden />
-                        •••• {u.phoneLast4}
+                        <Mail className="size-3" aria-hidden />
+                        {u.email}
                       </span>
-                    ) : null}
-                    <span>Kayıt: {dtf.format(new Date(u.createdAt))}</span>
+                      {u.phoneLast4 ? (
+                        <span className="flex items-center gap-1">
+                          <Phone className="size-3" aria-hidden />
+                          •••• {u.phoneLast4}
+                        </span>
+                      ) : null}
+                      <span>Kayıt: {dtf.format(new Date(u.createdAt))}</span>
+                    </div>
                   </div>
                 </div>
                 <Button
@@ -161,7 +195,10 @@ export default function KullanicilarPage() {
                       Pasif yap
                     </>
                   ) : (
-                    "Aktif yap"
+                    <>
+                      <UserCheck className="size-4" aria-hidden />
+                      Aktif yap
+                    </>
                   )}
                 </Button>
               </li>

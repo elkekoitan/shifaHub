@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ClipboardList, Inbox, Users, ChevronDown } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { Label } from "@/components/ui/label";
+import { StatusBadge, type BadgeTone } from "@/components/ui/status-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const dateFmt = new Intl.DateTimeFormat("tr-TR", {
@@ -17,16 +18,22 @@ const STATUS_LABELS: Record<string, string> = {
   completed: "Tamamlandı",
   paused: "Duraklatıldı",
 };
-const statusTone: Record<string, string> = {
-  active: "bg-accent text-primary",
-  completed: "bg-success/10 text-success",
-  paused: "bg-muted text-text-2",
+const statusTone: Record<string, BadgeTone> = {
+  active: "primary",
+  completed: "success",
+  paused: "neutral",
 };
 const PRIORITY_LABELS: Record<number, string> = {
   1: "Acil",
   2: "Yüksek",
   3: "Normal",
   4: "Takip",
+};
+const priorityTone: Record<number, BadgeTone> = {
+  1: "danger",
+  2: "warning",
+  3: "neutral",
+  4: "info",
 };
 
 export default function EgitmenProtokolPage() {
@@ -39,6 +46,9 @@ export default function EgitmenProtokolPage() {
       <header className="mb-4">
         <p className="text-xs text-text-3">Eğitmen paneli</p>
         <h1 className="font-headline text-xl font-semibold text-foreground">Tedavi protokolleri</h1>
+        <p className="mt-1 text-sm text-text-2">
+          Danışan bazlı tedavi planları ve şikayet öncelikleri.
+        </p>
       </header>
 
       {/* Danisan secici */}
@@ -103,24 +113,19 @@ export default function EgitmenProtokolPage() {
                     {p.egitmenFirstName} {p.egitmenLastName}
                   </p>
                 </div>
-                <span
-                  className={
-                    "shrink-0 rounded-full px-2.5 py-1 text-[10px] font-medium " +
-                    (statusTone[p.status ?? ""] ?? "bg-muted text-text-2")
-                  }
-                >
+                <StatusBadge tone={statusTone[p.status ?? ""] ?? "neutral"}>
                   {p.status ? (STATUS_LABELS[p.status] ?? p.status) : "—"}
-                </span>
+                </StatusBadge>
               </div>
 
               {p.complaints && p.complaints.length > 0 ? (
-                <ul className="mt-3 space-y-1.5 border-t border-border pt-3">
+                <ul className="mt-3 space-y-2 border-t border-border pt-3">
                   {p.complaints.map((c, i) => (
                     <li key={i} className="flex items-center justify-between gap-2 text-xs">
                       <span className="min-w-0 truncate text-text-2">{c.description}</span>
-                      <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 font-medium text-text-3">
+                      <StatusBadge tone={priorityTone[c.priority] ?? "neutral"}>
                         {PRIORITY_LABELS[c.priority] ?? `P${c.priority}`}
-                      </span>
+                      </StatusBadge>
                     </li>
                   ))}
                 </ul>

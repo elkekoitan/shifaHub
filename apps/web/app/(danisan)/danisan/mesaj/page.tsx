@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MessageCircle, ChevronLeft, Send, AlertCircle, User as UserIcon } from "lucide-react";
+import { MessageCircle, ChevronLeft, Send, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthStore } from "@/stores/auth";
 import { trpc } from "@/lib/trpc";
@@ -14,6 +14,13 @@ const timeFmt = new Intl.DateTimeFormat("tr-TR", {
   hour: "2-digit",
   minute: "2-digit",
 });
+
+function initialsOf(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  const a = parts[0]?.[0] ?? "";
+  const b = parts.length > 1 ? (parts[parts.length - 1]?.[0] ?? "") : "";
+  return `${a}${b}`.toUpperCase() || "ŞH";
+}
 
 interface ActiveThread {
   userId: string;
@@ -37,7 +44,7 @@ function ConversationList({ onOpen }: { onOpen: (t: ActiveThread) => void }) {
 
   return (
     <div className="px-5 pt-6">
-      <header className="mb-5">
+      <header className="mb-6">
         <h1 className="font-headline text-xl font-semibold text-foreground">Mesajlar</h1>
         <p className="mt-1 text-sm text-text-2">Eğitmeninizle yazışmalarınız.</p>
       </header>
@@ -49,14 +56,16 @@ function ConversationList({ onOpen }: { onOpen: (t: ActiveThread) => void }) {
           ))}
         </div>
       ) : list.isError ? (
-        <div className="flex items-center gap-2 rounded-[var(--radius)] border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
-          <AlertCircle className="size-4 shrink-0" aria-hidden />
+        <div className="flex items-center gap-2 rounded-[var(--radius)] border border-destructive-border bg-destructive-bg p-4 text-sm text-destructive">
+          <AlertTriangle className="size-4 shrink-0" aria-hidden />
           Mesajlar yüklenemedi.
         </div>
       ) : rows.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-[var(--radius-lg)] border border-dashed border-border bg-card p-8 text-center">
-          <MessageCircle className="size-7 text-text-3" aria-hidden />
-          <p className="text-sm text-text-2">Henüz bir mesajınız yok.</p>
+          <span className="flex size-11 items-center justify-center rounded-full bg-muted">
+            <MessageCircle className="size-5 text-text-3" aria-hidden />
+          </span>
+          <p className="text-sm font-medium text-foreground">Henüz mesajınız yok</p>
           <p className="text-xs text-text-3">Eğitmeniniz size yazdığında burada görünür.</p>
         </div>
       ) : (
@@ -70,8 +79,8 @@ function ConversationList({ onOpen }: { onOpen: (t: ActiveThread) => void }) {
                   onClick={() => onOpen({ userId: m.otherUserId, name })}
                   className="flex w-full items-center gap-3 rounded-[var(--radius-lg)] border border-border bg-card p-3 text-left shadow-[var(--shadow-sm)] transition-colors hover:bg-secondary"
                 >
-                  <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent text-primary">
-                    <UserIcon className="size-5" aria-hidden />
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                    {initialsOf(name)}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium text-foreground">{name}</p>
@@ -123,16 +132,21 @@ function Thread({
 
   return (
     <div className="flex min-h-screen flex-col px-5 pt-6">
-      <header className="mb-4 flex items-center gap-2">
+      <header className="mb-4 flex items-center gap-2.5">
         <button
           type="button"
           onClick={onBack}
           aria-label="Geri dön"
-          className="flex size-9 items-center justify-center rounded-full text-text-2 transition-colors hover:bg-secondary"
+          className="flex size-9 shrink-0 items-center justify-center rounded-full text-text-2 transition-colors hover:bg-secondary"
         >
           <ChevronLeft className="size-5" aria-hidden />
         </button>
-        <h1 className="font-headline text-lg font-semibold text-foreground">{thread.name}</h1>
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+          {initialsOf(thread.name)}
+        </div>
+        <h1 className="min-w-0 truncate font-headline text-lg font-semibold text-foreground">
+          {thread.name}
+        </h1>
       </header>
 
       <div className="flex-1 space-y-2 pb-4">
@@ -142,14 +156,17 @@ function Thread({
             <Skeleton className="h-10 w-2/3 rounded-[var(--radius-lg)]" />
           </div>
         ) : conv.isError ? (
-          <div className="flex items-center gap-2 rounded-[var(--radius)] border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
-            <AlertCircle className="size-4 shrink-0" aria-hidden />
+          <div className="flex items-center gap-2 rounded-[var(--radius)] border border-destructive-border bg-destructive-bg p-4 text-sm text-destructive">
+            <AlertTriangle className="size-4 shrink-0" aria-hidden />
             Konuşma yüklenemedi.
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center gap-2 rounded-[var(--radius-lg)] border border-dashed border-border bg-card p-8 text-center">
-            <MessageCircle className="size-7 text-text-3" aria-hidden />
-            <p className="text-sm text-text-2">Henüz mesaj yok. İlk mesajı gönderin.</p>
+            <span className="flex size-11 items-center justify-center rounded-full bg-muted">
+              <MessageCircle className="size-5 text-text-3" aria-hidden />
+            </span>
+            <p className="text-sm font-medium text-foreground">Henüz mesaj yok</p>
+            <p className="text-xs text-text-3">İlk mesajı göndererek sohbeti başlatın.</p>
           </div>
         ) : (
           messages.map((m) => {

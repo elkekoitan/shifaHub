@@ -14,11 +14,14 @@ import {
   UserCheck,
   Info,
   ShieldCheck,
+  AlertTriangle,
+  RefreshCw,
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 /** Bildirim tipi → ikon eşlemesi (bildirim router'ındaki enum ile birebir). */
 const typeIcon: Record<string, LucideIcon> = {
@@ -94,19 +97,23 @@ export default function BildirimPage() {
         </div>
       ) : list.isError ? (
         <div className="flex flex-col items-center gap-2 rounded-[var(--radius-lg)] border border-dashed border-destructive-border bg-destructive-bg p-7 text-center">
-          <Info className="size-6 text-destructive" aria-hidden />
-          <p className="text-sm text-destructive">Bildirimler yüklenemedi.</p>
+          <span className="flex size-11 items-center justify-center rounded-full bg-destructive/10">
+            <AlertTriangle className="size-5 text-destructive" aria-hidden />
+          </span>
+          <p className="text-sm font-medium text-destructive">Bildirimler yüklenemedi.</p>
           <button
             type="button"
             onClick={() => void list.refetch()}
-            className="text-xs font-medium text-primary"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
           >
-            Tekrar dene
+            <RefreshCw className="size-3.5" aria-hidden /> Tekrar dene
           </button>
         </div>
       ) : rows.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-[var(--radius-lg)] border border-dashed border-border bg-card p-10 text-center">
-          <BellOff className="size-7 text-text-3" aria-hidden />
+          <span className="flex size-11 items-center justify-center rounded-full bg-muted">
+            <BellOff className="size-5 text-text-3" aria-hidden />
+          </span>
           <p className="text-sm font-medium text-foreground">Henüz bildirimin yok</p>
           <p className="text-xs text-text-3">Yeni bir gelişme olduğunda burada görünecek.</p>
         </div>
@@ -135,10 +142,9 @@ export default function BildirimPage() {
                     <div className="flex items-start justify-between gap-2">
                       <p className="text-sm font-medium text-foreground">{n.title}</p>
                       {unread ? (
-                        <span
-                          className="mt-1.5 size-2 shrink-0 rounded-full bg-primary"
-                          aria-label="Okunmadı"
-                        />
+                        <StatusBadge tone="primary" className="mt-0.5 shrink-0">
+                          Yeni
+                        </StatusBadge>
                       ) : null}
                     </div>
                     {n.body ? (

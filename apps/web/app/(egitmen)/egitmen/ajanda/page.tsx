@@ -4,7 +4,19 @@ import { useMemo, useState } from "react";
 import { CalendarRange, Inbox, ChevronLeft, ChevronRight, Clock, Moon } from "lucide-react";
 import { APPOINTMENT_STATUS_LABELS, TREATMENT_LABELS } from "@shifahub/shared";
 import { trpc } from "@/lib/trpc";
+import { StatusBadge, type BadgeTone } from "@/components/ui/status-badge";
 import { Skeleton } from "@/components/ui/skeleton";
+
+const statusTone: Record<string, BadgeTone> = {
+  requested: "warning",
+  confirmed: "primary",
+  reminded: "info",
+  arrived: "info",
+  treated: "success",
+  completed: "success",
+  cancelled: "danger",
+  no_show: "danger",
+};
 
 const WEEKDAYS = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"] as const;
 const MONTHS = [
@@ -81,6 +93,7 @@ export default function EgitmenAjandaPage() {
       <header className="mb-4">
         <p className="text-xs text-text-3">Eğitmen paneli</p>
         <h1 className="font-headline text-xl font-semibold text-foreground">Ajanda</h1>
+        <p className="mt-1 text-sm text-text-2">Aylık takvim ve günlük randevu akışınız.</p>
       </header>
 
       {/* Ay basligi + gezinme */}
@@ -190,9 +203,9 @@ export default function EgitmenAjandaPage() {
                 {r.isSunnahDay ? (
                   <Moon className="size-3.5 shrink-0 text-accent-honey" aria-hidden />
                 ) : null}
-                <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-text-2">
-                  {r.status ? (APPOINTMENT_STATUS_LABELS[r.status] ?? r.status) : ""}
-                </span>
+                <StatusBadge tone={statusTone[r.status ?? ""] ?? "neutral"}>
+                  {r.status ? (APPOINTMENT_STATUS_LABELS[r.status] ?? r.status) : "—"}
+                </StatusBadge>
               </li>
             ))}
           </ul>

@@ -2,7 +2,7 @@
 
 import {
   BarChart3,
-  ShieldCheck,
+  AlertCircle,
   Users,
   CalendarHeart,
   HeartPulse,
@@ -26,7 +26,7 @@ export default function RaporlarPage() {
     <div>
       <header className="mb-6">
         <h1 className="font-headline text-2xl font-semibold text-foreground">Raporlar</h1>
-        <p className="mt-1 text-sm text-text-2">
+        <p className="mt-1.5 text-sm text-text-2">
           Platform geneli sayılar ve son 7 günün etkinliği.
         </p>
       </header>
@@ -39,13 +39,15 @@ export default function RaporlarPage() {
           ))}
         </div>
       ) : stats.isError ? (
-        <div className="flex flex-col items-center gap-2 rounded-[var(--radius-lg)] border border-dashed border-destructive/40 bg-card p-8 text-center">
-          <ShieldCheck className="size-6 text-destructive" aria-hidden />
+        <div className="flex flex-col items-center gap-2 rounded-[var(--radius-lg)] border border-dashed border-destructive-border bg-card p-8 text-center">
+          <span className="flex size-11 items-center justify-center rounded-full bg-destructive-bg">
+            <AlertCircle className="size-5 text-destructive" aria-hidden />
+          </span>
           <p className="text-sm text-text-2">Özet veriler yüklenemedi.</p>
           <button
             type="button"
             onClick={() => stats.refetch()}
-            className="text-sm font-medium text-primary"
+            className="text-sm font-medium text-primary hover:underline"
           >
             Tekrar dene
           </button>
@@ -93,21 +95,26 @@ export default function RaporlarPage() {
         {weekly.isLoading ? (
           <Skeleton className="h-48 w-full rounded-[var(--radius)]" />
         ) : weekly.isError ? (
-          <div className="flex flex-col items-center gap-2 rounded-[var(--radius)] border border-dashed border-destructive/40 p-6 text-center">
-            <ShieldCheck className="size-5 text-destructive" aria-hidden />
+          <div className="flex flex-col items-center gap-2 rounded-[var(--radius)] border border-dashed border-destructive-border p-6 text-center">
+            <span className="flex size-10 items-center justify-center rounded-full bg-destructive-bg">
+              <AlertCircle className="size-5 text-destructive" aria-hidden />
+            </span>
             <p className="text-sm text-text-2">Haftalık veri yüklenemedi.</p>
             <button
               type="button"
               onClick={() => weekly.refetch()}
-              className="text-sm font-medium text-primary"
+              className="text-sm font-medium text-primary hover:underline"
             >
               Tekrar dene
             </button>
           </div>
         ) : days.length === 0 ? (
           <div className="flex flex-col items-center gap-2 rounded-[var(--radius)] border border-dashed border-border p-8 text-center">
-            <BarChart3 className="size-6 text-text-3" aria-hidden />
-            <p className="text-sm text-text-2">Gösterilecek veri yok.</p>
+            <span className="flex size-11 items-center justify-center rounded-full bg-muted">
+              <BarChart3 className="size-5 text-text-3" aria-hidden />
+            </span>
+            <p className="text-sm font-medium text-foreground">Veri yok</p>
+            <p className="text-xs text-text-3">Bu dönem için kayıt bulunmuyor.</p>
           </div>
         ) : (
           <>

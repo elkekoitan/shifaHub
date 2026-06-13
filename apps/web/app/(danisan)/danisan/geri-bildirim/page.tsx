@@ -23,15 +23,17 @@ export default function DanisanGeriBildirimPage() {
 
   return (
     <div className="px-5 pt-6">
-      <header className="mb-5">
+      <header className="mb-6">
         <h1 className="font-headline text-xl font-semibold text-foreground">Geri bildirim</h1>
         <p className="mt-1 text-sm text-text-2">Deneyiminizi bizimle paylaşın.</p>
       </header>
 
-      <div className="mb-5 flex items-start gap-2 rounded-[var(--radius)] border border-dashed border-border bg-card p-4 text-xs text-text-2">
-        <Info className="mt-0.5 size-4 shrink-0 text-text-3" aria-hidden />
-        Geri bildirim gönderimi şu an hazırlık aşamasında. Formu doldurabilirsiniz; gönderim
-        özelliği yakında etkinleştirilecek.
+      <div className="mb-5 flex items-start gap-2 rounded-[var(--radius)] border border-info-border bg-info-bg p-4 text-xs text-info">
+        <Info className="mt-0.5 size-4 shrink-0" aria-hidden />
+        <span>
+          Geri bildirim gönderimi şu an hazırlık aşamasında. Formu doldurabilirsiniz; gönderim
+          özelliği yakında etkinleştirilecek.
+        </span>
       </div>
 
       <form
@@ -58,7 +60,7 @@ export default function DanisanGeriBildirimPage() {
               >
                 <Star
                   className={
-                    "size-6 " +
+                    "size-6 transition-colors " +
                     (n <= rating ? "fill-accent-honey text-accent-honey" : "text-text-3")
                   }
                   aria-hidden

@@ -5,7 +5,22 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
-import { UserCog, ShieldCheck, AlertCircle, LogOut, Check, X } from "lucide-react";
+import {
+  UserCog,
+  ShieldCheck,
+  AlertTriangle,
+  LogOut,
+  CheckCircle2,
+  XCircle,
+  CalendarDays,
+  Droplet,
+  MapPin,
+  Briefcase,
+  Ruler,
+  Weight,
+  Phone,
+  UserRound,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useAuthStore } from "@/stores/auth";
 import { trpc } from "@/lib/trpc";
@@ -13,6 +28,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatusBadge } from "@/components/ui/status-badge";
+
+const iconCls = "pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-3";
+const selectCls =
+  "flex h-11 w-full rounded-[var(--radius)] border border-input bg-card pl-9 pr-3 py-2 text-sm text-foreground transition-colors focus-visible:border-ring focus-visible:outline-none";
 
 // ─── Profil form şeması ──────────────────────────────────────────────────────
 const GENDERS = [
@@ -166,18 +186,34 @@ export default function DanisanProfilPage() {
   // me NOT_FOUND => profil henüz yok; form boş gösterilir (ilk kayıt).
   const profileMissing = me.isError;
   const consentBusy = grant.isPending || revoke.isPending;
+  const initials =
+    `${user?.firstName?.[0] ?? ""}${user?.lastName?.[0] ?? ""}`.toUpperCase() || "ŞH";
 
   return (
     <div className="px-5 pt-6">
-      <header className="mb-5 flex items-start justify-between gap-3">
-        <div>
-          <h1 className="font-headline text-xl font-semibold text-foreground">Profil</h1>
-          <p className="mt-1 text-sm text-text-2">
-            {user?.firstName ? `${user.firstName} ${user.lastName ?? ""}` : "Hesap bilgileriniz"}
-          </p>
-          {user?.email ? <p className="text-xs text-text-3">{user.email}</p> : null}
+      <header className="mb-6 flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-base font-semibold text-primary">
+            {initials}
+          </div>
+          <div className="min-w-0">
+            <h1 className="truncate font-headline text-xl font-semibold text-foreground">
+              {user?.firstName ? `${user.firstName} ${user.lastName ?? ""}` : "Profil"}
+            </h1>
+            {user?.email ? (
+              <p className="truncate text-xs text-text-3">{user.email}</p>
+            ) : (
+              <p className="text-xs text-text-3">Hesap bilgileriniz</p>
+            )}
+          </div>
         </div>
-        <Button variant="outline" size="sm" onClick={onLogout} aria-label="Çıkış yap">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onLogout}
+          aria-label="Çıkış yap"
+          className="shrink-0"
+        >
           <LogOut className="size-4" aria-hidden />
           Çıkış
         </Button>
@@ -185,21 +221,24 @@ export default function DanisanProfilPage() {
 
       {/* ─── Profil formu ──────────────────────────────────────────── */}
       <section className="mb-6 rounded-[var(--radius-lg)] border border-border bg-card p-5 shadow-[var(--shadow-sm)]">
-        <h2 className="mb-4 flex items-center gap-2 font-headline text-base font-semibold text-foreground">
-          <UserCog className="size-4 text-primary" aria-hidden />
-          Kişisel bilgiler
-        </h2>
+        <div className="mb-4 flex items-center gap-2.5">
+          <span className="flex size-9 items-center justify-center rounded-[var(--radius-sm)] bg-accent text-primary">
+            <UserCog className="size-4" aria-hidden />
+          </span>
+          <h2 className="text-sm font-medium text-foreground">Kişisel bilgiler</h2>
+        </div>
 
         {me.isLoading ? (
           <div className="space-y-3">
-            <Skeleton className="h-11 w-full" />
-            <Skeleton className="h-11 w-full" />
-            <Skeleton className="h-11 w-full" />
+            <Skeleton className="h-11 w-full rounded-[var(--radius)]" />
+            <Skeleton className="h-11 w-full rounded-[var(--radius)]" />
+            <Skeleton className="h-11 w-full rounded-[var(--radius)]" />
           </div>
         ) : (
           <>
             {profileMissing ? (
-              <p className="mb-4 rounded-[var(--radius-sm)] bg-muted px-3 py-2 text-xs text-text-2">
+              <p className="mb-4 flex items-start gap-1.5 rounded-[var(--radius-sm)] border border-info-border bg-info-bg px-3 py-2 text-xs text-info">
+                <UserRound className="mt-0.5 size-3.5 shrink-0" aria-hidden />
                 Profiliniz henüz oluşturulmamış. Bilgilerinizi doldurup kaydedin.
               </p>
             ) : null}
@@ -207,85 +246,123 @@ export default function DanisanProfilPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="birthDate">Doğum tarihi</Label>
-                  <Input id="birthDate" type="date" {...register("birthDate")} />
+                  <div className="relative">
+                    <CalendarDays className={iconCls} aria-hidden />
+                    <Input id="birthDate" type="date" className="pl-9" {...register("birthDate")} />
+                  </div>
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="gender">Cinsiyet</Label>
-                  <select
-                    id="gender"
-                    defaultValue=""
-                    className="flex h-11 w-full rounded-[var(--radius)] border border-input bg-card px-3 py-2 text-sm text-foreground focus-visible:border-ring focus-visible:outline-none"
-                    {...register("gender")}
-                  >
-                    <option value="">Seçin</option>
-                    {GENDERS.map((g) => (
-                      <option key={g.value} value={g.value}>
-                        {g.label}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <UserRound className={iconCls} aria-hidden />
+                    <select
+                      id="gender"
+                      defaultValue=""
+                      className={selectCls}
+                      {...register("gender")}
+                    >
+                      <option value="">Seçin</option>
+                      {GENDERS.map((g) => (
+                        <option key={g.value} value={g.value}>
+                          {g.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="bloodType">Kan grubu</Label>
-                  <select
-                    id="bloodType"
-                    defaultValue=""
-                    className="flex h-11 w-full rounded-[var(--radius)] border border-input bg-card px-3 py-2 text-sm text-foreground focus-visible:border-ring focus-visible:outline-none"
-                    {...register("bloodType")}
-                  >
-                    <option value="">Seçin</option>
-                    {BLOOD_TYPES.map((b) => (
-                      <option key={b} value={b}>
-                        {bloodLabel(b)}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <Droplet className={iconCls} aria-hidden />
+                    <select
+                      id="bloodType"
+                      defaultValue=""
+                      className={selectCls}
+                      {...register("bloodType")}
+                    >
+                      <option value="">Seçin</option>
+                      {BLOOD_TYPES.map((b) => (
+                        <option key={b} value={b}>
+                          {bloodLabel(b)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="city">Şehir</Label>
-                  <Input id="city" {...register("city")} />
+                  <div className="relative">
+                    <MapPin className={iconCls} aria-hidden />
+                    <Input id="city" className="pl-9" {...register("city")} />
+                  </div>
                 </div>
               </div>
 
               <div className="space-y-1.5">
                 <Label htmlFor="occupation">Meslek</Label>
-                <Input id="occupation" {...register("occupation")} />
+                <div className="relative">
+                  <Briefcase className={iconCls} aria-hidden />
+                  <Input id="occupation" className="pl-9" {...register("occupation")} />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="height">Boy (cm)</Label>
-                  <Input
-                    id="height"
-                    type="number"
-                    inputMode="numeric"
-                    aria-invalid={Boolean(errors.height)}
-                    {...register("height")}
-                  />
+                  <div className="relative">
+                    <Ruler className={iconCls} aria-hidden />
+                    <Input
+                      id="height"
+                      type="number"
+                      inputMode="numeric"
+                      className="pl-9"
+                      aria-invalid={Boolean(errors.height)}
+                      {...register("height")}
+                    />
+                  </div>
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="weight">Kilo (kg)</Label>
-                  <Input
-                    id="weight"
-                    type="number"
-                    inputMode="numeric"
-                    aria-invalid={Boolean(errors.weight)}
-                    {...register("weight")}
-                  />
+                  <div className="relative">
+                    <Weight className={iconCls} aria-hidden />
+                    <Input
+                      id="weight"
+                      type="number"
+                      inputMode="numeric"
+                      className="pl-9"
+                      aria-invalid={Boolean(errors.weight)}
+                      {...register("weight")}
+                    />
+                  </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="emergencyContact">Acil durumda aranacak</Label>
-                  <Input id="emergencyContact" {...register("emergencyContact")} />
+                  <div className="relative">
+                    <UserRound className={iconCls} aria-hidden />
+                    <Input
+                      id="emergencyContact"
+                      className="pl-9"
+                      {...register("emergencyContact")}
+                    />
+                  </div>
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="emergencyPhone">Acil telefon</Label>
-                  <Input id="emergencyPhone" type="tel" {...register("emergencyPhone")} />
+                  <div className="relative">
+                    <Phone className={iconCls} aria-hidden />
+                    <Input
+                      id="emergencyPhone"
+                      type="tel"
+                      className="pl-9"
+                      {...register("emergencyPhone")}
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -313,11 +390,13 @@ export default function DanisanProfilPage() {
 
       {/* ─── KVKK rızaları ─────────────────────────────────────────── */}
       <section className="mb-6 rounded-[var(--radius-lg)] border border-border bg-card p-5 shadow-[var(--shadow-sm)]">
-        <h2 className="mb-1 flex items-center gap-2 font-headline text-base font-semibold text-foreground">
-          <ShieldCheck className="size-4 text-primary" aria-hidden />
-          KVKK rızaları
-        </h2>
-        <p className="mb-4 text-xs text-text-3">
+        <div className="mb-1 flex items-center gap-2.5">
+          <span className="flex size-9 items-center justify-center rounded-[var(--radius-sm)] bg-accent text-primary">
+            <ShieldCheck className="size-4" aria-hidden />
+          </span>
+          <h2 className="text-sm font-medium text-foreground">KVKK rızaları</h2>
+        </div>
+        <p className="mb-4 ml-[2.875rem] text-xs text-text-3">
           Her veri işleme amacı için açık rızanızı verebilir veya geri çekebilirsiniz.
         </p>
 
@@ -328,8 +407,8 @@ export default function DanisanProfilPage() {
             ))}
           </div>
         ) : consents.isError ? (
-          <div className="flex items-center gap-2 rounded-[var(--radius)] border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
-            <AlertCircle className="size-4 shrink-0" aria-hidden />
+          <div className="flex items-center gap-2 rounded-[var(--radius)] border border-destructive-border bg-destructive-bg p-4 text-sm text-destructive">
+            <AlertTriangle className="size-4 shrink-0" aria-hidden />
             Rıza kayıtları yüklenemedi.
           </div>
         ) : (
@@ -339,26 +418,18 @@ export default function DanisanProfilPage() {
               return (
                 <li
                   key={p.value}
-                  className="flex items-center justify-between gap-3 rounded-[var(--radius)] bg-muted px-3 py-2.5"
+                  className="flex items-center justify-between gap-3 rounded-[var(--radius)] border border-border bg-muted px-3 py-2.5"
                 >
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-foreground">{p.label}</p>
-                    <p
-                      className={
-                        "flex items-center gap-1 text-xs " +
-                        (isActive ? "text-success" : "text-text-3")
-                      }
-                    >
-                      {isActive ? (
-                        <>
-                          <Check className="size-3" aria-hidden /> Onaylandı
-                        </>
-                      ) : (
-                        <>
-                          <X className="size-3" aria-hidden /> Onay yok
-                        </>
-                      )}
-                    </p>
+                    <div className="mt-1">
+                      <StatusBadge
+                        tone={isActive ? "success" : "neutral"}
+                        icon={isActive ? CheckCircle2 : XCircle}
+                      >
+                        {isActive ? "Onaylandı" : "Onay yok"}
+                      </StatusBadge>
+                    </div>
                   </div>
                   <Button
                     type="button"

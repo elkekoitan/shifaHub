@@ -7,6 +7,7 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { StatusBadge, type BadgeTone } from "@/components/ui/status-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const dtf = new Intl.DateTimeFormat("tr-TR", {
@@ -29,16 +30,16 @@ const STATUS_LABELS: Record<string, string> = {
   following: "Takipte",
   resolved: "Çözüldü",
 };
-const statusTone: Record<string, string> = {
-  open: "bg-destructive/10 text-destructive",
-  following: "bg-warning/10 text-warning",
-  resolved: "bg-success/10 text-success",
+const statusTone: Record<string, BadgeTone> = {
+  open: "danger",
+  following: "warning",
+  resolved: "success",
 };
 
-function severityTone(sev: number): string {
-  if (sev >= 4) return "bg-destructive/10 text-destructive";
-  if (sev === 3) return "bg-warning/10 text-warning";
-  return "bg-muted text-text-2";
+function severityTone(sev: number): BadgeTone {
+  if (sev >= 4) return "danger";
+  if (sev === 3) return "warning";
+  return "neutral";
 }
 
 export default function EgitmenAcilPage() {
@@ -161,7 +162,9 @@ export default function EgitmenAcilPage() {
                 step={1}
                 value={form.severity}
                 onChange={(e) => setForm((f) => ({ ...f, severity: Number(e.target.value) }))}
-                className="w-full accent-[hsl(var(--shadow-color))]"
+                className={
+                  "w-full " + (form.severity >= 4 ? "accent-destructive" : "accent-primary")
+                }
                 aria-valuetext={SEVERITY_LABELS[form.severity]}
               />
               {form.severity >= 4 ? (
@@ -218,21 +221,15 @@ export default function EgitmenAcilPage() {
                   </p>
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1.5">
-                  <span
-                    className={
-                      "rounded-full px-2.5 py-1 text-[10px] font-medium " + severityTone(k.severity)
-                    }
+                  <StatusBadge
+                    tone={severityTone(k.severity)}
+                    icon={k.severity >= 4 ? AlertTriangle : undefined}
                   >
-                    Sev {k.severity}
-                  </span>
-                  <span
-                    className={
-                      "rounded-full px-2.5 py-1 text-[10px] font-medium " +
-                      (statusTone[k.status ?? ""] ?? "bg-muted text-text-2")
-                    }
-                  >
-                    {k.status ? (STATUS_LABELS[k.status] ?? k.status) : ""}
-                  </span>
+                    Sev {k.severity} · {SEVERITY_LABELS[k.severity] ?? "—"}
+                  </StatusBadge>
+                  <StatusBadge tone={statusTone[k.status ?? ""] ?? "neutral"}>
+                    {k.status ? (STATUS_LABELS[k.status] ?? k.status) : "—"}
+                  </StatusBadge>
                 </div>
               </div>
             </li>

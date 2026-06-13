@@ -4,21 +4,19 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { BadgeCheck, Clock3, ShieldQuestion, LogOut, Save } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useAuthStore } from "@/stores/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { StatusBadge, type BadgeTone } from "@/components/ui/status-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const APPROVAL: Record<string, { label: string; tone: string; icon: typeof BadgeCheck }> = {
-  approved: { label: "Onaylandı", tone: "bg-success/10 text-success", icon: BadgeCheck },
-  pending: { label: "Onay bekleniyor", tone: "bg-warning/10 text-warning", icon: Clock3 },
-  rejected: {
-    label: "Reddedildi",
-    tone: "bg-destructive/10 text-destructive",
-    icon: ShieldQuestion,
-  },
+const APPROVAL: Record<string, { label: string; tone: BadgeTone; icon: LucideIcon }> = {
+  approved: { label: "Onaylandı", tone: "success", icon: BadgeCheck },
+  pending: { label: "Onay bekleniyor", tone: "warning", icon: Clock3 },
+  rejected: { label: "Reddedildi", tone: "danger", icon: ShieldQuestion },
 };
 
 export default function EgitmenProfilPage() {
@@ -98,14 +96,11 @@ export default function EgitmenProfilPage() {
         {me.isLoading ? (
           <Skeleton className="h-6 w-24 rounded-full" />
         ) : approval ? (
-          <span
-            className={
-              "flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-medium " +
-              approval.tone
-            }
-          >
-            <approval.icon className="size-3" aria-hidden /> {approval.label}
-          </span>
+          <div className="shrink-0">
+            <StatusBadge tone={approval.tone} icon={approval.icon}>
+              {approval.label}
+            </StatusBadge>
+          </div>
         ) : null}
       </div>
 

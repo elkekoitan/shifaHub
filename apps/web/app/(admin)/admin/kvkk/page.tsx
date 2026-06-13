@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import {
-  ShieldCheck,
+  AlertCircle,
   ScrollText,
   ChevronLeft,
   ChevronRight,
@@ -20,6 +20,7 @@ import type { LucideIcon } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatusBadge, type BadgeTone } from "@/components/ui/status-badge";
 import { cn } from "@/lib/utils";
 
 type Action =
@@ -35,16 +36,25 @@ type Action =
 
 type ActionFilter = "all" | Action;
 
-const ACTION_META: Record<Action, { label: string; icon: LucideIcon; tone: string }> = {
-  create: { label: "Oluşturma", icon: FilePlus2, tone: "text-success" },
-  read: { label: "Okuma", icon: Eye, tone: "text-text-2" },
-  update: { label: "Güncelleme", icon: Pencil, tone: "text-primary" },
-  delete: { label: "Silme", icon: Trash2, tone: "text-destructive" },
-  login: { label: "Giriş", icon: LogIn, tone: "text-text-2" },
-  logout: { label: "Çıkış", icon: LogOut, tone: "text-text-2" },
-  export: { label: "Dışa aktarma", icon: Download, tone: "text-warning" },
-  consent_granted: { label: "Rıza verildi", icon: ShieldPlus, tone: "text-success" },
-  consent_revoked: { label: "Rıza geri çekildi", icon: ShieldMinus, tone: "text-destructive" },
+const ACTION_META: Record<Action, { label: string; icon: LucideIcon; tone: BadgeTone }> = {
+  create: { label: "Oluşturma", icon: FilePlus2, tone: "success" },
+  read: { label: "Okuma", icon: Eye, tone: "neutral" },
+  update: { label: "Güncelleme", icon: Pencil, tone: "primary" },
+  delete: { label: "Silme", icon: Trash2, tone: "danger" },
+  login: { label: "Giriş", icon: LogIn, tone: "info" },
+  logout: { label: "Çıkış", icon: LogOut, tone: "neutral" },
+  export: { label: "Dışa aktarma", icon: Download, tone: "warning" },
+  consent_granted: { label: "Rıza verildi", icon: ShieldPlus, tone: "success" },
+  consent_revoked: { label: "Rıza geri çekildi", icon: ShieldMinus, tone: "danger" },
+};
+
+const TONE_ICON: Record<BadgeTone, string> = {
+  success: "text-success",
+  warning: "text-warning",
+  danger: "text-destructive",
+  info: "text-info",
+  primary: "text-primary",
+  neutral: "text-text-2",
 };
 
 const FILTERS: { value: ActionFilter; label: string }[] = [
@@ -90,7 +100,7 @@ export default function KvkkAuditPage() {
     <div>
       <header className="mb-5">
         <h1 className="font-headline text-2xl font-semibold text-foreground">KVKK denetim izi</h1>
-        <p className="mt-1 text-sm text-text-2">
+        <p className="mt-1.5 text-sm text-text-2">
           Kişisel veri erişim ve rıza olaylarının değiştirilemez denetim kaydı.
         </p>
       </header>
@@ -122,21 +132,26 @@ export default function KvkkAuditPage() {
           ))}
         </div>
       ) : logs.isError ? (
-        <div className="flex flex-col items-center gap-2 rounded-[var(--radius-lg)] border border-dashed border-destructive/40 bg-card p-8 text-center">
-          <ShieldCheck className="size-6 text-destructive" aria-hidden />
+        <div className="flex flex-col items-center gap-2 rounded-[var(--radius-lg)] border border-dashed border-destructive-border bg-card p-8 text-center">
+          <span className="flex size-11 items-center justify-center rounded-full bg-destructive-bg">
+            <AlertCircle className="size-5 text-destructive" aria-hidden />
+          </span>
           <p className="text-sm text-text-2">Denetim kayıtları yüklenemedi.</p>
           <button
             type="button"
             onClick={() => logs.refetch()}
-            className="text-sm font-medium text-primary"
+            className="text-sm font-medium text-primary hover:underline"
           >
             Tekrar dene
           </button>
         </div>
       ) : items.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-[var(--radius-lg)] border border-dashed border-border bg-card p-10 text-center">
-          <ScrollText className="size-7 text-text-3" aria-hidden />
-          <p className="text-sm text-text-2">Bu filtreye uyan denetim kaydı yok.</p>
+          <span className="flex size-12 items-center justify-center rounded-full bg-muted">
+            <ScrollText className="size-6 text-text-3" aria-hidden />
+          </span>
+          <p className="text-sm font-medium text-foreground">Denetim kaydı yok</p>
+          <p className="text-xs text-text-3">Bu filtreye uyan kayıt bulunmuyor.</p>
         </div>
       ) : (
         <>
@@ -149,17 +164,18 @@ export default function KvkkAuditPage() {
                   key={log.id}
                   className="flex items-start gap-3 rounded-[var(--radius)] border border-border bg-card p-4"
                 >
-                  <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-muted">
-                    <Icon className={cn("size-4", meta?.tone ?? "text-text-2")} aria-hidden />
+                  <div className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-muted">
+                    <Icon
+                      className={cn("size-4", meta ? TONE_ICON[meta.tone] : "text-text-2")}
+                      aria-hidden
+                    />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                      <span className="text-sm font-medium text-foreground">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <StatusBadge tone={meta?.tone ?? "neutral"} icon={meta?.icon}>
                         {meta?.label ?? log.action}
-                      </span>
-                      <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-text-2">
-                        {log.tableName}
-                      </span>
+                      </StatusBadge>
+                      <StatusBadge tone="neutral">{log.tableName}</StatusBadge>
                     </div>
                     {log.description ? (
                       <p className="mt-0.5 text-xs text-text-2">{log.description}</p>

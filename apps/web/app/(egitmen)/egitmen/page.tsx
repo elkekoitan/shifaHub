@@ -9,14 +9,31 @@ import {
   ArrowRight,
   CheckCircle2,
   Inbox,
+  TriangleAlert,
 } from "lucide-react";
 import { APPOINTMENT_STATUS_LABELS, TREATMENT_LABELS } from "@shifahub/shared";
 import { useAuthStore } from "@/stores/auth";
 import { trpc } from "@/lib/trpc";
 import { StatCard } from "@/components/layout/stat-card";
+import { StatusBadge, type BadgeTone } from "@/components/ui/status-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const timeFmt = new Intl.DateTimeFormat("tr-TR", { hour: "2-digit", minute: "2-digit" });
+
+const statusTone: Record<string, BadgeTone> = {
+  requested: "warning",
+  confirmed: "success",
+  reminded: "info",
+  arrived: "info",
+  treated: "primary",
+  completed: "primary",
+  cancelled: "danger",
+  no_show: "danger",
+};
+
+function initials(first?: string | null, last?: string | null): string {
+  return `${(first ?? "").charAt(0)}${(last ?? "").charAt(0)}`.toUpperCase() || "?";
+}
 
 function isToday(d: Date): boolean {
   const now = new Date();
@@ -40,11 +57,16 @@ export default function EgitmenDashboard() {
 
   return (
     <div className="px-5 pt-6">
-      <header className="mb-5">
-        <p className="text-xs text-text-3">Eğitmen paneli</p>
-        <h1 className="font-headline text-xl font-semibold text-foreground">
-          {user?.firstName ? `Merhaba, ${user.firstName}` : "Hoş geldiniz"}
-        </h1>
+      <header className="mb-6 flex items-center gap-3">
+        <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-semibold text-primary">
+          {initials(user?.firstName, user?.lastName)}
+        </div>
+        <div className="min-w-0">
+          <p className="text-xs text-text-3">Eğitmen paneli</p>
+          <h1 className="font-headline text-xl font-semibold leading-tight text-foreground">
+            {user?.firstName ? `Merhaba, ${user.firstName}` : "Hoş geldiniz"}
+          </h1>
+        </div>
       </header>
 
       {/* Ozet istatistikler */}
@@ -118,7 +140,7 @@ export default function EgitmenDashboard() {
                 className="flex items-center gap-3 rounded-[var(--radius)] border border-border bg-card p-3"
               >
                 <div className="flex size-11 shrink-0 flex-col items-center justify-center rounded-[var(--radius)] bg-accent text-primary">
-                  <span className="text-xs font-semibold">
+                  <span className="text-xs font-semibold tabular-nums">
                     {r.scheduledAt ? timeFmt.format(new Date(r.scheduledAt)) : "--:--"}
                   </span>
                 </div>
@@ -132,9 +154,9 @@ export default function EgitmenDashboard() {
                       : "Randevu"}
                   </p>
                 </div>
-                <span className="shrink-0 rounded-full bg-muted px-2.5 py-1 text-[10px] font-medium text-text-2">
-                  {r.status ? (APPOINTMENT_STATUS_LABELS[r.status] ?? r.status) : ""}
-                </span>
+                <StatusBadge tone={statusTone[r.status ?? "requested"] ?? "neutral"}>
+                  {r.status ? (APPOINTMENT_STATUS_LABELS[r.status] ?? r.status) : "—"}
+                </StatusBadge>
               </li>
             ))}
           </ul>
@@ -157,12 +179,17 @@ export default function EgitmenDashboard() {
             {critical.data.slice(0, 4).map((s) => (
               <li
                 key={s.id}
-                className="flex items-center justify-between rounded-[var(--radius)] border border-warning/30 bg-warning/5 p-3"
+                className="flex items-center justify-between gap-3 rounded-[var(--radius)] border border-warning-border bg-warning-bg p-3"
               >
-                <span className="text-sm font-medium text-foreground">{s.name}</span>
-                <span className="text-xs font-semibold text-warning">
-                  {s.quantity} {s.unit} kaldı
+                <span className="flex min-w-0 items-center gap-2">
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-warning/15 text-warning">
+                    <PackageX className="size-4" aria-hidden />
+                  </span>
+                  <span className="truncate text-sm font-medium text-foreground">{s.name}</span>
                 </span>
+                <StatusBadge tone="warning" icon={TriangleAlert}>
+                  {s.quantity} {s.unit} kaldı
+                </StatusBadge>
               </li>
             ))}
           </ul>

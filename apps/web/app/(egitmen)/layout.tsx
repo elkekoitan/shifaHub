@@ -66,7 +66,7 @@ export default function EgitmenLayout({ children }: { children: ReactNode }) {
       {/* Masaustu sol kenar navigasyonu */}
       <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-border bg-card px-3 py-5 md:flex">
         <Link href="/egitmen" className="mb-6 flex items-center gap-2.5 px-2">
-          <div className="flex size-9 items-center justify-center rounded-[var(--radius)] bg-primary text-primary-foreground">
+          <div className="flex size-9 items-center justify-center rounded-[var(--radius)] bg-primary text-primary-foreground shadow-[var(--shadow-sm)]">
             <Sprout className="size-5" aria-hidden />
           </div>
           <span className="font-headline text-lg font-semibold text-foreground">ShifaHub</span>
@@ -78,24 +78,44 @@ export default function EgitmenLayout({ children }: { children: ReactNode }) {
               <Link
                 key={href}
                 href={href}
+                aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex items-center gap-3 rounded-[var(--radius)] px-3 py-2 text-sm font-medium transition-colors",
+                  "group relative flex items-center gap-3 rounded-[var(--radius)] px-3 py-2 text-sm font-medium transition-colors",
                   active
                     ? "bg-accent text-primary"
                     : "text-text-2 hover:bg-secondary hover:text-foreground",
                 )}
               >
-                <Icon className="size-4.5 shrink-0" aria-hidden />
+                <span
+                  aria-hidden
+                  className={cn(
+                    "absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-primary transition-opacity",
+                    active ? "opacity-100" : "opacity-0",
+                  )}
+                />
+                <Icon
+                  className={cn(
+                    "size-5 shrink-0 transition-colors",
+                    active ? "text-primary" : "text-text-3 group-hover:text-foreground",
+                  )}
+                  aria-hidden
+                />
                 {label}
               </Link>
             );
           })}
         </nav>
-        <div className="mt-4 rounded-[var(--radius)] bg-muted px-3 py-2.5">
-          <p className="truncate text-xs font-medium text-foreground">
-            {user.firstName ? `${user.firstName} ${user.lastName ?? ""}` : user.email}
-          </p>
-          <p className="text-[11px] text-text-3">Eğitmen</p>
+        <div className="mt-4 flex items-center gap-2.5 rounded-[var(--radius)] bg-muted px-3 py-2.5">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-semibold text-primary">
+            {`${(user.firstName ?? "").charAt(0)}${(user.lastName ?? "").charAt(0)}`.toUpperCase() ||
+              "ŞH"}
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-xs font-medium text-foreground">
+              {user.firstName ? `${user.firstName} ${user.lastName ?? ""}` : user.email}
+            </p>
+            <p className="text-[11px] text-text-3">Eğitmen</p>
+          </div>
         </div>
       </aside>
 
@@ -113,12 +133,20 @@ export default function EgitmenLayout({ children }: { children: ReactNode }) {
               <Link
                 key={href}
                 href={href}
+                aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex flex-col items-center gap-0.5 px-3 py-1 text-[10px] font-medium transition-colors",
+                  "flex flex-1 flex-col items-center gap-1 px-1 py-1 text-[10px] font-medium transition-colors",
                   active ? "text-primary" : "text-text-3",
                 )}
               >
-                <Icon className="size-5" aria-hidden />
+                <span
+                  className={cn(
+                    "flex h-7 w-12 items-center justify-center rounded-full transition-colors",
+                    active ? "bg-accent" : "bg-transparent",
+                  )}
+                >
+                  <Icon className="size-5" aria-hidden />
+                </span>
                 {label}
               </Link>
             );

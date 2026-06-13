@@ -2,11 +2,21 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Package, Plus, X, PackageX, AlertTriangle, CalendarClock, Inbox } from "lucide-react";
+import {
+  Package,
+  Plus,
+  X,
+  PackageX,
+  AlertTriangle,
+  CalendarClock,
+  Inbox,
+  ChevronDown,
+} from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const CATEGORIES = [
@@ -78,6 +88,7 @@ export default function EgitmenStokPage() {
         <div>
           <p className="text-xs text-text-3">Eğitmen paneli</p>
           <h1 className="font-headline text-xl font-semibold text-foreground">Stok yönetimi</h1>
+          <p className="mt-1 text-sm text-text-2">Malzeme envanteri ve kritik seviye takibi.</p>
         </div>
         <Button size="sm" onClick={() => setOpen((o) => !o)} aria-label="Yeni stok kalemi">
           {open ? <X className="size-4" aria-hidden /> : <Plus className="size-4" aria-hidden />}
@@ -87,7 +98,7 @@ export default function EgitmenStokPage() {
 
       {/* Kritik uyari ozeti */}
       {criticalCount > 0 ? (
-        <div className="mb-4 flex items-center gap-2 rounded-[var(--radius)] border border-warning/30 bg-warning/5 px-4 py-2.5 text-sm text-warning">
+        <div className="mb-4 flex items-center gap-2 rounded-[var(--radius)] border border-warning-border bg-warning-bg px-4 py-2.5 text-sm text-warning">
           <PackageX className="size-4 shrink-0" aria-hidden />
           {criticalCount} kalem kritik seviyede.
         </div>
@@ -109,18 +120,26 @@ export default function EgitmenStokPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label htmlFor="category">Kategori</Label>
-                <select
-                  id="category"
-                  value={form.category}
-                  onChange={(e) => setForm((f) => ({ ...f, category: e.target.value as Category }))}
-                  className="h-11 w-full rounded-[var(--radius)] border border-input bg-card px-3 text-sm text-foreground focus-visible:border-ring focus-visible:outline-none"
-                >
-                  {CATEGORIES.map((c) => (
-                    <option key={c.value} value={c.value}>
-                      {c.label}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <select
+                    id="category"
+                    value={form.category}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, category: e.target.value as Category }))
+                    }
+                    className="h-11 w-full appearance-none rounded-[var(--radius)] border border-input bg-card px-3 pr-9 text-sm text-foreground focus-visible:border-ring focus-visible:outline-none"
+                  >
+                    {CATEGORIES.map((c) => (
+                      <option key={c.value} value={c.value}>
+                        {c.label}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-text-3"
+                    aria-hidden
+                  />
+                </div>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="unit">Birim</Label>
@@ -197,7 +216,7 @@ export default function EgitmenStokPage() {
               key={s.id}
               className={
                 "flex items-center gap-3 rounded-[var(--radius)] border p-3 " +
-                (s.isCritical ? "border-warning/30 bg-warning/5" : "border-border bg-card")
+                (s.isCritical ? "border-warning-border bg-warning-bg" : "border-border bg-card")
               }
             >
               <div
@@ -210,21 +229,25 @@ export default function EgitmenStokPage() {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-foreground">{s.name}</p>
-                <p className="flex items-center gap-1.5 text-xs text-text-3">
+                <p className="mt-0.5 text-xs text-text-3">
                   {CATEGORY_LABELS[s.category] ?? s.category}
-                  {s.isExpiringSoon ? (
-                    <span className="flex items-center gap-0.5 text-warning">
-                      <CalendarClock className="size-3" aria-hidden /> SKT yakın
-                    </span>
-                  ) : null}
-                  {s.isExpired ? (
-                    <span className="flex items-center gap-0.5 text-destructive">
-                      <AlertTriangle className="size-3" aria-hidden /> SKT geçti
-                    </span>
-                  ) : null}
                 </p>
+                {s.isExpiringSoon || s.isExpired ? (
+                  <div className="mt-1.5 flex flex-wrap gap-1.5">
+                    {s.isExpiringSoon ? (
+                      <StatusBadge tone="warning" icon={CalendarClock}>
+                        SKT yakın
+                      </StatusBadge>
+                    ) : null}
+                    {s.isExpired ? (
+                      <StatusBadge tone="danger" icon={AlertTriangle}>
+                        SKT geçti
+                      </StatusBadge>
+                    ) : null}
+                  </div>
+                ) : null}
               </div>
-              <div className="shrink-0 text-right">
+              <div className="flex shrink-0 flex-col items-end gap-1.5 text-right">
                 <p
                   className={
                     "text-sm font-semibold " + (s.isCritical ? "text-warning" : "text-foreground")
@@ -233,7 +256,9 @@ export default function EgitmenStokPage() {
                   {s.quantity} {s.unit}
                 </p>
                 {s.isCritical ? (
-                  <p className="text-[10px] font-medium text-warning">Kritik</p>
+                  <StatusBadge tone="warning" icon={PackageX}>
+                    Kritik
+                  </StatusBadge>
                 ) : null}
               </div>
             </li>

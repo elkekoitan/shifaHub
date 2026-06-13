@@ -1,9 +1,10 @@
 "use client";
 
-import { FlaskConical, CalendarDays, AlertCircle, FileText } from "lucide-react";
+import { FlaskConical, CalendarDays, AlertTriangle, FileText } from "lucide-react";
 import { useAuthStore } from "@/stores/auth";
 import { trpc } from "@/lib/trpc";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 const dtf = new Intl.DateTimeFormat("tr-TR", {
   day: "numeric",
@@ -22,7 +23,7 @@ export default function DanisanTahlilPage() {
 
   return (
     <div className="px-5 pt-6">
-      <header className="mb-5">
+      <header className="mb-6">
         <h1 className="font-headline text-xl font-semibold text-foreground">Tahlil sonuçları</h1>
         <p className="mt-1 text-sm text-text-2">Laboratuvar sonuçlarınız ve referans değerleri.</p>
       </header>
@@ -33,14 +34,16 @@ export default function DanisanTahlilPage() {
           <Skeleton className="h-32 w-full rounded-[var(--radius-lg)]" />
         </div>
       ) : tahlilList.isError ? (
-        <div className="flex items-center gap-2 rounded-[var(--radius)] border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
-          <AlertCircle className="size-4 shrink-0" aria-hidden />
+        <div className="flex items-center gap-2 rounded-[var(--radius)] border border-destructive-border bg-destructive-bg p-4 text-sm text-destructive">
+          <AlertTriangle className="size-4 shrink-0" aria-hidden />
           Tahlil sonuçları yüklenemedi.
         </div>
       ) : list.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-[var(--radius-lg)] border border-dashed border-border bg-card p-8 text-center">
-          <FlaskConical className="size-7 text-text-3" aria-hidden />
-          <p className="text-sm text-text-2">Henüz tahlil sonucunuz bulunmuyor.</p>
+          <span className="flex size-11 items-center justify-center rounded-full bg-muted">
+            <FlaskConical className="size-5 text-text-3" aria-hidden />
+          </span>
+          <p className="text-sm font-medium text-foreground">Henüz tahlil sonucunuz yok</p>
           <p className="text-xs text-text-3">Eğitmeniniz sonuç eklediğinde burada görünür.</p>
         </div>
       ) : (
@@ -50,12 +53,12 @@ export default function DanisanTahlilPage() {
               key={t.id}
               className="rounded-[var(--radius-lg)] border border-border bg-card p-4 shadow-[var(--shadow-sm)]"
             >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="flex items-center gap-2 font-medium text-foreground">
-                    <FlaskConical className="size-4 text-primary" aria-hidden />
-                    {t.testType}
-                  </p>
+              <div className="flex items-start gap-3">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-accent text-primary">
+                  <FlaskConical className="size-4" aria-hidden />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-foreground">{t.testType}</p>
                   <p className="mt-1 flex items-center gap-1.5 text-xs text-text-2">
                     <CalendarDays className="size-3.5" aria-hidden />
                     {t.testDate ? dtf.format(new Date(t.testDate)) : "Tarih yok"}
@@ -67,7 +70,7 @@ export default function DanisanTahlilPage() {
                     href={t.fileUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-1 rounded-[var(--radius-sm)] bg-muted px-2.5 py-1 text-[11px] font-medium text-primary"
+                    className="flex shrink-0 items-center gap-1 rounded-[var(--radius-sm)] bg-accent px-2.5 py-1 text-[11px] font-medium text-primary transition-colors hover:bg-secondary"
                     aria-label="Tahlil dosyasını aç"
                   >
                     <FileText className="size-3.5" aria-hidden />
@@ -85,20 +88,20 @@ export default function DanisanTahlilPage() {
                     >
                       <span className="text-text-2">{v.name}</span>
                       <div className="flex items-center gap-2">
-                        <span
-                          className={
-                            v.isOutOfRange
-                              ? "font-semibold text-destructive"
-                              : "font-medium text-foreground"
-                          }
-                        >
-                          {v.value} {v.unit}
-                        </span>
                         {v.referenceMin !== undefined && v.referenceMax !== undefined ? (
                           <span className="text-text-3">
                             ({v.referenceMin}–{v.referenceMax})
                           </span>
                         ) : null}
+                        {v.isOutOfRange ? (
+                          <StatusBadge tone="danger" icon={AlertTriangle}>
+                            {v.value} {v.unit}
+                          </StatusBadge>
+                        ) : (
+                          <span className="font-medium text-foreground">
+                            {v.value} {v.unit}
+                          </span>
+                        )}
                       </div>
                     </div>
                   ))}

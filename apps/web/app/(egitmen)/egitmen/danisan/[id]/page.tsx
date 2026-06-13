@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { TREATMENT_LABELS } from "@shifahub/shared";
 import { trpc } from "@/lib/trpc";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const dateFmt = new Intl.DateTimeFormat("tr-TR", {
@@ -75,8 +76,18 @@ export default function DanisanDetayPage({ params }: { params: Promise<{ id: str
         <>
           {/* Kunye */}
           <div className="mb-5 rounded-[var(--radius-lg)] border border-border bg-card p-5 shadow-[var(--shadow-sm)]">
-            <h1 className="font-headline text-lg font-semibold text-foreground">Danışan profili</h1>
-            <div className="mt-3 grid grid-cols-3 gap-3">
+            <div className="flex items-center gap-3">
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-accent text-primary">
+                <HeartPulse className="size-5" aria-hidden />
+              </span>
+              <div className="min-w-0">
+                <h1 className="font-headline text-lg font-semibold leading-tight text-foreground">
+                  Danışan profili
+                </h1>
+                <p className="text-xs text-text-3">Sağlık geçmişi ve klinik bilgiler</p>
+              </div>
+            </div>
+            <div className="mt-4 grid grid-cols-3 gap-3">
               <div className="rounded-[var(--radius)] bg-muted p-3">
                 <p className="flex items-center gap-1 text-[11px] text-text-3">
                   <Droplets className="size-3" aria-hidden /> Kan grubu
@@ -168,10 +179,11 @@ export default function DanisanDetayPage({ params }: { params: Promise<{ id: str
                   Seans {t.sessionNumber ?? 1} · {t.egitmenFirstName} {t.egitmenLastName}
                 </p>
                 {t.contraindications && t.contraindications.length > 0 ? (
-                  <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-warning">
-                    <AlertTriangle className="size-3" aria-hidden /> {t.contraindications.length}{" "}
-                    uyarı
-                  </p>
+                  <div className="mt-2">
+                    <StatusBadge tone="warning" icon={AlertTriangle}>
+                      {t.contraindications.length} kontrendikasyon uyarısı
+                    </StatusBadge>
+                  </div>
                 ) : null}
               </li>
             ))}

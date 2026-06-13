@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Clock, Save, Plus, Trash2, CalendarOff } from "lucide-react";
+import { Clock, Save, Plus, Trash2, CalendarOff, ChevronDown } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useAuthStore } from "@/stores/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
 /** dayOfWeek: 0=Pazar … 6=Cumartesi (backend ile birebir). */
@@ -118,18 +119,24 @@ export default function EgitmenMusaitlikPage() {
                   <div className="mb-3 flex items-center justify-between">
                     <div className="flex-1 space-y-1.5">
                       <Label htmlFor={`day-${idx}`}>Gün</Label>
-                      <select
-                        id={`day-${idx}`}
-                        value={slot.dayOfWeek}
-                        onChange={(e) => updateSlot(idx, { dayOfWeek: Number(e.target.value) })}
-                        className="h-11 w-full rounded-[var(--radius)] border border-input bg-card px-3 text-sm text-foreground focus-visible:border-ring focus-visible:outline-none"
-                      >
-                        {DAYS.map((d) => (
-                          <option key={d.value} value={d.value}>
-                            {d.label}
-                          </option>
-                        ))}
-                      </select>
+                      <div className="relative">
+                        <select
+                          id={`day-${idx}`}
+                          value={slot.dayOfWeek}
+                          onChange={(e) => updateSlot(idx, { dayOfWeek: Number(e.target.value) })}
+                          className="h-11 w-full appearance-none rounded-[var(--radius)] border border-input bg-card px-3 pr-9 text-sm text-foreground focus-visible:border-ring focus-visible:outline-none"
+                        >
+                          {DAYS.map((d) => (
+                            <option key={d.value} value={d.value}>
+                              {d.label}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown
+                          className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-text-3"
+                          aria-hidden
+                        />
+                      </div>
                     </div>
                     <button
                       type="button"
@@ -197,10 +204,12 @@ export default function EgitmenMusaitlikPage() {
 
           {/* Bilgilendirici dolu aralik ozeti */}
           {availability.data && availability.data.busySlots.length > 0 ? (
-            <p className="mt-4 flex items-center gap-1.5 text-xs text-text-3">
-              <Clock className="size-3.5" aria-hidden />
-              Önümüzdeki 2 haftada {availability.data.busySlots.length} dolu aralık var.
-            </p>
+            <div className="mt-4 flex items-center gap-2">
+              <StatusBadge tone="info" icon={Clock}>
+                {availability.data.busySlots.length} dolu aralık
+              </StatusBadge>
+              <span className="text-xs text-text-3">Önümüzdeki 2 haftada.</span>
+            </div>
           ) : null}
         </>
       )}

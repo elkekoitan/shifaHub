@@ -1,6 +1,7 @@
 "use client";
 
-import { Settings, Server, Database, ShieldCheck, Bell, Wrench } from "lucide-react";
+import { Server, Database, ShieldCheck, Bell, Wrench, Clock } from "lucide-react";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 const PLANNED = [
   {
@@ -30,13 +31,13 @@ export default function SistemPage() {
     <div>
       <header className="mb-5">
         <h1 className="font-headline text-2xl font-semibold text-foreground">Sistem ayarları</h1>
-        <p className="mt-1 text-sm text-text-2">Platform yapılandırması ve altyapı yönetimi.</p>
+        <p className="mt-1.5 text-sm text-text-2">Platform yapılandırması ve altyapı yönetimi.</p>
       </header>
 
       <div className="mb-6 flex flex-col items-center gap-3 rounded-[var(--radius-lg)] border border-dashed border-border bg-card p-10 text-center">
-        <div className="flex size-12 items-center justify-center rounded-[var(--radius)] bg-muted">
+        <span className="flex size-12 items-center justify-center rounded-full bg-muted">
           <Wrench className="size-6 text-text-3" aria-hidden />
-        </div>
+        </span>
         <div>
           <p className="font-headline text-base font-semibold text-foreground">Bu bölüm yakında</p>
           <p className="mt-1 max-w-sm text-sm text-text-2">
@@ -44,6 +45,9 @@ export default function SistemPage() {
             eklendiğinde aşağıdaki başlıklar etkinleştirilecek.
           </p>
         </div>
+        <StatusBadge tone="warning" icon={Clock}>
+          Geliştirme aşamasında
+        </StatusBadge>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
@@ -53,11 +57,13 @@ export default function SistemPage() {
             className="rounded-[var(--radius)] border border-border bg-card p-4 opacity-80"
           >
             <div className="flex items-center gap-2">
-              <div className="flex size-8 items-center justify-center rounded-[var(--radius)] bg-muted">
+              <span className="flex size-8 items-center justify-center rounded-[var(--radius-sm)] bg-muted">
                 <Icon className="size-4 text-text-2" aria-hidden />
-              </div>
+              </span>
               <p className="text-sm font-medium text-foreground">{title}</p>
-              <Settings className="ml-auto size-3.5 text-text-3" aria-hidden />
+              <StatusBadge tone="neutral" className="ml-auto" icon={Clock}>
+                Yakında
+              </StatusBadge>
             </div>
             <p className="mt-2 text-xs text-text-2">{desc}</p>
           </div>

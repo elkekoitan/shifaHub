@@ -138,7 +138,7 @@ export default function TedaviWizardPage() {
     return (
       <div className="px-5 pt-6">
         <div className="flex flex-col items-center gap-3 rounded-[var(--radius-lg)] border border-border bg-card p-8 text-center shadow-[var(--shadow-sm)]">
-          <div className="flex size-14 items-center justify-center rounded-full bg-success/10">
+          <div className="flex size-14 items-center justify-center rounded-full bg-success-bg">
             <Check className="size-7 text-success" aria-hidden />
           </div>
           <h1 className="font-headline text-lg font-semibold text-foreground">Tedavi kaydedildi</h1>
@@ -151,7 +151,7 @@ export default function TedaviWizardPage() {
               {create.data.warnings.map((w, i) => (
                 <li
                   key={i}
-                  className="flex items-start gap-1.5 rounded-[var(--radius)] bg-warning/10 px-3 py-2 text-xs text-warning"
+                  className="flex items-start gap-1.5 rounded-[var(--radius)] border border-warning-border bg-warning-bg px-3 py-2 text-xs text-warning"
                 >
                   <AlertTriangle className="mt-0.5 size-3.5 shrink-0" aria-hidden /> {w}
                 </li>
@@ -237,7 +237,7 @@ export default function TedaviWizardPage() {
                         : "border-border bg-card hover:bg-secondary")
                     }
                   >
-                    <span className="flex size-9 items-center justify-center rounded-full bg-muted text-xs font-semibold text-text-2">
+                    <span className="flex size-9 items-center justify-center rounded-full bg-accent text-xs font-semibold text-primary">
                       {`${(d.firstName ?? "").charAt(0)}${(d.lastName ?? "").charAt(0)}`.toUpperCase()}
                     </span>
                     <span className="min-w-0 flex-1">
@@ -379,8 +379,10 @@ export default function TedaviWizardPage() {
                       <li
                         key={i}
                         className={
-                          "flex items-start gap-1.5 rounded-[var(--radius)] px-3 py-2 text-xs " +
-                          (info ? "bg-muted text-text-2" : "bg-warning/10 text-warning")
+                          "flex items-start gap-1.5 rounded-[var(--radius)] border px-3 py-2 text-xs " +
+                          (info
+                            ? "border-border bg-muted text-text-2"
+                            : "border-warning-border bg-warning-bg text-warning")
                         }
                       >
                         {info ? (
@@ -398,7 +400,7 @@ export default function TedaviWizardPage() {
                 </p>
               </div>
             ) : (
-              <div className="flex items-center gap-2 rounded-[var(--radius)] bg-success/10 px-3 py-2.5 text-sm text-success">
+              <div className="flex items-center gap-2 rounded-[var(--radius)] border border-success-border bg-success-bg px-3 py-2.5 text-sm text-success">
                 <Check className="size-4" aria-hidden /> Bilinen kontrendikasyon bulunmadı.
               </div>
             )}

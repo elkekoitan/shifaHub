@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { MailCheck, ArrowLeft, RefreshCw } from "lucide-react";
+import { MailCheck, ArrowLeft, RefreshCw, Inbox } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
@@ -19,21 +19,32 @@ export default function DogrulaPage() {
 
   return (
     <div>
-      <div className="flex flex-col items-center gap-3 rounded-[var(--radius-lg)] border border-dashed border-border bg-card p-7 text-center">
-        <div className="flex size-12 items-center justify-center rounded-full bg-accent text-primary">
-          <MailCheck className="size-6" aria-hidden />
+      <div className="relative overflow-hidden rounded-[var(--radius-lg)] bg-primary p-6 text-center text-primary-foreground shadow-[var(--shadow)]">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-12 -top-12 size-40 rounded-full bg-primary-foreground/10 blur-2xl"
+        />
+        <div className="relative flex flex-col items-center gap-3">
+          <span className="flex size-12 items-center justify-center rounded-full bg-primary-foreground/15">
+            <MailCheck className="size-6" aria-hidden />
+          </span>
+          <h1 className="font-headline text-xl font-semibold">E-postanı doğrula</h1>
+          <p className="text-sm text-primary-foreground/80">
+            Hesabını etkinleştirmek için sana bir doğrulama bağlantısı gönderdik. Gelen kutunu (ve
+            spam klasörünü) kontrol et.
+          </p>
         </div>
-        <h1 className="font-headline text-xl font-semibold text-foreground">E-postanı doğrula</h1>
-        <p className="text-sm text-text-2">
-          Hesabını etkinleştirmek için sana bir doğrulama bağlantısı gönderdik. Gelen kutunu (ve
-          spam klasörünü) kontrol et.
-        </p>
+      </div>
+
+      <div className="mt-4 flex items-center gap-2.5 rounded-[var(--radius)] border border-border bg-card p-3.5 text-xs text-text-2">
+        <Inbox className="size-4 shrink-0 text-text-3" aria-hidden />
+        Bağlantı birkaç dakika içinde gelmezse spam klasörünü kontrol et veya tekrar gönder.
       </div>
 
       <Button
         type="button"
         variant="outline"
-        className="mt-6 w-full"
+        className="mt-4 w-full"
         onClick={onResend}
         aria-label="Doğrulama e-postasını tekrar gönder"
       >
@@ -43,7 +54,7 @@ export default function DogrulaPage() {
 
       <Link
         href="/giris"
-        className="mt-4 flex items-center justify-center gap-1.5 text-sm font-medium text-primary"
+        className="mt-4 flex items-center justify-center gap-1.5 text-sm font-medium text-primary hover:underline"
       >
         <ArrowLeft className="size-4" aria-hidden /> Girişe dön
       </Link>

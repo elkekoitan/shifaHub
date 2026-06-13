@@ -6,7 +6,12 @@ import { CalendarDays, Inbox, Clock, Moon } from "lucide-react";
 import { APPOINTMENT_STATUS_LABELS, TREATMENT_LABELS } from "@shifahub/shared";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
+import { StatusBadge, type BadgeTone } from "@/components/ui/status-badge";
 import { Skeleton } from "@/components/ui/skeleton";
+
+function initials(first?: string | null, last?: string | null): string {
+  return `${(first ?? "").charAt(0)}${(last ?? "").charAt(0)}`.toUpperCase() || "?";
+}
 
 /** Backend (randevu.ts) state machine'inin UI karsiligi — buton kapilamasi icin. */
 const VALID_TRANSITIONS: Record<string, readonly string[]> = {
@@ -37,16 +42,16 @@ const NEXT_LABELS: Record<string, string> = {
   ertelendi: "Ertele",
 };
 
-const statusTone: Record<string, string> = {
-  requested: "bg-warning/10 text-warning",
-  confirmed: "bg-accent text-primary",
-  reminded: "bg-accent text-primary",
-  arrived: "bg-primary/10 text-primary",
-  treated: "bg-success/10 text-success",
-  completed: "bg-success/10 text-success",
-  cancelled: "bg-destructive/10 text-destructive",
-  no_show: "bg-destructive/10 text-destructive",
-  ertelendi: "bg-muted text-text-2",
+const statusTone: Record<string, BadgeTone> = {
+  requested: "warning",
+  confirmed: "primary",
+  reminded: "info",
+  arrived: "info",
+  treated: "success",
+  completed: "success",
+  cancelled: "danger",
+  no_show: "danger",
+  ertelendi: "neutral",
 };
 
 const dtf = new Intl.DateTimeFormat("tr-TR", {
@@ -93,6 +98,9 @@ export default function EgitmenRandevuPage() {
       <header className="mb-4">
         <p className="text-xs text-text-3">Eğitmen paneli</p>
         <h1 className="font-headline text-xl font-semibold text-foreground">Randevular</h1>
+        <p className="mt-1 text-sm text-text-2">
+          Randevu akışını yönetin ve durumları güncelleyin.
+        </p>
       </header>
 
       {/* Filtre cipsleri */}
@@ -143,33 +151,33 @@ export default function EgitmenRandevuPage() {
                 className="rounded-[var(--radius-lg)] border border-border bg-card p-4 shadow-[var(--shadow-sm)]"
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-foreground">
-                      {r.danisanFirstName} {r.danisanLastName}
-                    </p>
-                    <p className="mt-0.5 flex items-center gap-1 text-xs text-text-3">
-                      <CalendarDays className="size-3.5" aria-hidden />
-                      {r.scheduledAt ? dtf.format(new Date(r.scheduledAt)) : "Tarih yok"}
-                    </p>
-                    <p className="mt-0.5 flex items-center gap-1 text-xs text-text-3">
-                      <Clock className="size-3.5" aria-hidden />
-                      {r.treatmentType
-                        ? (TREATMENT_LABELS[r.treatmentType] ?? r.treatmentType)
-                        : "Genel"}
-                      {r.duration ? ` · ${r.duration} dk` : ""}
-                    </p>
+                  <div className="flex min-w-0 gap-3">
+                    <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-semibold text-primary">
+                      {initials(r.danisanFirstName, r.danisanLastName)}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-foreground">
+                        {r.danisanFirstName} {r.danisanLastName}
+                      </p>
+                      <p className="mt-0.5 flex items-center gap-1 text-xs text-text-3">
+                        <CalendarDays className="size-3.5" aria-hidden />
+                        {r.scheduledAt ? dtf.format(new Date(r.scheduledAt)) : "Tarih yok"}
+                      </p>
+                      <p className="mt-0.5 flex items-center gap-1 text-xs text-text-3">
+                        <Clock className="size-3.5" aria-hidden />
+                        {r.treatmentType
+                          ? (TREATMENT_LABELS[r.treatmentType] ?? r.treatmentType)
+                          : "Genel"}
+                        {r.duration ? ` · ${r.duration} dk` : ""}
+                      </p>
+                    </div>
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1.5">
-                    <span
-                      className={
-                        "rounded-full px-2.5 py-1 text-[10px] font-medium " +
-                        (statusTone[r.status ?? ""] ?? "bg-muted text-text-2")
-                      }
-                    >
+                    <StatusBadge tone={statusTone[r.status ?? ""] ?? "neutral"}>
                       {r.status ? (STATUS_LABELS[r.status] ?? r.status) : "—"}
-                    </span>
+                    </StatusBadge>
                     {r.isSunnahDay ? (
-                      <span className="flex items-center gap-1 rounded-full bg-accent-honey px-2 py-0.5 text-[10px] font-medium text-accent-honey-foreground">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-accent-honey px-2 py-0.5 text-[10px] font-medium text-accent-honey-foreground">
                         <Moon className="size-2.5" aria-hidden /> Sünnet
                       </span>
                     ) : null}

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Users, ChevronRight, UserPlus, MapPin } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
 function initials(first?: string | null, last?: string | null): string {
@@ -17,6 +18,7 @@ export default function EgitmenDanisanlarPage() {
       <header className="mb-5">
         <p className="text-xs text-text-3">Eğitmen paneli</p>
         <h1 className="font-headline text-xl font-semibold text-foreground">Danışanlarım</h1>
+        <p className="mt-1 text-sm text-text-2">Takip ettiğiniz danışanlar ve klinik bilgileri.</p>
       </header>
 
       {q.isLoading ? (
@@ -39,9 +41,11 @@ export default function EgitmenDanisanlarPage() {
         </div>
       ) : (
         <>
-          <p className="mb-3 flex items-center gap-1.5 text-xs text-text-3">
-            <Users className="size-3.5" aria-hidden /> {q.data.count} danışan
-          </p>
+          <div className="mb-3">
+            <StatusBadge tone="primary" icon={Users}>
+              {q.data.count} danışan
+            </StatusBadge>
+          </div>
           <ul className="space-y-2">
             {q.data.danisanlar.map((d) => (
               <li key={d.userId}>

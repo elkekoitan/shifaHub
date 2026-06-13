@@ -3,12 +3,13 @@
 import { useState } from "react";
 import {
   GraduationCap,
-  ShieldCheck,
+  AlertCircle,
   Mail,
   Phone,
   Check,
   X,
   Info,
+  Ban,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -18,8 +19,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 const dtf = new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "short", year: "numeric" });
+
+function initials(first?: string | null, last?: string | null, email?: string) {
+  const fromName = `${first?.[0] ?? ""}${last?.[0] ?? ""}`.toUpperCase();
+  return fromName || email?.[0]?.toUpperCase() || "?";
+}
 
 export default function EgitmenOnayPage() {
   const [page, setPage] = useState(1);
@@ -59,7 +66,7 @@ export default function EgitmenOnayPage() {
     <div>
       <header className="mb-5">
         <h1 className="font-headline text-2xl font-semibold text-foreground">Eğitmen onayları</h1>
-        <p className="mt-1 text-sm text-text-2">
+        <p className="mt-1.5 text-sm text-text-2">
           Başvuran eğitmenleri inceleyin; başvuruları onaylayın veya gerekçeyle reddedin.
         </p>
       </header>
@@ -81,21 +88,26 @@ export default function EgitmenOnayPage() {
           ))}
         </div>
       ) : list.isError ? (
-        <div className="flex flex-col items-center gap-2 rounded-[var(--radius-lg)] border border-dashed border-destructive/40 bg-card p-8 text-center">
-          <ShieldCheck className="size-6 text-destructive" aria-hidden />
+        <div className="flex flex-col items-center gap-2 rounded-[var(--radius-lg)] border border-dashed border-destructive-border bg-card p-8 text-center">
+          <span className="flex size-11 items-center justify-center rounded-full bg-destructive-bg">
+            <AlertCircle className="size-5 text-destructive" aria-hidden />
+          </span>
           <p className="text-sm text-text-2">Eğitmenler yüklenemedi.</p>
           <button
             type="button"
             onClick={() => list.refetch()}
-            className="text-sm font-medium text-primary"
+            className="text-sm font-medium text-primary hover:underline"
           >
             Tekrar dene
           </button>
         </div>
       ) : users.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-[var(--radius-lg)] border border-dashed border-border bg-card p-10 text-center">
-          <GraduationCap className="size-7 text-text-3" aria-hidden />
-          <p className="text-sm text-text-2">Henüz eğitmen başvurusu yok.</p>
+          <span className="flex size-12 items-center justify-center rounded-full bg-muted">
+            <GraduationCap className="size-6 text-text-3" aria-hidden />
+          </span>
+          <p className="text-sm font-medium text-foreground">Başvuru yok</p>
+          <p className="text-xs text-text-3">Henüz eğitmen başvurusu bulunmuyor.</p>
         </div>
       ) : (
         <>
@@ -103,31 +115,36 @@ export default function EgitmenOnayPage() {
             {users.map((u) => (
               <li key={u.id} className="rounded-[var(--radius)] border border-border bg-card p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="truncate text-sm font-medium text-foreground">
-                        {u.firstName || u.lastName
-                          ? `${u.firstName ?? ""} ${u.lastName ?? ""}`.trim()
-                          : "İsimsiz eğitmen"}
-                      </p>
-                      {!u.isActive ? (
-                        <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-medium text-destructive">
-                          Pasif
-                        </span>
-                      ) : null}
-                    </div>
-                    <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-3">
-                      <span className="flex items-center gap-1">
-                        <Mail className="size-3" aria-hidden />
-                        {u.email}
-                      </span>
-                      {u.phoneLast4 ? (
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                      {initials(u.firstName, u.lastName, u.email)}
+                    </span>
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="truncate text-sm font-medium text-foreground">
+                          {u.firstName || u.lastName
+                            ? `${u.firstName ?? ""} ${u.lastName ?? ""}`.trim()
+                            : "İsimsiz eğitmen"}
+                        </p>
+                        {!u.isActive ? (
+                          <StatusBadge tone="danger" icon={Ban}>
+                            Pasif
+                          </StatusBadge>
+                        ) : null}
+                      </div>
+                      <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-3">
                         <span className="flex items-center gap-1">
-                          <Phone className="size-3" aria-hidden />
-                          •••• {u.phoneLast4}
+                          <Mail className="size-3" aria-hidden />
+                          {u.email}
                         </span>
-                      ) : null}
-                      <span>Kayıt: {dtf.format(new Date(u.createdAt))}</span>
+                        {u.phoneLast4 ? (
+                          <span className="flex items-center gap-1">
+                            <Phone className="size-3" aria-hidden />
+                            •••• {u.phoneLast4}
+                          </span>
+                        ) : null}
+                        <span>Kayıt: {dtf.format(new Date(u.createdAt))}</span>
+                      </div>
                     </div>
                   </div>
                   <div className="flex gap-2">
