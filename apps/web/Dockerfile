@@ -20,6 +20,10 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# node:22 bundles classic Yarn + Corepack; Next's package-manager detection can
+# invoke Yarn, which then mis-reads the npm `packageManager` field and aborts the
+# build. Force npm by disabling Corepack and removing the Yarn shims.
+RUN corepack disable 2>/dev/null || true; rm -f /usr/local/bin/yarn /usr/local/bin/yarnpkg 2>/dev/null || true
 RUN npm run build --workspace=@shifahub/web
 
 FROM base AS runner
