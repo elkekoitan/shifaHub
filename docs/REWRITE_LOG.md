@@ -60,6 +60,9 @@ Bu günlük her fazda güncellenir (Obsidian uyumlu, `[[wikilink]]`).
 - [x] `kulliyat` router: `ask` (GETAT bilgi Q&A, protected) + `analyzeComplaints` (eğitmen, anamnez→JSON NER)
 - [x] GETAT system prompt: terminoloji (asla doktor/hasta), sünnet günleri 17/19/21, teşhis koymaz
 - [x] Danışan **Külliyat chat sayfası** (`/danisan/kulliyat`) + alt nav'a eklendi — HTTP 200
+- [x] **Eğitmen AI anamnez** — tedavi sihirbazı Adım 2'ye `analyzeComplaints` bağlandı (serbest şikayet
+      → şikayet/kronik/alerji/ilaç/önerilen-yöntem chip'leri; JSON modu + güvenilir alt zincir);
+      "şikayetleri bulgulara ekle" kısayolu
 - [x] **Canlı uçtan uca test:** danışan girişi → "sülük kimlere uygulanmaz" → doğru, kontrendikasyonlu
       GETAT yanıtı (hemofili/anemi/kan sulandırıcı/hamile) OpenRouter'dan döndü
 - [x] api Coolify env: OPENROUTER_API_KEY + OPENROUTER_MODEL set
