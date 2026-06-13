@@ -79,7 +79,11 @@ Bu günlük her fazda güncellenir (Obsidian uyumlu, `[[wikilink]]`).
       `saglik_verisi_isleme` açık rızası yoksa FORBIDDEN döner. `user_has_active_consent`
       SECURITY DEFINER fonksiyonu (0002 migration; RLS eğitmenden rıza satırını gizler, fn
       yalnızca boolean döner). seed: demo danışana idempotent rıza backfill. Test: 11/11 geçti.
-- [ ] kalan: MinIO dosya yükleme (yeni Coolify kaynağı + storage lib + presigned URL)
+- [x] **MinIO dosya yükleme** — MinIO servisi Coolify'a provision edildi (custom compose, S3 :9000).
+      `lib/storage.ts` (minio client) + `routes/upload.ts` (POST /upload multipart + GET /uploads +
+      GET /uploads/file, JWT auth, kullanıcı önekine izole). **Tamamı api üzerinden proxy** (web↔api
+      https, api↔MinIO http:9000 — mixed-content/imza yok). Web: danışan `/danisan/belgeler`
+      (yükle/listele/blob-indirme) + profil kısayolu. P3 backend TAM.
 
 ## P6 — Test sertleştirme ⏳
 
