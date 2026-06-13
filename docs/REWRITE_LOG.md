@@ -53,6 +53,16 @@ Bu günlük her fazda güncellenir (Obsidian uyumlu, `[[wikilink]]`).
 
 ## P6 — Test sertleştirme ⏳
 
-## P7 — Coolify v2 deploy + parite + cutover ⏳
+## P7 — Coolify v2 deploy + parite + cutover 🔄
+
+- [x] `rewrite` branch GitHub'a push (develop/main dokunulmadı); monorepo-aware Dockerfile'lar
+- [x] **shifahub-postgres-v2** (PG17, izole) + **shifahub-backend-v2** (Coolify, Dockerfile, rewrite branch)
+- [x] api boot'ta otomatik migrate + demo seed; HTTPS (Let's Encrypt sslip.io)
+- [x] **BACKEND CANLI:** `https://ufx752pb2tk8uft3t86umoeo.185.255.95.111.sslip.io`
+      → /health ✓, demo login (danışan/admin) ✓ — RLS+pgcrypto+JWT production'da çalışıyor
+- [ ] **shifahub-frontend-v2** deploy (devam ediyor): `https://fn7lemtkwwvj3r8myn2wgqk4.185.255.95.111.sslip.io`
+- [ ] cutover (gerçek domain) + eski sistem tampon
+- Demo: turhanhamza@gmail.com/admin123, demo.egitmen@shifahub.app/egitmen123, demo.danisan@shifahub.app/danisan123
+- **Eski sistem (shifahub-backend/frontend/postgres/redis) EL DEĞMEDEN çalışıyor** (blue/green)
 
 ## P8 — Teardown (geri dönüşsüz, en son) ⏳
