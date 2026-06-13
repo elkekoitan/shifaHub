@@ -44,9 +44,15 @@ export async function uploadRoutes(app: FastifyInstance): Promise<void> {
     if (!storageConfigured()) return reply.send({ files: [] });
     const user = await authUser(req);
     if (!user) return reply.code(401).send({ error: "Yetkisiz." });
-    const files = await listObjects(`uploads/${user.id}/`);
-    files.sort((a, b) => b.lastModified.localeCompare(a.lastModified));
-    return reply.send({ files });
+    try {
+      const files = await listObjects(`uploads/${user.id}/`);
+      files.sort((a, b) => b.lastModified.localeCompare(a.lastModified));
+      return reply.send({ files });
+    } catch (e) {
+      // Depolama geçici erişilemezse boş liste (sayfa hata vermez).
+      req.log.warn(`[upload] liste başarısız: ${e instanceof Error ? e.message : e}`);
+      return reply.send({ files: [] });
+    }
   });
 
   app.get("/uploads/file", async (req, reply) => {

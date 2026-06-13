@@ -79,11 +79,12 @@ Bu günlük her fazda güncellenir (Obsidian uyumlu, `[[wikilink]]`).
       `saglik_verisi_isleme` açık rızası yoksa FORBIDDEN döner. `user_has_active_consent`
       SECURITY DEFINER fonksiyonu (0002 migration; RLS eğitmenden rıza satırını gizler, fn
       yalnızca boolean döner). seed: demo danışana idempotent rıza backfill. Test: 11/11 geçti.
-- [x] **MinIO dosya yükleme** — MinIO servisi Coolify'a provision edildi (custom compose, S3 :9000).
-      `lib/storage.ts` (minio client) + `routes/upload.ts` (POST /upload multipart + GET /uploads +
-      GET /uploads/file, JWT auth, kullanıcı önekine izole). **Tamamı api üzerinden proxy** (web↔api
-      https, api↔MinIO http:9000 — mixed-content/imza yok). Web: danışan `/danisan/belgeler`
-      (yükle/listele/blob-indirme) + profil kısayolu. P3 backend TAM.
+- [~] **MinIO dosya yükleme — KOD TAM + CANLI, backend cred-blocked.** `lib/storage.ts` (minio client) +
+  `routes/upload.ts` (POST /upload multipart + GET /uploads + GET /uploads/file, JWT auth, kullanıcı
+  önekine izole, hepsi api proxy, list graceful). Web: danışan `/danisan/belgeler` (yükle/listele/blob) + profil kısayolu — HTTP 200 canlı. MinIO servisi Coolify'a provision edildi (`zcm49e0git15pe025e3q147b`).
+  **ENGEL:** Coolify bu sürümde custom-compose (docker_compose_raw) servislerine env enjekte etmiyor →
+  MinIO root cred'i alamıyor, denenen 6 cred de `InvalidAccessKeyId`. Çözüm: Coolify UI'dan MinIO
+  servisinin gerçek cred'i alınıp api MINIO_ACCESS/SECRET_KEY'e yazılır (1 adım, kod değişmez).
 
 ## P6 — Test sertleştirme ⏳
 
