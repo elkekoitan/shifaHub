@@ -12,6 +12,7 @@
     "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src/",
+    "test": "vitest run",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/migrate.ts",
     "db:studio": "drizzle-kit studio"
@@ -24,7 +25,9 @@
   "devDependencies": {
     "@shifahub/config": "*",
     "drizzle-kit": "^0.30.0",
+    "embedded-postgres": "18.4.0-beta.17",
     "tsx": "^4.19.0",
-    "typescript": "^5.8.0"
+    "typescript": "^5.8.0",
+    "vitest": "^3.1.0"
   }
 }

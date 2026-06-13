@@ -15,15 +15,16 @@ Bu günlük her fazda güncellenir (Obsidian uyumlu, `[[wikilink]]`).
 - **Kanıt:** `health.check → { ok:true, db:true }` (type-safe istemci → tRPC → Fastify → Drizzle → PG)
 - Risk bertaraf: tRPC 11 + Fastify 5 interop
 
-## P2 — DB + KVKK uyum çekirdeği 🔄
+## P2 — DB + KVKK uyum çekirdeği ✅ `b473c5f` + test
 
 - [x] `_shared.ts` (bytea, timestamps), `crypto.ts` (pgcrypto encrypt/decrypt), `rls.ts` (setSessionContext)
 - [x] `users.ts` kanonik şema (encrypted PII + phoneLast4)
-- [ ] Kalan 14 şema portu (çok-ajanlı Workflow) — boolean düzeltmeleri, bytea, timestamps
-- [ ] `care_relationship` tablosu (RLS ilişki-kapısı)
-- [ ] schema barrel + `drizzle-kit generate` (commit'li migration)
-- [ ] El yazımı `0001_enable_rls.sql` (RLS politikaları + pgcrypto extension)
-- [ ] Entegrasyon testi: RLS cross-tenant red + şifreli round-trip
+- [x] 14 şema çok-ajanlı Workflow ile portlandı (boolean düzeltmeleri, bytea, timestamps) — 18 tablo
+- [x] `care_relationship` tablosu (RLS ilişki-kapısı)
+- [x] schema barrel + `drizzle-kit generate` (0000 DDL, commit'li migration)
+- [x] el yazımı `0001_enable_rls.sql` (pgcrypto + non-superuser `shifahub_app` + ENABLE/FORCE RLS + 12 tablo politikası)
+- [x] **Entegrasyon testi PostgreSQL 18.4 (embedded, yerel) — 8/8 GEÇTİ:** şifreli round-trip + ciphertext-at-rest + yanlış-anahtar reddi; RLS cross-tenant red; care-relationship gating; audit_log append-only
+- Not: canlı DB'ye DOKUNULMADI; test izole embedded Postgres ile (no Docker)
 
 ## P3 — Backend (tRPC routerlar, context, servisler) ⏳
 
