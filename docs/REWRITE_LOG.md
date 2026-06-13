@@ -97,7 +97,12 @@ Bu günlük her fazda güncellenir (Obsidian uyumlu, `[[wikilink]]`).
 - [x] **REDESIGN TAMAM + CANLI:** 39 ekran elevated Shifa Ether desenine getirildi (BrandMark, StatusBadge,
       initials avatar, ikonlu alanlar + şifre toggle, katmanlı header, semantik alert, skeleton/empty) —
       giriş/kayıt/danışan dashboard elle, kalan ~35 ekran 4 paralel ajanla; tüm rotalar HTTP 200
-- [ ] cutover (gerçek domain) + eski sistem tampon → sonra P8 teardown
+- [~] **cutover DNS AYARLANDI (Chrome MCP):** turkticaret.net DNS Pro'ya `api.shifahub.com.tr` +
+  `app.shifahub.com.tr` → `185.255.95.111` A kayıtları eklendi. NS=ns1/ns2.turkticaret.net.
+  Authoritative NS doğrudan doğru çözüyor (185.255.95.111); public DNS NXDOMAIN — **`.tr` registry
+  delegasyon yayılması bekleniyor** (otomatik, saatler–48h). Propagation sonrası Coolify bind:
+  app/api FQDN + LE SSL + web NEXT_PUBLIC_API_URL=https://api.shifahub.com.tr rebuild + CORS.
+- [ ] eski sistem tampon → sonra P8 teardown
 - Demo: turhanhamza@gmail.com/admin123, demo.egitmen@shifahub.app/egitmen123, demo.danisan@shifahub.app/danisan123
 - **Eski sistem (shifahub-backend/frontend/postgres/redis) EL DEĞMEDEN çalışıyor** (blue/green)
 
