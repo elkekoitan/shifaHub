@@ -23,11 +23,12 @@ type SQL = ReturnType<typeof sql>;
  * so the settings are scoped to the current transaction only (never leak across
  * pooled connections).
  */
-export function setSessionContext(tx: Executor, id: SessionIdentity): Promise<unknown> {
-  return tx.execute(sql`
-    select
+export async function setSessionContext(tx: Executor, id: SessionIdentity): Promise<void> {
+  // Drop to the RLS-enforced app role (no-op if the connection is already
+  // shifahub_app). Superusers/owners would otherwise bypass RLS entirely.
+  await tx.execute(sql`set local role shifahub_app`);
+  await tx.execute(sql`select
       set_config('app.current_user_id', ${id.userId ?? ""}, true),
       set_config('app.current_user_role', ${id.role ?? ""}, true),
-      set_config('app.enc_key', ${id.encKey}, true)
-  `);
+      set_config('app.enc_key', ${id.encKey}, true)`);
 }

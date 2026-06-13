@@ -19,3 +19,6 @@ export type Database = typeof db;
 export type SqlClient = typeof sql;
 
 export { schema };
+export * from "./schema";
+export * from "./crypto";
+export * from "./rls";

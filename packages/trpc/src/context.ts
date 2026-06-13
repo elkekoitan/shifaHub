@@ -1,7 +1,7 @@
 import type { Database } from "@shifahub/db";
 import type { UserRole } from "@shifahub/shared";
 
-/** The authenticated principal resolved from the request JWT (P3). */
+/** The authenticated principal resolved from the request JWT. */
 export interface AuthUser {
   id: string;
   email: string;
@@ -9,14 +9,17 @@ export interface AuthUser {
 }
 
 /**
- * Per-request tRPC context. In P3, `db` becomes a request-scoped handle bound to
- * a transaction with `SET LOCAL app.current_user_id / role / enc_key` so that
- * RLS policies and pgcrypto operate under the caller's identity.
+ * Per-request tRPC context. The `withRls` middleware replaces `db` with a
+ * transaction-scoped handle that has `SET LOCAL ROLE shifahub_app` +
+ * `app.current_user_id / role / enc_key` GUCs applied, so RLS policies and
+ * pgcrypto operate under the caller's identity.
  */
 export interface Context {
   user: AuthUser | null;
   db: Database;
-  /** Client IP + UA for audit logging (P3). */
+  /** 32-byte pgcrypto key (from the ENCRYPTION_KEY secret). */
+  encKey: string;
+  /** Client IP + UA for audit logging. */
   meta?: {
     ip?: string;
     userAgent?: string;
