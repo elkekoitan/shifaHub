@@ -51,8 +51,12 @@ Bu günlük her fazda güncellenir (Obsidian uyumlu, `[[wikilink]]`).
 
 ## P5 — Ajanlar + entegrasyonlar (14 ajan, Külliyat AI) 🔄
 
-- [x] **Külliyat AI CANLI** — OpenRouter ücretsiz model `nvidia/nemotron-3-ultra-550b-a55b:free`
-      (1M ctx, Haziran 2026, son-2-ay kuralına uygun); `packages/trpc/src/lib/ai.ts` chat client
+- [x] **Külliyat AI CANLI** — OpenRouter ücretsiz model + **fallback routing**; `packages/trpc/src/lib/ai.ts`
+      Zincir: `nex-agi/nex-n2-pro:free` (~2sn) → `nemotron-nano-omni-30b:free` → `owl-alpha`. Model
+      yanıt vermezse (HTTP/timeout/boş/geçersiz-JSON/429) sonrakine geçer. (550B-ultra elendi: >120sn)
+- [x] Çoklu-ajan adversarial review (4 lens) → 8 düzeltme: klinik NER sessiz-boş dönmez (JSON modu+
+      doğrulama+fırlat), NaN-timeout guard, reasoning_content okuma, istemciye genel mesaj (upstream
+      sızmaz), toplam-süre bütçesi + 429 kısa-devre + zincir dedupe + opts.models override
 - [x] `kulliyat` router: `ask` (GETAT bilgi Q&A, protected) + `analyzeComplaints` (eğitmen, anamnez→JSON NER)
 - [x] GETAT system prompt: terminoloji (asla doktor/hasta), sünnet günleri 17/19/21, teşhis koymaz
 - [x] Danışan **Külliyat chat sayfası** (`/danisan/kulliyat`) + alt nav'a eklendi — HTTP 200
