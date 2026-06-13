@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [rewrite, main]
+  pull_request:
+    branches: [rewrite, main]
+
+jobs:
+  verify:
+    name: Typecheck · Lint · Test · Build
+    runs-on: ubuntu-latest
+    env:
+      HUSKY: 0
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # npm install (not ci): the lockfile is generated on Windows and skips
+      # cross-platform optional native deps (lightningcss / @tailwindcss-oxide /
+      # @next-swc); a fresh resolve installs the correct Linux binaries.
+      - name: Install
+        run: npm install --no-audit --no-fund
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      # Integration tests spin up an embedded PostgreSQL (RLS + pgcrypto + auth +
+      # randevu state machine / double-booking). No external services needed.
+      - name: Test
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+
+  deploy:
+    name: Deploy v2 (Coolify)
+    needs: verify
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/rewrite' && github.event_name == 'push'
+    steps:
+      - name: Trigger Coolify v2 redeploys
+        env:
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+        run: |
+          if [ -z "$COOLIFY_TOKEN" ]; then
+            echo "COOLIFY_TOKEN secret tanımlı değil — otomatik deploy atlandı."
+            exit 0
+          fi
+          B="http://185.255.95.111:8000/api/v1"
+          echo "Backend v2 deploy tetikleniyor..."
+          curl -s -H "Authorization: Bearer $COOLIFY_TOKEN" "$B/deploy?uuid=ufx752pb2tk8uft3t86umoeo&force=false"
+          echo "Frontend v2 deploy tetikleniyor..."
+          curl -s -H "Authorization: Bearer $COOLIFY_TOKEN" "$B/deploy?uuid=fn7lemtkwwvj3r8myn2wgqk4&force=false"
