@@ -49,7 +49,26 @@ Bu günlük her fazda güncellenir (Obsidian uyumlu, `[[wikilink]]`).
 - [x] PWA manifest theme-color emerald fix
 - [ ] kalan polish: service worker güncelleme, ikon üretimi (design-guru), a11y/Lighthouse denetimi
 
-## P5 — Ajanlar + entegrasyonlar (14 ajan, Külliyat AI) ⏳
+## P5 — Ajanlar + entegrasyonlar (14 ajan, Külliyat AI) 🔄
+
+- [x] **Külliyat AI CANLI** — OpenRouter ücretsiz model `nvidia/nemotron-3-ultra-550b-a55b:free`
+      (1M ctx, Haziran 2026, son-2-ay kuralına uygun); `packages/trpc/src/lib/ai.ts` chat client
+- [x] `kulliyat` router: `ask` (GETAT bilgi Q&A, protected) + `analyzeComplaints` (eğitmen, anamnez→JSON NER)
+- [x] GETAT system prompt: terminoloji (asla doktor/hasta), sünnet günleri 17/19/21, teşhis koymaz
+- [x] Danışan **Külliyat chat sayfası** (`/danisan/kulliyat`) + alt nav'a eklendi — HTTP 200
+- [x] **Canlı uçtan uca test:** danışan girişi → "sülük kimlere uygulanmaz" → doğru, kontrendikasyonlu
+      GETAT yanıtı (hemofili/anemi/kan sulandırıcı/hamile) OpenRouter'dan döndü
+- [x] api Coolify env: OPENROUTER_API_KEY + OPENROUTER_MODEL set
+- [ ] kalan ajanlar: WhatsApp(Evolution)/Telegram(grammy)/SMS(Netgsm)/e-posta(Resend) — **anahtar bekliyor**
+- [ ] Qdrant vektör DB + embeddings (knowledge base), Whisper anamnez, online ödeme (Finance)
+
+## P3 — Backend (devam: hatırlatma worker) 🔄
+
+- [x] **BullMQ randevu hatırlatma worker'ı** (`apps/api/src/workers/reminders.worker.ts`) — Redis v2;
+      10 dk'da bir tarar, 24h/1h içindeki randevulara `bildirim` üretir, reminder_24h/1h_sent işaretler
+- [x] server.ts boot'ta fire-and-forget başlatma (REDIS_URL varsa); Redis hatası API'yi düşürmez
+- [x] api Coolify env: REDIS_URL (Redis v2 internal) set
+- [ ] kalan: MinIO dosya yükleme, consent-gate (tedavi/tahlil create) enforcement
 
 ## P6 — Test sertleştirme ⏳
 
