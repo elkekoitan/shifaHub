@@ -117,8 +117,12 @@ Bu günlük her fazda güncellenir (Obsidian uyumlu, `[[wikilink]]`).
       danışan detayında "Tavsiyeler" bölümü. (backend değişmedi)
 - [x] **Feature batch 2** (`033652b`): **kan değerleri grafik trendi** (recharts) — danışan tahlil +
       eğitmen danışan detay; tahlil.list values[]'i değer adına göre gruplar, referans bandı.
-- [ ] **Kalan otonom eksikler** (sonraki batch): eğitmen anamnez inceleme sekmesi, in-app bildirim
-      merkezi + tercih toggle, PDF rapor, öncesi/sonrası galeri, ajanda/randevu Hicri toggle.
+- [x] **Feature batch 3** (`6fae8ea`): **bildirim zili** (NotificationBell, okunmamış rozetli —
+      danışan dashboard + eğitmen sidebar → mevcut `/bildirim` merkezine erişim); **yazdırılabilir
+      hasta raporu** (`/egitmen/danisan/[id]/rapor`, window.print → PDF, tam Türkçe); `danisan.byUserId`
+      artık ad döndürüyor (eğitmen detay başlığı + rapor danışan adı). Danışan ~%87→~%93, eğitmen ~%88→~%95.
+- [ ] **Kalan otonom (düşük öncelik):** öncesi/sonrası galeri (görsel yükleme UI), eğitmen anamnez
+      not-ekleme (yeni mutation), ajanda Hicri tarih toggle (sünnet işareti zaten var).
 - [ ] **SMS/e-posta — kullanıcı: "olmasın"** (yapılmayacak).
 - [ ] **Anahtar bekleyen** (yapılamaz): Whisper STT, Qdrant RAG, gerçek ödeme (iyzico/PayTR).
 - [ ] **DOMAIN:** `shifahub.com.tr` (apex) + `www` turkticaret park IP'sine (31.186.11.254) bakıyor,
