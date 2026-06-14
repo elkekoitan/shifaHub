@@ -66,7 +66,13 @@ Bu günlük her fazda güncellenir (Obsidian uyumlu, `[[wikilink]]`).
 - [x] **Canlı uçtan uca test:** danışan girişi → "sülük kimlere uygulanmaz" → doğru, kontrendikasyonlu
       GETAT yanıtı (hemofili/anemi/kan sulandırıcı/hamile) OpenRouter'dan döndü
 - [x] api Coolify env: OPENROUTER_API_KEY + OPENROUTER_MODEL set
-- [ ] kalan ajanlar: WhatsApp(Evolution)/Telegram(grammy)/SMS(Netgsm)/e-posta(Resend) — **anahtar bekliyor**
+- [x] **Evolution API (WhatsApp gateway) CANLI** — `evoapicloud/evolution-api:v2.3.7` Coolify **Docker-image
+      app** olarak kuruldu (`kece1pz4rtyjikbrao30hvst`), sistemik custom-compose env sorununu baypaslar.
+      PG v2'ye bağlı (`?schema=evolution_v2` — `public`'le çakışmaz) + Redis v2 (DB 1). 36 config flag.
+      `shifahub` WhatsApp instance'ı oluşturuldu. **Evolution Manager** açıldı; QR pairing kullanıcıda.
+      API key: `L7Fng1p6CG90heagjgLWrITqwZ3rkBU6`.
+- [ ] kalan ajanlar: Telegram(grammy)/SMS(Netgsm)/e-posta(Resend) — **anahtar bekliyor**; app notification
+      servisini Evolution `sendText`'e bağlama (eşleşme sonrası)
 - [ ] Qdrant vektör DB + embeddings (knowledge base), Whisper anamnez, online ödeme (Finance)
 
 ## P3 — Backend (devam: hatırlatma worker) 🔄
