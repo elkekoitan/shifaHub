@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [rewrite, main]
+    branches: [main]
   pull_request:
-    branches: [rewrite, main]
+    branches: [main]
 
 jobs:
   verify:
@@ -44,7 +44,7 @@ jobs:
     name: Deploy v2 (Coolify)
     needs: verify
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/rewrite' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - name: Trigger Coolify v2 redeploys
         env:
