@@ -155,6 +155,13 @@ Bu günlük her fazda güncellenir (Obsidian uyumlu, `[[wikilink]]`).
 - [x] **Eski v1 Coolify kaynakları SİLİNDİ** (kullanıcı: "veri önemsiz sil"): shifahub-backend,
       shifahub-frontend, shifahub-postgres, shifahub-redis → hepsi delete. Yeni v2 (gerçek domain)
       doğrulandı: api/app HTTP 200, v1 sorgu 404. Blue/green tamamlandı.
-- [ ] kalan: git geçmişi (rewrite→main, develop sil) + broken MinIO kaynaklarını temizle
+- [x] **GİT GEÇMİŞİ TASFİYESİ TAMAM** (kullanıcı: "şimdi yap", 2026-06-14):
+      taze yedek `shifahub-backup-FINAL-teardown-2026-06-14.bundle` (--all, 784 KB) →
+      `main` orphan `rewrite` geçmişine getirildi (48 commit, eski 57-commit pre-rewrite geçmişi
+      gitti) → `git push origin main --force` (47153c5→533c9c1) → Coolify api+web `git_branch`
+      rewrite→**main** (API PATCH, doğrulandı) → ci.yml main-merkezli → `develop` + `rewrite`
+      silindi (local + remote). **origin'de yalnız `main`.** main'den api+web deploy tetiklendi
+      (repoint doğrulama + P6 refactor senkronu).
+- [ ] kalan (opsiyonel): broken MinIO/Evolution Coolify kaynaklarını temizle (UI / classifier)
 - Not: MinIO bu sunucuda S3-auth çözülemedi (custom-compose + docker-image, 10+ cred) →
   dosya depolama api kalıcı volume'üne taşındı (`/data`, shifahub-uploads), upload/list canlı doğrulandı.
