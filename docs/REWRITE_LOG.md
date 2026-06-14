@@ -73,7 +73,12 @@ Bu günlük her fazda güncellenir (Obsidian uyumlu, `[[wikilink]]`).
 - [x] **WhatsApp gönderim entegrasyonu** — `lib/whatsapp.ts` (`sendWhatsApp`, Evolution sendText, TR→WA
       format). Hatırlatma worker'ı danışanın şifreli telefonunu (pgcrypto) çözüp 24h/1h randevu
       hatırlatmalarını **WhatsApp'tan da** gönderir. api env: EVOLUTION_URL/KEY/INSTANCE.
-- [ ] kalan ajanlar: Telegram(grammy)/SMS(Netgsm)/e-posta(Resend) — **anahtar bekliyor**
+- [x] **Telegram altyapısı KURULDU** (token gelince aktif) — `lib/telegram.ts` grammy bot:
+      `/start <userId>` deep-link ile danışanı bağlar (`users.telegram_chat_id`, 0003 migration);
+      `sendTelegram`. server.ts boot'ta başlar (TELEGRAM_BOT_TOKEN varsa). Worker 24h/1h
+      hatırlatmaları Telegram'dan da gönderir. `danisan.telegramLink` tRPC + profil "Telegram'a bağla"
+      kartı (TELEGRAM_BOT_USERNAME env). **Sadece BotFather bot token'ı bekleniyor.**
+- [ ] kalan ajanlar: SMS(Netgsm)/e-posta(Resend) — **anahtar bekliyor** (WhatsApp/Telegram deseni hazır)
 - [ ] Qdrant vektör DB + embeddings (knowledge base), Whisper anamnez, online ödeme (Finance)
 
 ## P3 — Backend (devam: hatırlatma worker) 🔄
