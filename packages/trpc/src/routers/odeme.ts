@@ -1,9 +1,10 @@
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, gte, lte } from "drizzle-orm";
+import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { odeme } from "@shifahub/db";
 import { PAYMENT_STATUS_VALUES, deriveStatus } from "@shifahub/shared";
 import { z } from "zod";
 import { router, protectedProcedure, egitmenProcedure } from "../trpc";
+import { getPaymentGateway } from "../lib/payment";
 
 /**
  * Odeme (billing) routeri — eski Fastify route + billing.service mantigi
@@ -91,6 +92,56 @@ export const odemeRouter = router({
 
     return created;
   }),
+
+  // ─── initiateOnline — danisan kendi odemesi icin online checkout baslatir ──
+  // Salt-okuma: ref deterministik (gateway uretir), DB'ye yazilmaz; odeme onayi
+  // confirmDemo + SECURITY DEFINER fonksiyonda yapilir (danisan RLS ile yazamaz).
+  initiateOnline: protectedProcedure
+    .input(z.object({ odemeId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const [o] = await ctx.db.select().from(odeme).where(eq(odeme.id, input.odemeId)).limit(1);
+      if (!o) throw new TRPCError({ code: "NOT_FOUND", message: "Odeme bulunamadi." });
+      // RLS zaten baska danisanin odemesini gizler; yine de acik kontrol.
+      if (ctx.user.role === "danisan" && o.danisanId !== ctx.user.id) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Bu odemeyi odeyemezsiniz." });
+      }
+      if (o.status === "paid" || o.status === "free") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Bu odeme zaten kapatilmis." });
+      }
+      const balance = Number(o.amount) - Number(o.paidAmount ?? 0);
+      if (balance <= 0) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Odenecek tutar bulunmuyor." });
+      }
+      const checkout = await getPaymentGateway().createCheckout({
+        odemeId: o.id,
+        amount: balance,
+        description: o.description ?? "ShifaHub odeme",
+      });
+      return { redirectUrl: checkout.redirectUrl, provider: checkout.provider, amount: balance };
+    }),
+
+  // ─── confirmDemo — demo gateway odemesini "paid" yapar (danisan) ───────────
+  // Gercek gateway'de bu adimin yerini sunucu-tarafi callback verify alir.
+  // SECURITY DEFINER fonksiyon sahiplik + referansi kendi icinde dogrular.
+  confirmDemo: protectedProcedure
+    .input(z.object({ odemeId: z.string().uuid(), ref: z.string().min(1).max(120) }))
+    .mutation(async ({ ctx, input }) => {
+      const rows = (await ctx.db.execute(
+        sql`select confirm_demo_payment(${input.odemeId}::uuid, ${ctx.user.id}::uuid, ${input.ref}) as ok`,
+      )) as unknown as Array<{ ok: boolean }>;
+      if (!rows[0]?.ok) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Odeme onaylanamadi (gecersiz referans ya da yetki).",
+        });
+      }
+      const [updated] = await ctx.db
+        .select()
+        .from(odeme)
+        .where(eq(odeme.id, input.odemeId))
+        .limit(1);
+      return updated;
+    }),
 
   // ─── update — odeme guncelle, tutar/status yeniden hesapla (egitmen/admin) ─
   update: egitmenProcedure.input(updateInput).mutation(async ({ ctx, input }) => {

@@ -1,7 +1,7 @@
 import "dotenv/config";
 import argon2 from "argon2";
 import { and, eq } from "drizzle-orm";
-import { db, sql, users, danisan, egitmen, kvkkConsent } from "@shifahub/db";
+import { db, sql, users, danisan, egitmen, kvkkConsent, odeme } from "@shifahub/db";
 import type { UserRole } from "@shifahub/shared";
 
 /**
@@ -102,6 +102,29 @@ async function main() {
         status: "active",
       });
       console.log("[seed] demo danisan saglik verisi rizasi eklendi");
+    }
+
+    // Demo bekleyen odeme (idempotent) — online odeme akisini gosterebilmek icin.
+    const [demoEgt] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.email, "demo.egitmen@shifahub.app"));
+    if (demoEgt) {
+      const existingOdeme = await db
+        .select({ id: odeme.id })
+        .from(odeme)
+        .where(eq(odeme.danisanId, demoDan.id));
+      if (existingOdeme.length === 0) {
+        await db.insert(odeme).values({
+          danisanId: demoDan.id,
+          egitmenId: demoEgt.id,
+          amount: "400.00",
+          paidAmount: "0",
+          status: "pending",
+          description: "Yas hacamat seansi (demo)",
+        });
+        console.log("[seed] demo bekleyen odeme eklendi");
+      }
     }
   }
 

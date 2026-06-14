@@ -36,6 +36,11 @@ export const odeme = pgTable(
     receiptNumber: varchar("receipt_number", { length: 50 }),
     notes: text("notes"),
 
+    // Online odeme: gateway saglayici ("demo" | "iyzico" | "paytr") + islem referansi.
+    // method="kart" + provider dolu => online odeme. provider null => elden/havale.
+    provider: varchar("provider", { length: 20 }),
+    providerRef: varchar("provider_ref", { length: 120 }),
+
     paidAt: timestamp("paid_at"),
     ...timestamps,
   },
