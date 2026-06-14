@@ -91,8 +91,23 @@ Bu günlük her fazda güncellenir (Obsidian uyumlu, `[[wikilink]]`).
       `confirm_demo_payment` SECURITY DEFINER). Web: `/danisan/odeme` (liste + online öde) +
       `/danisan/odeme/[id]/ode` (markalı demo checkout). Seed: demo bekleyen ödeme. Gerçek iyzico/PayTR
       anahtar geldiğinde `getPaymentGateway`'e eklenir (akış değişmez).
-- [ ] **SMS/e-posta — kullanıcı: "olmasın"** (yapılmayacak). Telegram: kod hazır, **bot token bekliyor**.
-- [ ] Qdrant/Whisper — opsiyonel (Külliyat şu an KB+araç temelli, Qdrant'sız çalışıyor)
+- [x] **TELEGRAM AKTİF** (2026-06-14) — kullanıcı @hibidibimimenez_bot (Shifahub_bot) token'ı verdi;
+      Coolify api env'e `TELEGRAM_BOT_TOKEN` + `TELEGRAM_BOT_USERNAME` yazıldı, redeploy → bot
+      long-polling başladı (log: "[telegram] bot başlatıldı"). Danışan profilden "Telegram'a bağla"
+      → /start deep-link → telegramChatId bağlanır → hatırlatmalar Telegram'dan da gider.
+- [x] **Birleşik geçmiş/timeline** (kullanıcı isteği): ortak `components/gecmis/TimelineList` +
+      `timeline-utils` (randevu+tedavi+tahlil+ödeme+protokol → tek tarih-DESC, tür-filtreli tünel).
+      Danışan `/danisan/gecmis` ("Geçmişim") + profil kısayolu; eğitmen `danisan/[id]` "Hasta dosyası".
+      Yeni şema YOK; `randevu.list`'e danisanId süzgeci eklendi. **64 test + tüm kapılar yeşil.**
+- [x] **Admin eğitmen onayı DÜZELTİLDİ** (audit #3): `admin.listEgitmenApplications` (users+egitmen
+      JOIN → egitmenId); onay/ret butonları artık aktif (eskiden disabled), durum rozeti.
+- [x] **Kapsamlı kod denetimi** (7-ajan workflow, 515k token): proje ~%85-90; eksikler 2 kümede
+      (auth tamamlayıcıları MFA/email/şifre-sıfırlama + P5 ajan/entegrasyon katmanı). 10 öncelikli
+      ekleme önerisi çıkarıldı (bkz oturum özeti / audit çıktısı).
+- [ ] **SMS/e-posta — kullanıcı: "olmasın"** (yapılmayacak).
+- [ ] Kalan backlog (audit): auth tamamlama (email doğrulama+şifre sıfırlama), KVKK riza-çekme
+      otomasyonu, geri-bildirim backend, sesli not+Whisper, WhatsApp/Telegram webhook+chatbot,
+      bildirim SMS/Push, gerçek ödeme gateway, Qdrant RAG, stok oto-düşüm. (opsiyonel, kullanıcı seçer)
 
 ## P3 — Backend (devam: hatırlatma worker) 🔄
 
