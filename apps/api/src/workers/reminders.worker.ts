@@ -1,12 +1,32 @@
 import { Queue, Worker } from "bullmq";
 import IORedis from "ioredis";
-import { and, eq, gt, lte, inArray } from "drizzle-orm";
+import { and, eq, gt, lte, inArray, sql } from "drizzle-orm";
 import { db, randevu, bildirim } from "@shifahub/db";
+import { sendWhatsApp } from "../lib/whatsapp";
 
 const QUEUE_NAME = "reminders";
 const SCAN_EVERY_MS = 10 * 60 * 1000; // her 10 dakikada bir tara
+const ENC_KEY = process.env.ENCRYPTION_KEY ?? "";
 
 type Log = (msg: string) => void;
+
+/**
+ * Danışanın şifreli telefonunu (pgcrypto) çözüp WhatsApp hatırlatması gönderir.
+ * Telefon yoksa / WhatsApp yapılandırılmamışsa sessizce geçer (bildirim zaten üretildi).
+ */
+async function whatsappReminder(danisanId: string, text: string): Promise<void> {
+  if (!ENC_KEY) return;
+  try {
+    const rows = (await db.execute(
+      sql`select pgp_sym_decrypt(phone_encrypted, ${ENC_KEY}) as phone
+          from users where id = ${danisanId}::uuid and phone_encrypted is not null`,
+    )) as unknown as Array<{ phone: string | null }>;
+    const phone = rows[0]?.phone;
+    if (phone) await sendWhatsApp(phone, text);
+  } catch {
+    /* sessizce geç */
+  }
+}
 
 /**
  * Yaklaşan randevular için uygulama-içi bildirim üreten BullMQ worker'ı.
@@ -63,6 +83,10 @@ export async function startReminderWorker(redisUrl: string, log: Log) {
           actionUrl: "/danisan/randevu",
         });
         await db.update(randevu).set({ reminder24hSent: true }).where(eq(randevu.id, r.id));
+        await whatsappReminder(
+          r.danisanId,
+          `ShifaHub: ${r.treatmentType ?? "Randevu"} randevunuz 24 saat içinde. Detay: app.shifahub.com.tr`,
+        );
       }
 
       const due1 = await db
@@ -85,6 +109,10 @@ export async function startReminderWorker(redisUrl: string, log: Log) {
           actionUrl: "/danisan/randevu",
         });
         await db.update(randevu).set({ reminder1hSent: true }).where(eq(randevu.id, r.id));
+        await whatsappReminder(
+          r.danisanId,
+          `ShifaHub: ${r.treatmentType ?? "Randevu"} randevunuza 1 saatten az kaldı. Detay: app.shifahub.com.tr`,
+        );
       }
 
       log(`[reminders] tarama: 24h=${due24.length} 1h=${due1.length} bildirim üretildi`);
