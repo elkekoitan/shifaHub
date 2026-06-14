@@ -104,10 +104,16 @@ Bu günlük her fazda güncellenir (Obsidian uyumlu, `[[wikilink]]`).
 - [x] **Kapsamlı kod denetimi** (7-ajan workflow, 515k token): proje ~%85-90; eksikler 2 kümede
       (auth tamamlayıcıları MFA/email/şifre-sıfırlama + P5 ajan/entegrasyon katmanı). 10 öncelikli
       ekleme önerisi çıkarıldı (bkz oturum özeti / audit çıktısı).
+- [x] **3 OTONOM ÖZELLİK** (kullanıcı seçimi, 2026-06-14): **(a) Geri-bildirim** — geri_bildirim
+      şeması + migration 0005 (RLS) + router (create/list/summary) + web formu aktif (eskiden devre
+      dışı). **(b) KVKK riza-çekme otomasyonu (PRD 27.3)** — migration 0006 `apply_consent_revocation`
+      SECURITY DEFINER: sağlık rızası çekilince bekleyen randevu iptal + bakım ilişkisi sonlandır,
+      tek audit kaydı. **(c) Stok SKT alarmı** — oto-düşüm+kritik alarm ZATEN vardı (tedavi.create);
+      eksik SKT özet bandı eklendi. **14 db testi** (2 geri_bildirim RLS + 1 cascade dahil).
 - [ ] **SMS/e-posta — kullanıcı: "olmasın"** (yapılmayacak).
-- [ ] Kalan backlog (audit): auth tamamlama (email doğrulama+şifre sıfırlama), KVKK riza-çekme
-      otomasyonu, geri-bildirim backend, sesli not+Whisper, WhatsApp/Telegram webhook+chatbot,
-      bildirim SMS/Push, gerçek ödeme gateway, Qdrant RAG, stok oto-düşüm. (opsiyonel, kullanıcı seçer)
+- [ ] Kalan backlog (audit, opsiyonel): auth tamamlama (MFA/email-doğrulama/şifre-sıfırlama),
+      sesli not+Whisper, WhatsApp/Telegram webhook+chatbot, bildirim SMS/Push, gerçek ödeme gateway
+      (iyzico/PayTR), Qdrant RAG, E2E genişletme. (kullanıcı seçer)
 
 ## P3 — Backend (devam: hatırlatma worker) 🔄
 
