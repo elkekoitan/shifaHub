@@ -16,6 +16,7 @@ import { trpc } from "@/lib/trpc";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TimelineList } from "@/components/gecmis/TimelineList";
 import { buildTimeline } from "@/components/gecmis/timeline-utils";
+import { BloodValueChart } from "@/components/tahlil/blood-value-chart";
 
 const dateFmt = new Intl.DateTimeFormat("tr-TR", {
   day: "numeric",
@@ -201,6 +202,13 @@ export default function DanisanDetayPage({ params }: { params: Promise<{ id: str
               </li>
             ))}
           </ul>
+        </section>
+      ) : null}
+
+      {/* Kan degerleri trendi */}
+      {(tahliller.data?.length ?? 0) > 0 ? (
+        <section className="mb-6">
+          <BloodValueChart records={tahliller.data ?? []} />
         </section>
       ) : null}
 
