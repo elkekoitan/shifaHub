@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   Users,
@@ -91,9 +91,16 @@ export default function TedaviWizardPage() {
   const [danisanId, setDanisanId] = useState<string>("");
   const [treatmentType, setTreatmentType] = useState<string>("");
   const [findings, setFindings] = useState("");
+  const [recommendations, setRecommendations] = useState("");
+  const [treatmentDate, setTreatmentDate] = useState("");
   const [complaintText, setComplaintText] = useState("");
   const [vital, setVital] = useState({ bloodPressure: "", pulse: "", temperature: "", weight: "" });
   const [done, setDone] = useState(false);
+
+  // Tedavi tarihi varsayilani bugun — yalniz istemcide (hydration uyumsuzlugu olmasin).
+  useEffect(() => {
+    setTreatmentDate(new Date().toISOString().slice(0, 10));
+  }, []);
 
   const danisanlar = trpc.egitmen.danisanlarim.useQuery();
   const profil = trpc.danisan.byUserId.useQuery(
@@ -118,6 +125,8 @@ export default function TedaviWizardPage() {
         danisanId,
         treatmentType,
         findings: findings || undefined,
+        recommendations: recommendations || undefined,
+        treatmentDate: treatmentDate ? new Date(treatmentDate) : undefined,
         vitalSigns: {
           bloodPressure: vital.bloodPressure || undefined,
           pulse: vital.pulse ? Number(vital.pulse) : undefined,
@@ -287,6 +296,21 @@ export default function TedaviWizardPage() {
               ))}
             </div>
             <div className="space-y-1.5 pt-1">
+              <Label htmlFor="treatmentDate">Tedavi tarihi</Label>
+              <input
+                id="treatmentDate"
+                type="date"
+                value={treatmentDate}
+                max={new Date().toISOString().slice(0, 10)}
+                onChange={(e) => setTreatmentDate(e.target.value)}
+                className="flex h-11 w-full rounded-[var(--radius)] border border-input bg-card px-3 text-sm text-foreground focus-visible:border-ring focus-visible:outline-none"
+              />
+              <p className="text-[11px] text-text-3">
+                Geçmiş bir seansı kaydetmek için tarihi geri alabilirsiniz.
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
               <Label htmlFor="findings">Bulgular (opsiyonel)</Label>
               <textarea
                 id="findings"
@@ -294,6 +318,18 @@ export default function TedaviWizardPage() {
                 onChange={(e) => setFindings(e.target.value)}
                 rows={3}
                 placeholder="Muayene bulguları, gözlemler…"
+                className="flex w-full rounded-[var(--radius)] border border-input bg-card px-3 py-2 text-sm text-foreground placeholder:text-text-3 focus-visible:border-ring focus-visible:outline-none"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="recommendations">Tavsiyeler (opsiyonel)</Label>
+              <textarea
+                id="recommendations"
+                value={recommendations}
+                onChange={(e) => setRecommendations(e.target.value)}
+                rows={3}
+                placeholder="Danışana öneriler: beslenme, dinlenme, takip seansı…"
                 className="flex w-full rounded-[var(--radius)] border border-input bg-card px-3 py-2 text-sm text-foreground placeholder:text-text-3 focus-visible:border-ring focus-visible:outline-none"
               />
             </div>

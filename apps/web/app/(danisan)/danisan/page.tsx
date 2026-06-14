@@ -17,6 +17,7 @@ import { trpc } from "@/lib/trpc";
 import { StatCard } from "@/components/layout/stat-card";
 import { StatusBadge, type BadgeTone } from "@/components/ui/status-badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SunnahDaysCard } from "@/components/sunnah/sunnah-days-card";
 
 const dtf = new Intl.DateTimeFormat("tr-TR", {
   day: "numeric",
@@ -158,6 +159,8 @@ export default function DanisanDashboard() {
           </Link>
         ))}
       </div>
+
+      <SunnahDaysCard />
 
       <section>
         <h2 className="mb-3 text-sm font-medium text-foreground">Son randevular</h2>

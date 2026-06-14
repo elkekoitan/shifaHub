@@ -23,6 +23,7 @@ import {
   FileText,
   Wallet,
   History,
+  ClipboardList,
   ChevronRight,
   Send,
 } from "lucide-react";
@@ -225,6 +226,21 @@ export default function DanisanProfilPage() {
           Çıkış
         </Button>
       </header>
+
+      {/* ─── Anamnez kısayolu ──────────────────────────────────────── */}
+      <Link
+        href="/danisan/anamnez"
+        className="mb-3 flex items-center gap-3 rounded-[var(--radius-lg)] border border-border bg-card px-4 py-3.5 shadow-[var(--shadow-sm)] transition-colors hover:bg-secondary"
+      >
+        <span className="flex size-9 items-center justify-center rounded-[var(--radius-sm)] bg-accent text-primary">
+          <ClipboardList className="size-4" aria-hidden />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-medium text-foreground">Anamnez</span>
+          <span className="block text-xs text-text-3">Sağlık öykünüzü adım adım tamamlayın</span>
+        </span>
+        <ChevronRight className="size-4 shrink-0 text-text-3" aria-hidden />
+      </Link>
 
       {/* ─── Geçmişim kısayolu ─────────────────────────────────────── */}
       <Link

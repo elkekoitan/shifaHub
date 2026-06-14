@@ -2,7 +2,16 @@
 
 import { use } from "react";
 import Link from "next/link";
-import { ArrowLeft, HeartPulse, AlertTriangle, Pill, Droplets, Cake, History } from "lucide-react";
+import {
+  ArrowLeft,
+  HeartPulse,
+  AlertTriangle,
+  Pill,
+  Droplets,
+  Cake,
+  History,
+  Lightbulb,
+} from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TimelineList } from "@/components/gecmis/TimelineList";
@@ -67,6 +76,10 @@ export default function DanisanDetayPage({ params }: { params: Promise<{ id: str
     odeme: odemeler.data,
     protokol: protokoller.data,
   });
+
+  const tavsiyeler = (tedaviler.data ?? []).filter(
+    (t) => t.recommendations && t.recommendations.trim().length > 0,
+  );
 
   return (
     <div className="px-5 pt-6">
@@ -165,6 +178,30 @@ export default function DanisanDetayPage({ params }: { params: Promise<{ id: str
             <HeartPulse className="size-4" aria-hidden /> Yeni tedavi kaydı
           </Link>
         </>
+      ) : null}
+
+      {/* Tavsiyeler — tedavi kayitlarindan oneriler */}
+      {tavsiyeler.length > 0 ? (
+        <section className="mb-6">
+          <h2 className="mb-3 flex items-center gap-1.5 font-headline text-base font-semibold text-foreground">
+            <Lightbulb className="size-4 text-accent-honey" aria-hidden /> Tavsiyeler
+          </h2>
+          <ul className="space-y-2">
+            {tavsiyeler.map((t) => (
+              <li
+                key={t.id}
+                className="rounded-[var(--radius)] border border-border bg-card p-3 shadow-[var(--shadow-sm)]"
+              >
+                <p className="text-xs text-text-3">
+                  {t.treatmentDate ? dateFmt.format(new Date(t.treatmentDate)) : ""}
+                </p>
+                <p className="mt-0.5 whitespace-pre-wrap text-sm text-foreground">
+                  {t.recommendations}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
       ) : null}
 
       {/* Hasta dosyasi — birlesik gecmis (randevu + tedavi + tahlil + odeme + protokol) */}
