@@ -98,7 +98,7 @@ Bu günlük her fazda güncellenir (Obsidian uyumlu, `[[wikilink]]`).
   MinIO root cred'i alamıyor, denenen 6 cred de `InvalidAccessKeyId`. Çözüm: Coolify UI'dan MinIO
   servisinin gerçek cred'i alınıp api MINIO_ACCESS/SECRET_KEY'e yazılır (1 adım, kod değişmez).
 
-## P6 — Test sertleştirme 🔄
+## P6 — Test sertleştirme ✅
 
 - [x] **Saf domain mantığı `packages/shared/src/domain/`'e çıkarıldı** (tek kaynak + test edilebilir):
       `appointment.ts` (VALID_TRANSITIONS state machine + canTransition/isTerminalStatus + computeHijri),
@@ -116,7 +116,12 @@ Bu günlük her fazda güncellenir (Obsidian uyumlu, `[[wikilink]]`).
 - [x] **CI lint düzeltmesi:** `next lint` Next 16'da kaldırıldı (→ "lint"i dizin sanıyordu);
       web lint `eslint app components lib stores providers`'a geçti (diğer paketlerle tutarlı).
       web test `--passWithNoTests` (E2E ayrı `playwright` script'inde).
-- [ ] Playwright E2E (parite flow'ları) — canlı staging'e karşı (opsiyonel, sonraki adım)
+- [x] **Playwright E2E (`apps/web/e2e/`, 3 smoke, canlı staging'e karşı):** giriş sayfası render
+      (marka + form + değer önerisi), bilinmeyen korumalı rota → /giris yönlendirme, demo danışan
+      girişi → onboarding karşılama (ilk giriş, salt-okunur, veri mutasyonu yok). chromium, tr-TR
+      locale, `E2E_BASE_URL` ile ortam değiştirilebilir. `turbo test` kapısından AYRI (`npm run e2e`).
+      **3/3 geçti** (app.shifahub.com.tr). → **P6 test sertleştirme TAMAM** ✅
+      (45 unit + 16 integration + 3 E2E; typecheck/lint/test/build yeşil; CI güncel).
 
 ## P7 — Coolify v2 deploy + parite + cutover 🔄
 
