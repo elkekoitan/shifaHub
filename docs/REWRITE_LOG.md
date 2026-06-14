@@ -114,4 +114,12 @@ Bu günlük her fazda güncellenir (Obsidian uyumlu, `[[wikilink]]`).
 - Demo: turhanhamza@gmail.com/admin123, demo.egitmen@shifahub.app/egitmen123, demo.danisan@shifahub.app/danisan123
 - **Eski sistem (shifahub-backend/frontend/postgres/redis) EL DEĞMEDEN çalışıyor** (blue/green)
 
-## P8 — Teardown (geri dönüşsüz, en son) ⏳
+## P8 — Teardown (geri dönüşsüz) 🔄
+
+- [x] **Taze yedek:** `shifahub-backup-pre-teardown-2026-06-14.bundle` (tüm ref'ler, 772 KB)
+- [x] **Eski v1 Coolify kaynakları SİLİNDİ** (kullanıcı: "veri önemsiz sil"): shifahub-backend,
+      shifahub-frontend, shifahub-postgres, shifahub-redis → hepsi delete. Yeni v2 (gerçek domain)
+      doğrulandı: api/app HTTP 200, v1 sorgu 404. Blue/green tamamlandı.
+- [ ] kalan: git geçmişi (rewrite→main, develop sil) + broken MinIO kaynaklarını temizle
+- Not: MinIO bu sunucuda S3-auth çözülemedi (custom-compose + docker-image, 10+ cred) →
+  dosya depolama api kalıcı volume'üne taşındı (`/data`, shifahub-uploads), upload/list canlı doğrulandı.
