@@ -110,10 +110,20 @@ Bu günlük her fazda güncellenir (Obsidian uyumlu, `[[wikilink]]`).
       SECURITY DEFINER: sağlık rızası çekilince bekleyen randevu iptal + bakım ilişkisi sonlandır,
       tek audit kaydı. **(c) Stok SKT alarmı** — oto-düşüm+kritik alarm ZATEN vardı (tedavi.create);
       eksik SKT özet bandı eklendi. **14 db testi** (2 geri_bildirim RLS + 1 cascade dahil).
+- [x] **Rol-eksiksizlik denetimi** (workflow): danışan ~%87, eğitmen ~%88 → otonom eksikler kapatılıyor.
+- [x] **Feature batch 1** (`b7cc322`): sünnet günleri widget (danışan dashboard, Hicri 17/19/21);
+      çok-adımlı **anamnez wizard** (`/danisan/anamnez`, 6 adım, profilden ön-dolum); eğitmen tedavi
+      wizard'a **geçmiş-tarihli tedavi** (date picker) + **tavsiyeler** (recommendations); eğitmen
+      danışan detayında "Tavsiyeler" bölümü. (backend değişmedi)
+- [x] **Feature batch 2** (`033652b`): **kan değerleri grafik trendi** (recharts) — danışan tahlil +
+      eğitmen danışan detay; tahlil.list values[]'i değer adına göre gruplar, referans bandı.
+- [ ] **Kalan otonom eksikler** (sonraki batch): eğitmen anamnez inceleme sekmesi, in-app bildirim
+      merkezi + tercih toggle, PDF rapor, öncesi/sonrası galeri, ajanda/randevu Hicri toggle.
 - [ ] **SMS/e-posta — kullanıcı: "olmasın"** (yapılmayacak).
-- [ ] Kalan backlog (audit, opsiyonel): auth tamamlama (MFA/email-doğrulama/şifre-sıfırlama),
-      sesli not+Whisper, WhatsApp/Telegram webhook+chatbot, bildirim SMS/Push, gerçek ödeme gateway
-      (iyzico/PayTR), Qdrant RAG, E2E genişletme. (kullanıcı seçer)
+- [ ] **Anahtar bekleyen** (yapılamaz): Whisper STT, Qdrant RAG, gerçek ödeme (iyzico/PayTR).
+- [ ] **DOMAIN:** `shifahub.com.tr` (apex) + `www` turkticaret park IP'sine (31.186.11.254) bakıyor,
+      bizim sunucuya (185.255.95.111) değil. Düzeltme: kullanıcı turkticaret DNS Pro'ya girince apex+www
+      A kaydı → 185.255.95.111 + Coolify bağlama (yönlendirme app'e ya da app'i apex'te sunma).
 
 ## P3 — Backend (devam: hatırlatma worker) 🔄
 
