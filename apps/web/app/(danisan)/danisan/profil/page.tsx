@@ -22,6 +22,7 @@ import {
   UserRound,
   FileText,
   ChevronRight,
+  Send,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -106,6 +107,7 @@ export default function DanisanProfilPage() {
   const me = trpc.danisan.me.useQuery(undefined, { retry: false });
   const updateProfile = trpc.danisan.updateProfile.useMutation();
   const consents = trpc.kvkk.listConsents.useQuery();
+  const telegram = trpc.danisan.telegramLink.useQuery();
   const grant = trpc.kvkk.grantConsent.useMutation();
   const revoke = trpc.kvkk.revokeConsent.useMutation();
 
@@ -236,6 +238,27 @@ export default function DanisanProfilPage() {
         </span>
         <ChevronRight className="size-4 shrink-0 text-text-3" aria-hidden />
       </Link>
+
+      {/* ─── Telegram bağlama ──────────────────────────────────────── */}
+      {telegram.data?.url ? (
+        <a
+          href={telegram.data.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mb-6 flex items-center gap-3 rounded-[var(--radius-lg)] border border-border bg-card px-4 py-3.5 shadow-[var(--shadow-sm)] transition-colors hover:bg-secondary"
+        >
+          <span className="flex size-9 items-center justify-center rounded-[var(--radius-sm)] bg-accent text-primary">
+            <Send className="size-4" aria-hidden />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-medium text-foreground">Telegram'a bağla</span>
+            <span className="block text-xs text-text-3">
+              Randevu hatırlatmalarını Telegram'dan da al
+            </span>
+          </span>
+          <ChevronRight className="size-4 shrink-0 text-text-3" aria-hidden />
+        </a>
+      ) : null}
 
       {/* ─── Profil formu ──────────────────────────────────────────── */}
       <section className="mb-6 rounded-[var(--radius-lg)] border border-border bg-card p-5 shadow-[var(--shadow-sm)]">

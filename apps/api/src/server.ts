@@ -7,6 +7,7 @@ import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import { appRouter, type AppRouter } from "@shifahub/trpc";
 import { createContext } from "./context";
 import { startReminderWorker } from "./workers/reminders.worker";
+import { startTelegramBot } from "./lib/telegram";
 import { uploadRoutes } from "./routes/upload";
 
 const PORT = Number(process.env.PORT ?? 4000);
@@ -60,6 +61,11 @@ if (isMain) {
         );
       } else {
         app.log.warn("[reminders] REDIS_URL yok — hatırlatma worker'ı devre dışı");
+      }
+      if (process.env.TELEGRAM_BOT_TOKEN) {
+        startTelegramBot((m) => app.log.info(m)).catch((e) =>
+          app.log.error(`[telegram] başlatılamadı: ${e instanceof Error ? e.message : e}`),
+        );
       }
     })
     .catch((err) => {

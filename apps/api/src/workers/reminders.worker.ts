@@ -1,8 +1,9 @@
 import { Queue, Worker } from "bullmq";
 import IORedis from "ioredis";
 import { and, eq, gt, lte, inArray, sql } from "drizzle-orm";
-import { db, randevu, bildirim } from "@shifahub/db";
+import { db, randevu, bildirim, users } from "@shifahub/db";
 import { sendWhatsApp } from "../lib/whatsapp";
+import { sendTelegram } from "../lib/telegram";
 
 const QUEUE_NAME = "reminders";
 const SCAN_EVERY_MS = 10 * 60 * 1000; // her 10 dakikada bir tara
@@ -23,6 +24,20 @@ async function whatsappReminder(danisanId: string, text: string): Promise<void> 
     )) as unknown as Array<{ phone: string | null }>;
     const phone = rows[0]?.phone;
     if (phone) await sendWhatsApp(phone, text);
+  } catch {
+    /* sessizce geç */
+  }
+}
+
+/** Danışan Telegram bağladıysa (telegram_chat_id) hatırlatmayı oradan da gönderir. */
+async function telegramReminder(danisanId: string, text: string): Promise<void> {
+  try {
+    const [u] = await db
+      .select({ chatId: users.telegramChatId })
+      .from(users)
+      .where(eq(users.id, danisanId))
+      .limit(1);
+    if (u?.chatId) await sendTelegram(u.chatId, text);
   } catch {
     /* sessizce geç */
   }
@@ -83,10 +98,9 @@ export async function startReminderWorker(redisUrl: string, log: Log) {
           actionUrl: "/danisan/randevu",
         });
         await db.update(randevu).set({ reminder24hSent: true }).where(eq(randevu.id, r.id));
-        await whatsappReminder(
-          r.danisanId,
-          `ShifaHub: ${r.treatmentType ?? "Randevu"} randevunuz 24 saat içinde. Detay: app.shifahub.com.tr`,
-        );
+        const msg = `ShifaHub: ${r.treatmentType ?? "Randevu"} randevunuz 24 saat içinde. Detay: app.shifahub.com.tr`;
+        await whatsappReminder(r.danisanId, msg);
+        await telegramReminder(r.danisanId, msg);
       }
 
       const due1 = await db
@@ -109,10 +123,9 @@ export async function startReminderWorker(redisUrl: string, log: Log) {
           actionUrl: "/danisan/randevu",
         });
         await db.update(randevu).set({ reminder1hSent: true }).where(eq(randevu.id, r.id));
-        await whatsappReminder(
-          r.danisanId,
-          `ShifaHub: ${r.treatmentType ?? "Randevu"} randevunuza 1 saatten az kaldı. Detay: app.shifahub.com.tr`,
-        );
+        const msg = `ShifaHub: ${r.treatmentType ?? "Randevu"} randevunuza 1 saatten az kaldı. Detay: app.shifahub.com.tr`;
+        await whatsappReminder(r.danisanId, msg);
+        await telegramReminder(r.danisanId, msg);
       }
 
       log(`[reminders] tarama: 24h=${due24.length} 1h=${due1.length} bildirim üretildi`);

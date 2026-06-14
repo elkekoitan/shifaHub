@@ -37,6 +37,7 @@ export const users = pgTable(
     isMfaEnabled: boolean("is_mfa_enabled").notNull().default(false),
     mfaSecret: text("mfa_secret"),
     isActive: boolean("is_active").notNull().default(true),
+    telegramChatId: varchar("telegram_chat_id", { length: 32 }),
     lastLoginAt: timestamp("last_login_at"),
     ...timestamps,
   },

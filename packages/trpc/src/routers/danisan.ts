@@ -101,6 +101,15 @@ export const danisanRouter = router({
   }),
 
   /**
+   * Telegram bağlama derin-bağlantısı. `t.me/<bot>?start=<userId>` ile danışan
+   * `/start` gönderir, bot sohbet kimliğini kaydeder. Bot adı (env) yoksa null.
+   */
+  telegramLink: protectedProcedure.query(({ ctx }) => {
+    const username = process.env.TELEGRAM_BOT_USERNAME;
+    return { url: username ? `https://t.me/${username}?start=${ctx.user.id}` : null };
+  }),
+
+  /**
    * Kullanici kendi danisan profilini olusturur/gunceller (upsert). Satir yoksa
    * kayit/kayit yapildigi onbilgi (auth.register) varsayilir; yine de yoksa
    * burada olusturulur. RLS WITH CHECK userId'yi kapsar.
