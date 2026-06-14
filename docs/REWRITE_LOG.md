@@ -78,8 +78,21 @@ Bu günlük her fazda güncellenir (Obsidian uyumlu, `[[wikilink]]`).
       `sendTelegram`. server.ts boot'ta başlar (TELEGRAM_BOT_TOKEN varsa). Worker 24h/1h
       hatırlatmaları Telegram'dan da gönderir. `danisan.telegramLink` tRPC + profil "Telegram'a bağla"
       kartı (TELEGRAM_BOT_USERNAME env). **Sadece BotFather bot token'ı bekleniyor.**
-- [ ] kalan ajanlar: SMS(Netgsm)/e-posta(Resend) — **anahtar bekliyor** (WhatsApp/Telegram deseni hazır)
-- [ ] Qdrant vektör DB + embeddings (knowledge base), Whisper anamnez, online ödeme (Finance)
+- [x] **Külliyat → agentic "ShifaHub Asistanı"** (RAG'dan gelişmiş, 2026-06-14): `kulliyat-kb.ts`
+      küratörlü bilgi tabanı (6 yöntem) + niyet sınıflama → araçlar [KB retrieval + yaklaşan sünnet
+      günleri (Hicri hesap) + kişisel kontrendikasyon (danışan profili) + yaklaşan randevular] →
+      **temellendirilmiş** sentez. Dönüş `{answer, sources[], suggestions[]}`. **Canlı doğrulandı:**
+      sünnet sorusu → gerçek hesaplanmış tarihler (2/4/6 Tem 2026 = 17/19/21 Muharrem 1448) + kaynak
+      rozetleri + dinamik takip. Not: ücretsiz model hızlı ardışık çağrıda rate-limit (graceful hata).
+- [x] **GETAT etiketi UI'dan kaldırıldı** (kullanıcı isteği) → "ShifaHub" markası; 4 kullanıcı-yüzü
+      metin "uygulama uzmanları"/"bütünsel şifa" olarak güncellendi (landing/metadata/auth/onboarding).
+- [x] **Online ödeme (danışan → klinik)** — `payment.ts` gateway soyutlaması + yerleşik **DemoGateway**
+      (anahtar gerekmez). `odeme.initiateOnline` + `confirmDemo`; migration 0004 (provider/provider_ref +
+      `confirm_demo_payment` SECURITY DEFINER). Web: `/danisan/odeme` (liste + online öde) +
+      `/danisan/odeme/[id]/ode` (markalı demo checkout). Seed: demo bekleyen ödeme. Gerçek iyzico/PayTR
+      anahtar geldiğinde `getPaymentGateway`'e eklenir (akış değişmez).
+- [ ] **SMS/e-posta — kullanıcı: "olmasın"** (yapılmayacak). Telegram: kod hazır, **bot token bekliyor**.
+- [ ] Qdrant/Whisper — opsiyonel (Külliyat şu an KB+araç temelli, Qdrant'sız çalışıyor)
 
 ## P3 — Backend (devam: hatırlatma worker) 🔄
 
