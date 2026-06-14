@@ -11,6 +11,7 @@ import {
   Cake,
   History,
   Lightbulb,
+  Printer,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -106,8 +107,10 @@ export default function DanisanDetayPage({ params }: { params: Promise<{ id: str
                 <HeartPulse className="size-5" aria-hidden />
               </span>
               <div className="min-w-0">
-                <h1 className="font-headline text-lg font-semibold leading-tight text-foreground">
-                  Danışan profili
+                <h1 className="truncate font-headline text-lg font-semibold leading-tight text-foreground">
+                  {profil.data.firstName || profil.data.lastName
+                    ? `${profil.data.firstName ?? ""} ${profil.data.lastName ?? ""}`.trim()
+                    : "Danışan profili"}
                 </h1>
                 <p className="text-xs text-text-3">Sağlık geçmişi ve klinik bilgiler</p>
               </div>
@@ -171,13 +174,21 @@ export default function DanisanDetayPage({ params }: { params: Promise<{ id: str
             </dl>
           </div>
 
-          {/* Eylem: tedavi olustur */}
-          <Link
-            href="/egitmen/tedavi"
-            className="mb-6 flex w-full items-center justify-center gap-2 rounded-[var(--radius)] bg-primary px-4 py-3 text-sm font-medium text-primary-foreground shadow-[var(--shadow-sm)] transition-all hover:bg-primary-700 active:scale-[0.98]"
-          >
-            <HeartPulse className="size-4" aria-hidden /> Yeni tedavi kaydı
-          </Link>
+          {/* Eylemler: tedavi olustur + rapor */}
+          <div className="mb-6 flex gap-2">
+            <Link
+              href="/egitmen/tedavi"
+              className="flex flex-1 items-center justify-center gap-2 rounded-[var(--radius)] bg-primary px-4 py-3 text-sm font-medium text-primary-foreground shadow-[var(--shadow-sm)] transition-all hover:bg-primary-700 active:scale-[0.98]"
+            >
+              <HeartPulse className="size-4" aria-hidden /> Yeni tedavi
+            </Link>
+            <Link
+              href={`/egitmen/danisan/${id}/rapor`}
+              className="flex items-center justify-center gap-2 rounded-[var(--radius)] border border-border bg-card px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+            >
+              <Printer className="size-4" aria-hidden /> Rapor
+            </Link>
+          </div>
         </>
       ) : null}
 

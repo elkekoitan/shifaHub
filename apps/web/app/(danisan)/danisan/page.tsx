@@ -18,6 +18,7 @@ import { StatCard } from "@/components/layout/stat-card";
 import { StatusBadge, type BadgeTone } from "@/components/ui/status-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SunnahDaysCard } from "@/components/sunnah/sunnah-days-card";
+import { NotificationBell } from "@/components/notification-bell";
 
 const dtf = new Intl.DateTimeFormat("tr-TR", {
   day: "numeric",
@@ -83,12 +84,13 @@ export default function DanisanDashboard() {
         <div className="flex size-11 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
           {initials}
         </div>
-        <div>
+        <div className="min-w-0 flex-1">
           <p className="text-xs text-text-3">İyi günler</p>
-          <h1 className="font-headline text-xl font-semibold leading-tight text-foreground">
+          <h1 className="truncate font-headline text-xl font-semibold leading-tight text-foreground">
             {user?.firstName ? `${user.firstName} ${user.lastName ?? ""}` : "Hoş geldiniz"}
           </h1>
         </div>
+        <NotificationBell className="-mr-2 shrink-0" />
       </header>
 
       {randevu.isLoading ? (

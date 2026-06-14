@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/stores/auth";
 import { cn } from "@/lib/utils";
+import { NotificationBell } from "@/components/notification-bell";
 
 /** Sol kenar (masaustu) + alt (mobil) navigasyon kalemleri. */
 const NAV = [
@@ -71,12 +72,15 @@ export default function EgitmenLayout({ children }: { children: ReactNode }) {
     <div className="min-h-screen md:flex">
       {/* Masaustu sol kenar navigasyonu */}
       <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-border bg-card px-3 py-5 md:flex">
-        <Link href="/egitmen" className="mb-6 flex items-center gap-2.5 px-2">
-          <div className="flex size-9 items-center justify-center rounded-[var(--radius)] bg-primary text-primary-foreground shadow-[var(--shadow-sm)]">
-            <Sprout className="size-5" aria-hidden />
-          </div>
-          <span className="font-headline text-lg font-semibold text-foreground">ShifaHub</span>
-        </Link>
+        <div className="mb-6 flex items-center justify-between px-1">
+          <Link href="/egitmen" className="flex items-center gap-2.5 px-1">
+            <div className="flex size-9 items-center justify-center rounded-[var(--radius)] bg-primary text-primary-foreground shadow-[var(--shadow-sm)]">
+              <Sprout className="size-5" aria-hidden />
+            </div>
+            <span className="font-headline text-lg font-semibold text-foreground">ShifaHub</span>
+          </Link>
+          <NotificationBell />
+        </div>
         <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto">
           {NAV.map(({ href, label, icon: Icon }) => {
             const active = isActive(href);

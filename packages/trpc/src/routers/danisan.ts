@@ -220,8 +220,13 @@ export const danisanRouter = router({
     .input(z.object({ userId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
       const [profile] = await ctx.db
-        .select(danisanSelect)
+        .select({
+          ...danisanSelect,
+          firstName: users.firstName,
+          lastName: users.lastName,
+        })
         .from(danisan)
+        .innerJoin(users, eq(danisan.userId, users.id))
         .where(eq(danisan.userId, input.userId))
         .limit(1);
       if (!profile) {
