@@ -1,7 +1,16 @@
 import "dotenv/config";
 import argon2 from "argon2";
 import { and, eq } from "drizzle-orm";
-import { db, sql, users, danisan, egitmen, kvkkConsent, odeme } from "@shifahub/db";
+import {
+  db,
+  sql,
+  users,
+  danisan,
+  egitmen,
+  kvkkConsent,
+  odeme,
+  careRelationship,
+} from "@shifahub/db";
 import type { UserRole } from "@shifahub/shared";
 
 /**
@@ -110,6 +119,13 @@ async function main() {
       .from(users)
       .where(eq(users.email, "demo.egitmen@shifahub.app"));
     if (demoEgt) {
+      // Demo bakim iliskisi (idempotent) — egitmen danisanin profilini gorebilsin
+      // (RLS app_has_care, hasta dosyasi kunyesi). unique(danisan,egitmen) -> conflict-noop.
+      await db
+        .insert(careRelationship)
+        .values({ danisanId: demoDan.id, egitmenId: demoEgt.id, status: "active" })
+        .onConflictDoNothing();
+
       const existingOdeme = await db
         .select({ id: odeme.id })
         .from(odeme)
