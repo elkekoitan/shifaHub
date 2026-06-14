@@ -15,7 +15,7 @@ const notoSerif = Noto_Serif({
 export const metadata: Metadata = {
   title: "ShifaHub — Bütünsel Tedavi Yönetimi",
   description:
-    "GETAT uygulayıcıları için danışan yönetimi, randevu takibi ve tedavi protokolleri platformu.",
+    "Bütünsel ve geleneksel şifa uygulayıcıları için danışan yönetimi, randevu takibi ve tedavi protokolleri platformu.",
   manifest: "/manifest.json",
   appleWebApp: { capable: true, statusBarStyle: "default", title: "ShifaHub" },
   formatDetection: { telephone: false },

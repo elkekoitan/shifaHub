@@ -77,3 +77,29 @@ export function computeHijri(date: Date): HijriInfo {
     isSunnahDay: (SUNNAH_DAYS as readonly number[]).includes(day),
   };
 }
+
+export interface SunnahDay {
+  /** Gun basi (UTC) tarih. */
+  date: Date;
+  /** ISO tarih (yyyy-mm-dd). */
+  iso: string;
+  hijriDate: string;
+}
+
+/**
+ * `from` tarihinden itibaren ileriye dogru tarayarak yaklasan hacamat sunnet
+ * gunlerini (Hicri 17/19/21) dondurur. Saf: `from` parametreden gelir (test
+ * edilebilir). Tarama ufku gun cinsinden sinirlidir (varsayilan 90 gun ~ 3 ay).
+ */
+export function upcomingSunnahDays(from: Date, count = 3, horizonDays = 90): SunnahDay[] {
+  const out: SunnahDay[] = [];
+  const start = Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate());
+  for (let i = 0; i <= horizonDays && out.length < count; i++) {
+    const d = new Date(start + i * 86_400_000);
+    const info = computeHijri(d);
+    if (info.isSunnahDay) {
+      out.push({ date: d, iso: d.toISOString().slice(0, 10), hijriDate: info.hijriDate });
+    }
+  }
+  return out;
+}

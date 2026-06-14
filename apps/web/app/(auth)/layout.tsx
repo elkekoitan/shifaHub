@@ -47,7 +47,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             dijital şifası.
           </h2>
           <p className="mt-3 max-w-sm text-sm text-primary-foreground/75">
-            GETAT uygulayıcıları ve danışanlar için sakin, güvenli ve KVKK-uyumlu tek platform.
+            Uygulama uzmanları ve danışanlar için sakin, güvenli ve KVKK-uyumlu tek platform.
           </p>
           <ul className="mt-8 space-y-4">
             {features.map(({ icon: Icon, title, desc }) => (

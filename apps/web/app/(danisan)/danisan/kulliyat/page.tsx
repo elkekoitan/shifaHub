@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Sparkles, Send, BookOpen } from "lucide-react";
+import { Sparkles, Send, BookOpen, BadgeCheck } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,12 +10,15 @@ import { cn } from "@/lib/utils";
 interface Msg {
   role: "user" | "assistant";
   content: string;
+  sources?: string[];
+  suggestions?: string[];
 }
 
-const suggestions = [
+const STARTERS = [
   "Hacamat hangi günlerde sünnettir?",
   "Sülük tedavisi kimlere uygulanmaz?",
-  "Fitoterapi nedir, nasıl uygulanır?",
+  "Yaş hacamat bana uygun mu?",
+  "Yaklaşan randevularım neler?",
 ];
 
 export default function KulliyatPage() {
@@ -35,7 +38,15 @@ export default function KulliyatPage() {
     setInput("");
     try {
       const res = await ask.mutateAsync({ question });
-      setMsgs((m) => [...m, { role: "assistant", content: res.answer }]);
+      setMsgs((m) => [
+        ...m,
+        {
+          role: "assistant",
+          content: res.answer,
+          sources: res.sources,
+          suggestions: res.suggestions,
+        },
+      ]);
     } catch (e) {
       setMsgs((m) => [
         ...m,
@@ -43,6 +54,10 @@ export default function KulliyatPage() {
       ]);
     }
   }
+
+  // Son asistan mesajının dinamik takip önerileri (yoksa başlangıç önerileri)
+  const lastAssistant = [...msgs].reverse().find((m) => m.role === "assistant");
+  const followUps = lastAssistant?.suggestions ?? [];
 
   return (
     <div className="flex h-[calc(100vh-6rem)] flex-col px-5 pt-6">
@@ -54,7 +69,7 @@ export default function KulliyatPage() {
           <h1 className="font-headline text-xl font-semibold leading-tight text-foreground">
             Külliyat
           </h1>
-          <p className="text-xs text-text-3">GETAT bilgi asistanı</p>
+          <p className="text-xs text-text-3">ShifaHub şifa asistanı</p>
         </div>
       </header>
 
@@ -65,10 +80,11 @@ export default function KulliyatPage() {
               <BookOpen className="size-6" aria-hidden />
             </span>
             <p className="max-w-xs text-sm text-text-2">
-              Hacamat, sülük, sujok, refleksoloji, fitoterapi ve GETAT hakkında soru sorun.
+              Hacamat, sülük, sujok, refleksoloji ve bitkisel destek hakkında sorun; size ve
+              randevularınıza özel, temellendirilmiş yanıt alın.
             </p>
             <div className="mt-2 flex flex-col gap-2">
-              {suggestions.map((s) => (
+              {STARTERS.map((s) => (
                 <button
                   key={s}
                   type="button"
@@ -88,13 +104,26 @@ export default function KulliyatPage() {
             >
               <div
                 className={cn(
-                  "max-w-[85%] whitespace-pre-wrap rounded-[var(--radius-lg)] px-4 py-2.5 text-sm leading-relaxed",
+                  "max-w-[85%] rounded-[var(--radius-lg)] px-4 py-2.5 text-sm leading-relaxed",
                   m.role === "user"
                     ? "bg-primary text-primary-foreground"
                     : "border border-border bg-card text-foreground shadow-[var(--shadow-sm)]",
                 )}
               >
-                {m.content}
+                <span className="whitespace-pre-wrap">{m.content}</span>
+                {m.sources && m.sources.length > 0 ? (
+                  <span className="mt-2 flex flex-wrap items-center gap-1.5 border-t border-border pt-2">
+                    <BadgeCheck className="size-3.5 text-primary" aria-hidden />
+                    {m.sources.map((s) => (
+                      <span
+                        key={s}
+                        className="rounded-full bg-secondary px-2 py-0.5 text-[10px] text-text-3"
+                      >
+                        {s}
+                      </span>
+                    ))}
+                  </span>
+                ) : null}
               </div>
             </div>
           ))
@@ -108,6 +137,22 @@ export default function KulliyatPage() {
         ) : null}
         <div ref={endRef} />
       </div>
+
+      {/* Dinamik takip önerileri */}
+      {followUps.length > 0 && !ask.isPending ? (
+        <div className="flex flex-wrap gap-2 pb-2">
+          {followUps.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => send(s)}
+              className="rounded-full border border-border bg-card px-3 py-1 text-xs text-text-2 transition-colors hover:border-primary/40 hover:text-primary"
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      ) : null}
 
       <form
         onSubmit={(e) => {

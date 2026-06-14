@@ -12,7 +12,7 @@ export default function Home() {
         </div>
         <h1 className="font-headline text-4xl font-bold text-foreground">ShifaHub</h1>
         <p className="mt-3 text-balance text-text-2">
-          Bütünsel tedavi yönetimi. GETAT uygulayıcıları ve danışanlar için sakin, güvenli ve
+          Bütünsel tedavi yönetimi. Uygulama uzmanları ve danışanlar için sakin, güvenli ve
           KVKK-uyumlu bir alan.
         </p>
         <div className="mt-10 flex w-full flex-col gap-3">

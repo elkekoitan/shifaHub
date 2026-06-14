@@ -5,6 +5,7 @@ import {
   canTransition,
   isTerminalStatus,
   computeHijri,
+  upcomingSunnahDays,
   type AppointmentStatus,
 } from "../src/domain/appointment";
 
@@ -94,5 +95,23 @@ describe("computeHijri (Umm al-Qura)", () => {
 
   it("hijriDate formati `<gun> <ay-adi> <yil>`", () => {
     expect(computeHijri(at("2026-07-02")).hijriDate).toMatch(/^\d{1,2} \S+ \d{4}$/);
+  });
+});
+
+describe("upcomingSunnahDays", () => {
+  const at = (iso: string) => new Date(`${iso}T12:00:00Z`);
+
+  it("verilen tarihten itibaren yaklasan sunnet gunlerini siralar", () => {
+    const days = upcomingSunnahDays(at("2026-07-01"), 3);
+    expect(days.map((d) => d.iso)).toEqual(["2026-07-02", "2026-07-04", "2026-07-06"]);
+    expect(days[0]!.hijriDate).toBe("17 Muharrem 1448");
+  });
+
+  it("istenen sayida sonuc doner ve hepsi gercekten sunnet gunu", () => {
+    const days = upcomingSunnahDays(at("2026-01-01"), 5);
+    expect(days).toHaveLength(5);
+    for (const d of days) {
+      expect(computeHijri(d.date).isSunnahDay).toBe(true);
+    }
   });
 });

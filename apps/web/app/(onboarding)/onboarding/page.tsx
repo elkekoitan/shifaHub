@@ -149,8 +149,8 @@ export default function OnboardingPage() {
                 {firstName ? `Hoş geldiniz, ${firstName}` : "Bütünsel şifaya hoş geldiniz"}
               </h1>
               <p className="mx-auto max-w-xs text-sm leading-relaxed text-text-2">
-                GETAT geleneğini modern, güvenli ve sakin bir deneyimle buluşturuyoruz. Kısa bir
-                tanıtımla başlayalım.
+                Geleneksel şifa birikimini modern, güvenli ve sakin bir deneyimle buluşturuyoruz.
+                Kısa bir tanıtımla başlayalım.
               </p>
             </div>
             <span className="mt-1 inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-[11px] text-text-3">
