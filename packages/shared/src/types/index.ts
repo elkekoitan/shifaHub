@@ -1,19 +1,8 @@
 // User roles
 export type UserRole = "danisan" | "egitmen" | "admin" | "tabip";
 
-// Appointment states
-export type AppointmentStatus =
-  | "requested"
-  | "confirmed"
-  | "reminded"
-  | "arrived"
-  | "treated"
-  | "completed"
-  | "cancelled"
-  | "no_show";
-
-// Payment status
-export type PaymentStatus = "paid" | "pending" | "partial" | "free";
+// AppointmentStatus + PaymentStatus, durum tuple'larindan turetilerek
+// ./domain'de tanimlanir (zod enum ile tek kaynak; "ertelendi" dahil).
 
 // Emergency severity
 export type EmergencySeverity = 1 | 2 | 3 | 4 | 5;

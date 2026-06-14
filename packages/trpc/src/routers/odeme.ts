@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, gte, lte } from "drizzle-orm";
 import { odeme } from "@shifahub/db";
+import { PAYMENT_STATUS_VALUES, deriveStatus } from "@shifahub/shared";
 import { z } from "zod";
 import { router, protectedProcedure, egitmenProcedure } from "../trpc";
 
@@ -17,10 +18,8 @@ import { router, protectedProcedure, egitmenProcedure } from "../trpc";
  */
 
 // ─── Enumlar ────────────────────────────────────────────────────────────────
+// Odeme durum tuple'i + deriveStatus @shifahub/shared/domain'de (tek kaynak + test).
 const paymentMethodValues = ["nakit", "kart", "havale", "eft"] as const;
-const paymentStatusValues = ["paid", "pending", "partial", "free"] as const;
-
-type PaymentStatus = (typeof paymentStatusValues)[number];
 
 // ─── Girdi semalari ─────────────────────────────────────────────────────────
 const createInput = z.object({
@@ -29,7 +28,7 @@ const createInput = z.object({
   amount: z.number().min(0, "Tutar negatif olamaz"),
   paidAmount: z.number().min(0).default(0),
   method: z.enum(paymentMethodValues).default("nakit"),
-  status: z.enum(paymentStatusValues).optional(),
+  status: z.enum(PAYMENT_STATUS_VALUES).optional(),
   description: z.string().optional(),
 });
 
@@ -38,13 +37,13 @@ const updateInput = z.object({
   amount: z.number().min(0).optional(),
   paidAmount: z.number().min(0).optional(),
   method: z.enum(paymentMethodValues).optional(),
-  status: z.enum(paymentStatusValues).optional(),
+  status: z.enum(PAYMENT_STATUS_VALUES).optional(),
   description: z.string().optional(),
 });
 
 const listInput = z.object({
   danisanId: z.string().uuid().optional(),
-  status: z.enum(paymentStatusValues).optional(),
+  status: z.enum(PAYMENT_STATUS_VALUES).optional(),
   limit: z.number().int().min(1).max(200).default(100),
 });
 
@@ -54,18 +53,6 @@ const dailyKasaInput = z.object({
   // ISO tarih (yyyy-mm-dd veya tam datetime); verilmezse bugun.
   date: z.string().optional(),
 });
-
-/**
- * Odenen ve toplam tutardan odeme durumunu otomatik belirler. "free" elle
- * verilmediyse korunmaz; kismi odeme "partial", tam odeme "paid", aksi
- * "pending" olur.
- */
-function deriveStatus(amount: number, paidAmount: number, explicit?: PaymentStatus): PaymentStatus {
-  if (explicit === "free") return "free";
-  if (paidAmount >= amount && amount > 0) return "paid";
-  if (paidAmount > 0 && paidAmount < amount) return "partial";
-  return explicit ?? "pending";
-}
 
 export const odemeRouter = router({
   // ─── create — odeme kaydi olustur (egitmen/admin) ─────────────────────────

@@ -98,7 +98,25 @@ Bu günlük her fazda güncellenir (Obsidian uyumlu, `[[wikilink]]`).
   MinIO root cred'i alamıyor, denenen 6 cred de `InvalidAccessKeyId`. Çözüm: Coolify UI'dan MinIO
   servisinin gerçek cred'i alınıp api MINIO_ACCESS/SECRET_KEY'e yazılır (1 adım, kod değişmez).
 
-## P6 — Test sertleştirme ⏳
+## P6 — Test sertleştirme 🔄
+
+- [x] **Saf domain mantığı `packages/shared/src/domain/`'e çıkarıldı** (tek kaynak + test edilebilir):
+      `appointment.ts` (VALID_TRANSITIONS state machine + canTransition/isTerminalStatus + computeHijri),
+      `billing.ts` (deriveStatus + PAYMENT_STATUS_VALUES), `treatment.ts` (checkContraindications +
+      BASE_PRICES + BLOOD/INVASIVE/BLEEDING sabitleri). randevu/odeme/tedavi router'ları artık
+      buradan import eder (gömülü kopyalar silindi). `AppointmentStatus`/`PaymentStatus` çift tanımı
+      types'tan kaldırıldı → domain kanonik (`ertelendi` dahil, zod enum ile tek kaynak).
+- [x] **Vitest unit testleri (`packages/shared/test/`, 45 test):** appointment (state machine tüm
+      geçişler + terminal + happy-path + Hicri çapa tarihleri 2026-07-02→"17 Muharrem 1448" sünnet✓,
+      18/20✗), billing (deriveStatus matrisi: free/paid/partial/pending + amount=0 + fazla ödeme +
+      explicit override), treatment (12 kontrendikasyon senaryosu + null güvenliği + çoklu risk),
+      auth-schema (register/login/refresh zod kabul/red). **45/45 geçti.**
+- [x] **Tüm kalite kapıları yeşil:** typecheck 8/8, lint 8/8, test **64 geçti** (shared 45 unit +
+      api 8 + db 11 integration; web passWithNoTests), build.
+- [x] **CI lint düzeltmesi:** `next lint` Next 16'da kaldırıldı (→ "lint"i dizin sanıyordu);
+      web lint `eslint app components lib stores providers`'a geçti (diğer paketlerle tutarlı).
+      web test `--passWithNoTests` (E2E ayrı `playwright` script'inde).
+- [ ] Playwright E2E (parite flow'ları) — canlı staging'e karşı (opsiyonel, sonraki adım)
 
 ## P7 — Coolify v2 deploy + parite + cutover 🔄
 

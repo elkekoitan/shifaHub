@@ -31,8 +31,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      # Integration tests spin up an embedded PostgreSQL (RLS + pgcrypto + auth +
-      # randevu state machine / double-booking). No external services needed.
+      # Unit tests (saf domain: state machine, kontrendikasyon, billing, Hicri,
+      # auth zod) + integration tests (embedded PostgreSQL: RLS + pgcrypto + auth +
+      # randevu cakisma + KVKK consent-gate). No external services needed.
       - name: Test
         run: npm run test
 

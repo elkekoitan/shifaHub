@@ -1,7 +1,12 @@
 import { TRPCError } from "@trpc/server";
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { randevu, users } from "@shifahub/db";
-import { HIJRI_MONTHS, SUNNAH_DAYS } from "@shifahub/shared";
+import {
+  APPOINTMENT_STATUS_VALUES,
+  canTransition,
+  computeHijri,
+  type AppointmentStatus,
+} from "@shifahub/shared";
 import { z } from "zod";
 import { protectedProcedure, egitmenProcedure, router } from "../trpc";
 
@@ -13,65 +18,8 @@ import { protectedProcedure, egitmenProcedure, router } from "../trpc";
  * burada ele alinir.
  */
 
-// ─── State Machine ──────────────────────────────────────────────────────────
-// Gecerli durum gecisleri. Bos dizi = terminal durum.
-const VALID_TRANSITIONS: Record<string, readonly string[]> = {
-  requested: ["confirmed", "cancelled"],
-  confirmed: ["reminded", "arrived", "cancelled", "ertelendi"],
-  reminded: ["arrived", "cancelled", "no_show", "ertelendi"],
-  arrived: ["treated"],
-  treated: ["completed"],
-  completed: [],
-  cancelled: [],
-  no_show: [],
-  ertelendi: ["confirmed", "cancelled"],
-};
-
-const appointmentStatusValues = [
-  "requested",
-  "confirmed",
-  "reminded",
-  "arrived",
-  "treated",
-  "completed",
-  "cancelled",
-  "no_show",
-  "ertelendi",
-] as const;
-
-// ─── Hicri tarih + sunnet gunu (Umm al-Qura, Intl.DateTimeFormat) ───────────
-interface HijriInfo {
-  hijriDate: string;
-  isSunnahDay: boolean;
-}
-
-/**
- * Verilen tarihin Hicri karsiligini ve hacamat sunnet gunu (ayin 17/19/21)
- * olup olmadigini hesaplar. islamic-umalqura takvimi kullanilir.
- */
-function computeHijri(date: Date): HijriInfo {
-  const parts = new Intl.DateTimeFormat("en-u-ca-islamic-umalqura", {
-    day: "numeric",
-    month: "numeric",
-    year: "numeric",
-    timeZone: "UTC",
-  }).formatToParts(date);
-
-  const get = (type: string): number => {
-    const part = parts.find((p) => p.type === type);
-    return part ? Number.parseInt(part.value, 10) : 0;
-  };
-
-  const day = get("day");
-  const monthIndex = get("month") - 1;
-  const year = get("year");
-  const monthName = HIJRI_MONTHS[monthIndex] ?? "";
-
-  return {
-    hijriDate: `${day} ${monthName} ${year}`.trim(),
-    isSunnahDay: (SUNNAH_DAYS as readonly number[]).includes(day),
-  };
-}
+// State machine + computeHijri @shifahub/shared/domain'e cikarildi (tek kaynak +
+// unit test). Burada yalniz import edilir.
 
 // ─── Girdi semalari ─────────────────────────────────────────────────────────
 const createInput = z.object({
@@ -87,12 +35,12 @@ const createInput = z.object({
 
 const updateStatusInput = z.object({
   randevuId: z.string().uuid(),
-  status: z.enum(appointmentStatusValues),
+  status: z.enum(APPOINTMENT_STATUS_VALUES),
   cancelReason: z.string().optional(),
 });
 
 const listInput = z.object({
-  status: z.enum(appointmentStatusValues).optional(),
+  status: z.enum(APPOINTMENT_STATUS_VALUES).optional(),
   limit: z.number().int().min(1).max(200).default(100),
 });
 
@@ -183,10 +131,9 @@ export const randevuRouter = router({
       });
     }
 
-    // State machine: gecerli gecisleri zorla.
-    const current = existing.status ?? "";
-    const allowed = VALID_TRANSITIONS[current] ?? [];
-    if (!allowed.includes(input.status)) {
+    // State machine: gecerli gecisleri zorla (kural @shifahub/shared/domain'de).
+    const current = (existing.status ?? "") as AppointmentStatus;
+    if (!canTransition(current, input.status)) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: `"${current}" durumundan "${input.status}" durumuna gecilemez.`,
