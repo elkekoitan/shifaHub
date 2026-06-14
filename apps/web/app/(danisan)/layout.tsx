@@ -22,7 +22,13 @@ export default function DanisanLayout({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!hasHydrated) return;
-    if (!user || user.role !== "danisan") router.replace("/giris");
+    if (!user || user.role !== "danisan") {
+      router.replace("/giris");
+      return;
+    }
+    if (localStorage.getItem(`shifahub-onboarded-${user.id}`) !== "1") {
+      router.replace("/onboarding");
+    }
   }, [hasHydrated, user, router]);
 
   if (!hasHydrated || !user || user.role !== "danisan") return null;

@@ -53,7 +53,13 @@ export default function EgitmenLayout({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!hasHydrated) return;
-    if (!user || user.role !== "egitmen") router.replace("/giris");
+    if (!user || user.role !== "egitmen") {
+      router.replace("/giris");
+      return;
+    }
+    if (localStorage.getItem(`shifahub-onboarded-${user.id}`) !== "1") {
+      router.replace("/onboarding");
+    }
   }, [hasHydrated, user, router]);
 
   if (!hasHydrated || !user || user.role !== "egitmen") return null;
