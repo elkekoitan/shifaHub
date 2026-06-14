@@ -41,6 +41,9 @@ const updateStatusInput = z.object({
 
 const listInput = z.object({
   status: z.enum(APPOINTMENT_STATUS_VALUES).optional(),
+  // Egitmen/admin belirli bir danisanin randevu gecmisini suzebilir (RLS zaten
+  // egitmenin yalniz kendi danisanlariyla paylasilan randevulari gormesini saglar).
+  danisanId: z.string().uuid().optional(),
   limit: z.number().int().min(1).max(200).default(100),
 });
 
@@ -174,6 +177,9 @@ export const randevuRouter = router({
   // ─── list — kendi randevulari (RLS), opsiyonel status filtresi ────────────
   list: protectedProcedure.input(listInput).query(async ({ ctx, input }) => {
     const conditions = input.status ? [eq(randevu.status, input.status)] : [];
+    // Egitmen/admin belirli bir danisani suzebilir; danisan rolunde RLS zaten
+    // kendine kapilar (verilse de baskasinin randevusu sorguya dusmez).
+    if (input.danisanId) conditions.push(eq(randevu.danisanId, input.danisanId));
 
     const rows = await ctx.db
       .select()

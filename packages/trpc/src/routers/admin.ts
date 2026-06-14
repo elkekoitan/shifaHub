@@ -26,7 +26,60 @@ const listUsersSchema = z
   })
   .default({ page: 1, pageSize: 20 });
 
+const egitmenAppSchema = z
+  .object({
+    status: z.enum(["pending", "approved", "rejected"]).optional(),
+    page: z.number().int().min(1).default(1),
+    pageSize: z.number().int().min(1).max(100).default(20),
+  })
+  .default({ page: 1, pageSize: 20 });
+
 export const adminRouter = router({
+  /**
+   * Egitmen basvurulari — users + egitmen JOIN ile hem userId hem egitmenId
+   * dondurur. approve/reject mutasyonlari egitmen tablosu id'sini ister; bu
+   * prosedur o eslemeyi saglar (listUsers yalnizca userId verir, yetmiyor).
+   */
+  listEgitmenApplications: adminProcedure.input(egitmenAppSchema).query(async ({ ctx, input }) => {
+    const conditions = [eq(users.role, "egitmen")];
+    if (input.status) conditions.push(eq(egitmen.approvalStatus, input.status));
+    const where = and(...conditions);
+    const offset = (input.page - 1) * input.pageSize;
+
+    const [rows, totalRow] = await Promise.all([
+      ctx.db
+        .select({
+          egitmenId: egitmen.id,
+          userId: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          clinicName: egitmen.clinicName,
+          approvalStatus: egitmen.approvalStatus,
+          isActive: users.isActive,
+          createdAt: users.createdAt,
+        })
+        .from(egitmen)
+        .innerJoin(users, eq(egitmen.userId, users.id))
+        .where(where)
+        .orderBy(desc(users.createdAt))
+        .limit(input.pageSize)
+        .offset(offset),
+      ctx.db
+        .select({ value: count() })
+        .from(egitmen)
+        .innerJoin(users, eq(egitmen.userId, users.id))
+        .where(where),
+    ]);
+
+    return {
+      applications: rows,
+      total: Number(totalRow[0]?.value ?? 0),
+      page: input.page,
+      pageSize: input.pageSize,
+    };
+  }),
+
   /**
    * Kullanici listesi — rol/aktiflik filtresi ve sayfalama ile. Sifreli PII
    * (telefon/TC) dondurulmez; UI icin yalnizca `phoneLast4` plaintext alani.

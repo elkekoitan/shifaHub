@@ -2,20 +2,11 @@
 
 import { use } from "react";
 import Link from "next/link";
-import {
-  ArrowLeft,
-  HeartPulse,
-  FlaskConical,
-  AlertTriangle,
-  Pill,
-  Droplets,
-  Cake,
-  Inbox,
-} from "lucide-react";
-import { TREATMENT_LABELS } from "@shifahub/shared";
+import { ArrowLeft, HeartPulse, AlertTriangle, Pill, Droplets, Cake, History } from "lucide-react";
 import { trpc } from "@/lib/trpc";
-import { StatusBadge } from "@/components/ui/status-badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TimelineList } from "@/components/gecmis/TimelineList";
+import { buildTimeline } from "@/components/gecmis/timeline-utils";
 
 const dateFmt = new Intl.DateTimeFormat("tr-TR", {
   day: "numeric",
@@ -54,8 +45,28 @@ function Chips({ items }: { items: string[] | null | undefined }) {
 export default function DanisanDetayPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const profil = trpc.danisan.byUserId.useQuery({ userId: id });
+  // Hasta dosyasi gecmisi — RLS yalnizca care_relationship='active' danisanin
+  // verisini dondurur; danisanId zorunlu/opsiyonel olarak gecilir.
   const tedaviler = trpc.tedavi.list.useQuery({ danisanId: id });
-  const tahliller = trpc.tahlil.list.useQuery({ danisanId: id, limit: 20 });
+  const tahliller = trpc.tahlil.list.useQuery({ danisanId: id, limit: 50 });
+  const randevular = trpc.randevu.list.useQuery({ danisanId: id, limit: 100 });
+  const odemeler = trpc.odeme.list.useQuery({ danisanId: id });
+  const protokoller = trpc.protokol.list.useQuery({ danisanId: id });
+
+  const gecmisLoading =
+    tedaviler.isLoading ||
+    tahliller.isLoading ||
+    randevular.isLoading ||
+    odemeler.isLoading ||
+    protokoller.isLoading;
+
+  const timeline = buildTimeline({
+    randevu: randevular.data,
+    tedavi: tedaviler.data,
+    tahlil: tahliller.data,
+    odeme: odemeler.data,
+    protokol: protokoller.data,
+  });
 
   return (
     <div className="px-5 pt-6">
@@ -156,76 +167,16 @@ export default function DanisanDetayPage({ params }: { params: Promise<{ id: str
         </>
       ) : null}
 
-      {/* Tedavi gecmisi */}
-      <section className="mb-6">
-        <h2 className="mb-3 flex items-center gap-1.5 font-headline text-base font-semibold text-foreground">
-          <HeartPulse className="size-4 text-primary" aria-hidden /> Tedavi geçmişi
-        </h2>
-        {tedaviler.isLoading ? (
-          <Skeleton className="h-16 w-full" />
-        ) : tedaviler.data && tedaviler.data.length > 0 ? (
-          <ul className="space-y-2">
-            {tedaviler.data.map((t) => (
-              <li key={t.id} className="rounded-[var(--radius)] border border-border bg-card p-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-foreground">
-                    {TREATMENT_LABELS[t.treatmentType] ?? t.treatmentType}
-                  </span>
-                  <span className="text-xs text-text-3">
-                    {t.treatmentDate ? dateFmt.format(new Date(t.treatmentDate)) : ""}
-                  </span>
-                </div>
-                <p className="mt-0.5 text-xs text-text-3">
-                  Seans {t.sessionNumber ?? 1} · {t.egitmenFirstName} {t.egitmenLastName}
-                </p>
-                {t.contraindications && t.contraindications.length > 0 ? (
-                  <div className="mt-2">
-                    <StatusBadge tone="warning" icon={AlertTriangle}>
-                      {t.contraindications.length} kontrendikasyon uyarısı
-                    </StatusBadge>
-                  </div>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="flex flex-col items-center gap-2 rounded-[var(--radius-lg)] border border-dashed border-border bg-card p-6 text-center">
-            <Inbox className="size-6 text-text-3" aria-hidden />
-            <p className="text-sm text-text-2">Tedavi kaydı yok.</p>
-          </div>
-        )}
-      </section>
-
-      {/* Tahlil sonuclari */}
+      {/* Hasta dosyasi — birlesik gecmis (randevu + tedavi + tahlil + odeme + protokol) */}
       <section className="pb-4">
         <h2 className="mb-3 flex items-center gap-1.5 font-headline text-base font-semibold text-foreground">
-          <FlaskConical className="size-4 text-primary" aria-hidden /> Tahliller
+          <History className="size-4 text-primary" aria-hidden /> Hasta dosyası — geçmiş
         </h2>
-        {tahliller.isLoading ? (
-          <Skeleton className="h-16 w-full" />
-        ) : tahliller.data && tahliller.data.length > 0 ? (
-          <ul className="space-y-2">
-            {tahliller.data.map((t) => (
-              <li
-                key={t.id}
-                className="flex items-center justify-between rounded-[var(--radius)] border border-border bg-card p-3"
-              >
-                <div>
-                  <p className="text-sm font-medium text-foreground">{t.testType}</p>
-                  <p className="text-xs text-text-3">{t.labName ?? "Laboratuvar"}</p>
-                </div>
-                <span className="text-xs text-text-3">
-                  {t.testDate ? dateFmt.format(new Date(t.testDate)) : ""}
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="flex flex-col items-center gap-2 rounded-[var(--radius-lg)] border border-dashed border-border bg-card p-6 text-center">
-            <Inbox className="size-6 text-text-3" aria-hidden />
-            <p className="text-sm text-text-2">Tahlil sonucu yok.</p>
-          </div>
-        )}
+        <TimelineList
+          items={timeline}
+          loading={gecmisLoading}
+          emptyText="Bu danışan için henüz kayıt yok."
+        />
       </section>
     </div>
   );
