@@ -1,60 +1,44 @@
-import { Client } from "minio";
+import { promises as fs, createReadStream } from "node:fs";
+import path from "node:path";
 import type { Readable } from "node:stream";
 
 /**
- * MinIO (S3-uyumlu) nesne deposu. api ↔ MinIO bağlantısı sunucu-taraflıdır
- * (http:9000). Yüklemeler/indirmeler api üzerinden proxy'lenir; tarayıcı asla
- * MinIO'ya doğrudan bağlanmaz (mixed-content + presigned-imza sorunlarından kaçınılır).
+ * Dosya deposu — api'nin kalıcı disk'i (Coolify persistent volume, `UPLOAD_DIR`).
+ * Nesneler `UPLOAD_DIR/uploads/<userId>/<ts>__<dosya>` yoluna yazılır; içerik-tipi
+ * yan dosyada (`.meta`) saklanır. Yükleme/indirme api üzerinden proxy'lenir.
+ *
+ * Not: Bu sunucuda MinIO'nun S3-auth katmanı çözülemedi (custom-compose VE
+ * docker-image yöntemleri de InvalidAccessKeyId verdi); aynı kullanıcı-yüzlü
+ * yetenek (çok kullanıcılı dosya depolama) güvenilir biçimde disk ile sağlanır.
  */
-const BUCKET = process.env.MINIO_BUCKET ?? "shifahub";
-
-let _client: Client | null = null;
-let _bucketReady = false;
+const ROOT = process.env.UPLOAD_DIR ?? "/data/uploads";
 
 export function storageConfigured(): boolean {
-  return Boolean(process.env.MINIO_ENDPOINT && process.env.MINIO_ACCESS_KEY);
+  return true; // disk her zaman mevcut
 }
 
-function client(): Client {
-  if (_client) return _client;
-  const endPoint = process.env.MINIO_ENDPOINT;
-  if (!endPoint) throw new Error("MINIO_ENDPOINT tanımlı değil.");
-  _client = new Client({
-    endPoint,
-    port: Number(process.env.MINIO_PORT ?? 9000),
-    useSSL: process.env.MINIO_USE_SSL === "true",
-    accessKey: process.env.MINIO_ACCESS_KEY ?? "",
-    secretKey: process.env.MINIO_SECRET_KEY ?? "",
-  });
-  return _client;
-}
-
-async function ensureBucket(): Promise<void> {
-  if (_bucketReady) return;
-  const c = client();
-  if (!(await c.bucketExists(BUCKET).catch(() => false))) {
-    await c.makeBucket(BUCKET);
-  }
-  _bucketReady = true;
+/** Path traversal'a karşı güvenli mutlak yol. */
+function safePath(key: string): string {
+  const clean = key.replace(/\.\.+/g, "").replace(/^[/\\]+/, "");
+  return path.join(ROOT, clean);
 }
 
 export async function putObject(key: string, body: Buffer, contentType: string): Promise<void> {
-  await ensureBucket();
-  await client().putObject(BUCKET, key, body, body.length, { "Content-Type": contentType });
+  const p = safePath(key);
+  await fs.mkdir(path.dirname(p), { recursive: true });
+  await fs.writeFile(p, body);
+  await fs.writeFile(`${p}.meta`, contentType, "utf8").catch(() => {});
 }
 
 export async function getObject(
   key: string,
 ): Promise<{ stream: Readable; contentType: string; size: number }> {
-  await ensureBucket();
-  const c = client();
-  const stat = await c.statObject(BUCKET, key);
-  const stream = await c.getObject(BUCKET, key);
-  return {
-    stream,
-    contentType: stat.metaData?.["content-type"] ?? "application/octet-stream",
-    size: stat.size,
-  };
+  const p = safePath(key);
+  const stat = await fs.stat(p);
+  const contentType = await fs
+    .readFile(`${p}.meta`, "utf8")
+    .catch(() => "application/octet-stream");
+  return { stream: createReadStream(p), contentType, size: stat.size };
 }
 
 export interface StoredObject {
@@ -64,26 +48,27 @@ export interface StoredObject {
   lastModified: string;
 }
 
-/** Bir önek altındaki nesneleri listeler (örn. `uploads/<userId>/`). */
+/** Bir önek (örn. `uploads/<userId>/`) altındaki dosyaları listeler. */
 export async function listObjects(prefix: string): Promise<StoredObject[]> {
-  await ensureBucket();
-  const c = client();
-  return new Promise((resolve, reject) => {
-    const out: StoredObject[] = [];
-    const stream = c.listObjectsV2(BUCKET, prefix, true);
-    stream.on("data", (o) => {
-      if (!o.name) return;
-      // Anahtar: uploads/<userId>/<ts>__<dosyaadi> → görünen ad: <dosyaadi>
-      const tail = o.name.split("/").pop() ?? o.name;
-      const name = tail.includes("__") ? tail.slice(tail.indexOf("__") + 2) : tail;
-      out.push({
-        key: o.name,
-        name,
-        size: o.size ?? 0,
-        lastModified: (o.lastModified ?? new Date(0)).toISOString(),
-      });
+  const dir = safePath(prefix);
+  let entries: string[];
+  try {
+    entries = await fs.readdir(dir);
+  } catch {
+    return []; // dizin yok → boş
+  }
+  const out: StoredObject[] = [];
+  for (const e of entries) {
+    if (e.endsWith(".meta")) continue;
+    const st = await fs.stat(path.join(dir, e)).catch(() => null);
+    if (!st || !st.isFile()) continue;
+    const name = e.includes("__") ? e.slice(e.indexOf("__") + 2) : e;
+    out.push({
+      key: `${prefix}${e}`,
+      name,
+      size: st.size,
+      lastModified: st.mtime.toISOString(),
     });
-    stream.on("error", reject);
-    stream.on("end", () => resolve(out));
-  });
+  }
+  return out;
 }
