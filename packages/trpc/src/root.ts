@@ -17,6 +17,7 @@ import { acilRouter } from "./routers/acil";
 import { adminRouter } from "./routers/admin";
 import { kvkkRouter } from "./routers/kvkk";
 import { kulliyatRouter } from "./routers/kulliyat";
+import { geriBildirimRouter } from "./routers/geri-bildirim";
 
 /** The application's single root router — the end-to-end type-safe API surface. */
 export const appRouter = router({
@@ -38,6 +39,7 @@ export const appRouter = router({
   admin: adminRouter,
   kvkk: kvkkRouter,
   kulliyat: kulliyatRouter,
+  geriBildirim: geriBildirimRouter,
 });
 
 export type AppRouter = typeof appRouter;

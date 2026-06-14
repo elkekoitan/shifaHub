@@ -1,24 +1,62 @@
 "use client";
 
 import { useState } from "react";
-import { MessageSquareHeart, Star, Info } from "lucide-react";
+import { MessageSquareHeart, Star, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
 /**
- * Geri bildirim sayfası — backend'de henüz bir "geri bildirim" prosedürü yok.
- * Rota derlenebilir kalsın diye temiz başlıklı bir form + bilgilendirme placeholder'ı
- * gösterilir; gönderim prosedürü eklendiğinde mutation buraya bağlanır.
+ * Geri bildirim — danışan memnuniyet puanı (1-5) + yorum gönderir
+ * (trpc.geriBildirim.create). RLS: yalnızca kendi gönderdiğini görür.
  */
 export default function DanisanGeriBildirimPage() {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
+  const [done, setDone] = useState(false);
+  const create = trpc.geriBildirim.create.useMutation();
 
-  function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // Prosedür hazır olmadığından gönderim devre dışı; kullanıcı bilgilendirilir.
-    toast.info("Geri bildirim gönderimi yakında aktif olacak. Teşekkürler!");
+    if (rating < 1) {
+      toast.error("Lütfen bir memnuniyet puanı seçin.");
+      return;
+    }
+    try {
+      await create.mutateAsync({ rating, comment: comment.trim() || undefined });
+      setDone(true);
+      toast.success("Geri bildiriminiz alındı. Teşekkürler!");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gönderilemedi.");
+    }
+  }
+
+  if (done) {
+    return (
+      <div className="px-5 pt-6">
+        <div className="flex flex-col items-center gap-3 rounded-[var(--radius-lg)] border border-border bg-card py-14 text-center shadow-[var(--shadow-sm)]">
+          <span className="flex size-14 items-center justify-center rounded-full bg-success-bg text-success">
+            <CheckCircle2 className="size-8" aria-hidden />
+          </span>
+          <h1 className="font-headline text-lg font-semibold text-foreground">Teşekkürler!</h1>
+          <p className="max-w-xs text-sm text-text-2">
+            Geri bildiriminiz bizim için değerli. Deneyiminizi iyileştirmek için kullanacağız.
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setDone(false);
+              setRating(0);
+              setComment("");
+            }}
+          >
+            Yeni geri bildirim
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -27,14 +65,6 @@ export default function DanisanGeriBildirimPage() {
         <h1 className="font-headline text-xl font-semibold text-foreground">Geri bildirim</h1>
         <p className="mt-1 text-sm text-text-2">Deneyiminizi bizimle paylaşın.</p>
       </header>
-
-      <div className="mb-5 flex items-start gap-2 rounded-[var(--radius)] border border-info-border bg-info-bg p-4 text-xs text-info">
-        <Info className="mt-0.5 size-4 shrink-0" aria-hidden />
-        <span>
-          Geri bildirim gönderimi şu an hazırlık aşamasında. Formu doldurabilirsiniz; gönderim
-          özelliği yakında etkinleştirilecek.
-        </span>
-      </div>
 
       <form
         onSubmit={onSubmit}
@@ -82,7 +112,7 @@ export default function DanisanGeriBildirimPage() {
           />
         </div>
 
-        <Button type="submit" className="w-full">
+        <Button type="submit" className="w-full" loading={create.isPending}>
           <MessageSquareHeart className="size-4" aria-hidden />
           Gönder
         </Button>

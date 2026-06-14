@@ -18,3 +18,4 @@ export * from "./komplikasyon";
 export * from "./protokol";
 export * from "./musaitlik";
 export * from "./care_relationship";
+export * from "./geri_bildirim";

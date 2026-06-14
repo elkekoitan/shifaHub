@@ -153,12 +153,24 @@ export const kvkkRouter = router({
         .where(eq(kvkkConsent.id, active.id))
         .returning(consentSelect);
 
+      // Saglik verisi rizasi cekilirse operasyonel cascade (PRD 27.3): bekleyen
+      // randevular iptal + bakim iliskileri sonlandirilir (egitmen klinik erisimi
+      // kapanir). RLS WITH CHECK danisana izin vermedigi icin SECURITY DEFINER fn.
+      let cascadeNote = "";
+      if (input.purpose === "saglik_verisi_isleme") {
+        const rows = (await ctx.db.execute(
+          sql`select apply_consent_revocation(${ctx.user.id}::uuid) as result`,
+        )) as unknown as Array<{ result: { cancelledRandevu: number; endedCare: number } }>;
+        const r = rows[0]?.result;
+        cascadeNote = ` (otomasyon: ${r?.cancelledRandevu ?? 0} randevu iptal, ${r?.endedCare ?? 0} bakim iliskisi sonlandirildi)`;
+      }
+
       await ctx.db.insert(auditLog).values({
         userId: ctx.user.id,
         action: "consent_revoked",
         tableName: "kvkk_consent",
         recordId: active.id,
-        description: `Acik riza geri cekildi: ${input.purpose}`,
+        description: `Acik riza geri cekildi: ${input.purpose}${cascadeNote}`,
       });
 
       return updated!;

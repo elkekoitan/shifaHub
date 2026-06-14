@@ -81,6 +81,8 @@ export default function EgitmenStokPage() {
   }
 
   const criticalCount = (list.data ?? []).filter((s) => s.isCritical).length;
+  const expiringCount = (list.data ?? []).filter((s) => s.isExpiringSoon).length;
+  const expiredCount = (list.data ?? []).filter((s) => s.isExpired).length;
 
   return (
     <div className="px-5 pt-6">
@@ -96,11 +98,23 @@ export default function EgitmenStokPage() {
         </Button>
       </header>
 
-      {/* Kritik uyari ozeti */}
+      {/* Kritik / son kullanma uyari ozetleri */}
       {criticalCount > 0 ? (
-        <div className="mb-4 flex items-center gap-2 rounded-[var(--radius)] border border-warning-border bg-warning-bg px-4 py-2.5 text-sm text-warning">
+        <div className="mb-2 flex items-center gap-2 rounded-[var(--radius)] border border-warning-border bg-warning-bg px-4 py-2.5 text-sm text-warning">
           <PackageX className="size-4 shrink-0" aria-hidden />
           {criticalCount} kalem kritik seviyede.
+        </div>
+      ) : null}
+      {expiredCount > 0 ? (
+        <div className="mb-2 flex items-center gap-2 rounded-[var(--radius)] border border-destructive-border bg-destructive-bg px-4 py-2.5 text-sm text-destructive">
+          <AlertTriangle className="size-4 shrink-0" aria-hidden />
+          {expiredCount} kalemin son kullanma tarihi geçti.
+        </div>
+      ) : null}
+      {expiringCount > 0 ? (
+        <div className="mb-4 flex items-center gap-2 rounded-[var(--radius)] border border-warning-border bg-warning-bg px-4 py-2.5 text-sm text-warning">
+          <CalendarClock className="size-4 shrink-0" aria-hidden />
+          {expiringCount} kalemin son kullanma tarihi yaklaşıyor (30 gün).
         </div>
       ) : null}
 

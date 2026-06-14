@@ -223,3 +223,61 @@ describe("KVKK consent-gate (user_has_active_consent)", () => {
     expect(r!.ok).toBe(false);
   });
 });
+
+describe("geri_bildirim RLS", () => {
+  it("danışan kendi geri bildirimini yazar ve görür; başkasınınkini görmez", async () => {
+    await sql.begin(async (tx) => {
+      await actAs(tx, danisanA, "danisan");
+      await tx`insert into geri_bildirim (danisan_id, rating, comment) values (${danisanA}, 5, 'harika')`;
+    });
+
+    const own = await sql.begin(async (tx) => {
+      await actAs(tx, danisanA, "danisan");
+      return tx`select id from geri_bildirim`;
+    });
+    expect(own.length).toBe(1);
+
+    const other = await sql.begin(async (tx) => {
+      await actAs(tx, danisanB, "danisan");
+      return tx`select id from geri_bildirim`;
+    });
+    expect(other.length).toBe(0);
+  });
+
+  it("danışan başkası adına geri bildirim yazamaz (WITH CHECK reddi)", async () => {
+    await expect(
+      sql.begin(async (tx) => {
+        await actAs(tx, danisanB, "danisan");
+        await tx`insert into geri_bildirim (danisan_id, rating) values (${danisanA}, 3)`;
+      }),
+    ).rejects.toThrow();
+  });
+});
+
+describe("KVKK rıza-çekme cascade (apply_consent_revocation)", () => {
+  it("bekleyen randevuyu iptal eder + bakım ilişkisini sonlandırır (yalnızca p_user)", async () => {
+    // Ön koşul: danisanA'nın 'requested' randevusu + 'active' care_relationship var.
+    const [beforeRnd] = await sql`select status from randevu where danisan_id = ${danisanA}`;
+    const [beforeCare] =
+      await sql`select status from care_relationship where danisan_id = ${danisanA} and egitmen_id = ${egitmenC}`;
+    expect(beforeRnd!.status).toBe("requested");
+    expect(beforeCare!.status).toBe("active");
+
+    const [res] = await sql`select apply_consent_revocation(${danisanA}::uuid) as result`;
+    const r = res!.result as { cancelledRandevu: number; endedCare: number };
+    expect(r.cancelledRandevu).toBe(1);
+    expect(r.endedCare).toBe(1);
+
+    const [afterRnd] =
+      await sql`select status, cancel_reason from randevu where danisan_id = ${danisanA}`;
+    const [afterCare] =
+      await sql`select status from care_relationship where danisan_id = ${danisanA}`;
+    expect(afterRnd!.status).toBe("cancelled");
+    expect(afterRnd!.cancel_reason).toContain("KVKK");
+    expect(afterCare!.status).toBe("ended");
+
+    // danisanB etkilenmemeli (fonksiyon yalnızca p_user'a dokunur).
+    const [bRnd] = await sql`select status from randevu where danisan_id = ${danisanB}`;
+    expect(bRnd!.status).toBe("requested");
+  });
+});

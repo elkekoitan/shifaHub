@@ -36,6 +36,20 @@
       "when": 1781500000000,
       "tag": "0004_odeme_online",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1781600000000,
+      "tag": "0005_geri_bildirim",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1781700000000,
+      "tag": "0006_consent_revocation",
+      "breakpoints": true
     }
   ]
 }
