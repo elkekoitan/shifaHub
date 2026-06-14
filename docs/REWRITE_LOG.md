@@ -69,10 +69,11 @@ Bu günlük her fazda güncellenir (Obsidian uyumlu, `[[wikilink]]`).
 - [x] **Evolution API (WhatsApp gateway) CANLI** — `evoapicloud/evolution-api:v2.3.7` Coolify **Docker-image
       app** olarak kuruldu (`kece1pz4rtyjikbrao30hvst`), sistemik custom-compose env sorununu baypaslar.
       PG v2'ye bağlı (`?schema=evolution_v2` — `public`'le çakışmaz) + Redis v2 (DB 1). 36 config flag.
-      `shifahub` WhatsApp instance'ı oluşturuldu. **Evolution Manager** açıldı; QR pairing kullanıcıda.
-      API key: `L7Fng1p6CG90heagjgLWrITqwZ3rkBU6`.
-- [ ] kalan ajanlar: Telegram(grammy)/SMS(Netgsm)/e-posta(Resend) — **anahtar bekliyor**; app notification
-      servisini Evolution `sendText`'e bağlama (eşleşme sonrası)
+      `shifahub` WhatsApp instance'ı oluşturuldu. **Manager'dan EŞLEŞTİRİLDİ** (state: open, +90 554 541 7561).
+- [x] **WhatsApp gönderim entegrasyonu** — `lib/whatsapp.ts` (`sendWhatsApp`, Evolution sendText, TR→WA
+      format). Hatırlatma worker'ı danışanın şifreli telefonunu (pgcrypto) çözüp 24h/1h randevu
+      hatırlatmalarını **WhatsApp'tan da** gönderir. api env: EVOLUTION_URL/KEY/INSTANCE.
+- [ ] kalan ajanlar: Telegram(grammy)/SMS(Netgsm)/e-posta(Resend) — **anahtar bekliyor**
 - [ ] Qdrant vektör DB + embeddings (knowledge base), Whisper anamnez, online ödeme (Finance)
 
 ## P3 — Backend (devam: hatırlatma worker) 🔄
